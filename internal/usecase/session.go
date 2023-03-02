@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const SessionTimeout = time.Hour * 12
+
 type SessionRepository interface {
 	Add(session domain.Session) error
 	Get(id uuid.UUID) (domain.Session, error)
@@ -21,7 +23,7 @@ func NewSessionUseCase(repo SessionRepository) *SessionUseCase {
 }
 
 func (uc *SessionUseCase) CreateSession(user domain.User) (domain.Session, error) {
-	newSession := domain.NewSession(user.ID, time.Now().Add(time.Hour*12))
+	newSession := domain.NewSession(user.ID, time.Now().Add(SessionTimeout))
 	err := uc.repo.Add(newSession)
 	return newSession, err
 }

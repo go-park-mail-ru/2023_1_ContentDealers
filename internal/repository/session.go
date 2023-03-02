@@ -33,9 +33,6 @@ func (repo *SessionInMemoryRepository) Get(sessionID uuid.UUID) (domain.Session,
 	if !ok {
 		return session, ErrSessionNotFound
 	}
-	if session.ExpiresAt.Before(time.Now()) {
-		repo.Delete(sessionID)
-	}
 	return session, nil
 }
 
