@@ -33,27 +33,27 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("error while unmarshalling JSON: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"status": 400}`)
+		io.WriteString(w, `{"status":400}`)
 		return
 	}
-
 	newUser, err := h.userUseCase.RegisterUser(credentials)
 	if err != nil {
 		switch err {
 		case repository.ErrUserAlreadyExists:
 			w.WriteHeader(http.StatusConflict)
-			io.WriteString(w, `{"status": 409}`)
+			io.WriteString(w, `{"status":409}`)
 		default:
+			// TODO: данные не прошли валидацию, нужен кастомный тип ошибки
 			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			io.WriteString(w, `{"status": 500}`)
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, `{"status":400}`)
 		}
 		return
 	}
 
 	log.Printf("New User - %v", newUser)
 	w.WriteHeader(http.StatusCreated)
-	io.WriteString(w, `{"status": 201}`)
+	io.WriteString(w, `{"status":201}`)
 }
 
 func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
@@ -65,14 +65,14 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("error while unmarshalling JSON: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"status": 400}`)
+		io.WriteString(w, `{"status":400}`)
 		return
 	}
 
 	user, err := h.userUseCase.AuthUser(credentials)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		io.WriteString(w, `{"status": 404}`)
+		io.WriteString(w, `{"status":404}`)
 		return
 	}
 
@@ -80,7 +80,7 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status": 500}`)
+		io.WriteString(w, `{"status":500}`)
 	}
 
 	sessionCookie := http.Cookie{
@@ -93,7 +93,7 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &sessionCookie)
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, `{"status": 200}`)
+	io.WriteString(w, `{"status":200}`)
 }
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -104,14 +104,14 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status": 500}`)
+		io.WriteString(w, `{"status":500}`)
 		return
 	}
 
 	err := h.sessionUseCase.DeleteSession(session.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status": 500}`)
+		io.WriteString(w, `{"status":500}`)
 		return
 	}
 
@@ -125,7 +125,7 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &sessionCookie)
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, `{"status": 200}`)
+	io.WriteString(w, `{"status":200}`)
 }
 
 func (h *UserHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
@@ -136,23 +136,30 @@ func (h *UserHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status": 500}`)
+		io.WriteString(w, `{"status":500}`)
 		return
 	}
 
 	user, err := h.userUseCase.GetById(session.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status": 500}`)
+		io.WriteString(w, `{"status":500}`)
 	}
 
-	responseBody, err := json.Marshal(map[string]interface{}{
+	response, err := json.Marshal(map[string]interface{}{
 		"status": http.StatusOK,
 		"body": map[string]interface{}{
 			"user": user,
 		},
 	})
 
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		io.WriteString(w, `{"status":500}`)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, string(responseBody))
+	w.Write(response)
 }

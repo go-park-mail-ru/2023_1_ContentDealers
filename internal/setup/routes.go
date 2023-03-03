@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/middleware"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -14,24 +13,12 @@ import (
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	io.WriteString(w, `{"status": 404}`)
+	io.WriteString(w, `{"status":404}`)
 }
 
-func Routes() *mux.Router {
-	userRepository := repository.NewUserInMemoryRepository()
-	sessionRepository := repository.NewSessionInMemoryRepository()
-	movieRepository := repository.NewMovieInMemoryRepository()
-	movieSelectionRepository := repository.NewMovieSelectionInMemoryRepository()
-
-	Content(&movieRepository, &movieSelectionRepository)
-
-	userUseCase := usecase.NewUser(&userRepository)
-	sessionUseCase := usecase.NewSession(&sessionRepository)
-	movieSelectionUseCase := usecase.NewMovieSelection(&movieSelectionRepository)
-
-	userHandler := delivery.NewUserHandler(userUseCase, sessionUseCase)
-	movieSelectionHandler := delivery.NewMovieSelectionHandler(&movieSelectionUseCase)
-
+func Routes(userHandler delivery.UserHandler,
+	movieSelectionHandler delivery.MovieSelectionHandler,
+	sessionUseCase *usecase.SessionUseCase) *mux.Router {
 	corsMiddleware := cors.New(cors.Options{
 		// TODO: поменять настройки CORS, когда будет известен домен
 		AllowedOrigins:   []string{"example.com"},

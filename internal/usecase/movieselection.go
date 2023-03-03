@@ -11,8 +11,8 @@ type MovieSelectionUseCase struct {
 	repo MovieSelectionRepository
 }
 
-func NewMovieSelection(repo MovieSelectionRepository) MovieSelectionUseCase {
-	return MovieSelectionUseCase{repo: repo}
+func NewMovieSelection(repo MovieSelectionRepository) *MovieSelectionUseCase {
+	return &MovieSelectionUseCase{repo: repo}
 }
 
 func (uc *MovieSelectionUseCase) GetAll() ([]domain.MovieSelection, error) {
