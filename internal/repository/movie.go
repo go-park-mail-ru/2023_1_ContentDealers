@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
 )
@@ -18,8 +19,8 @@ func NewMovieInMemoryRepository() MovieInMemoryRepository {
 	return MovieInMemoryRepository{}
 }
 
-func (repo *MovieInMemoryRepository) Add(movies []domain.Movie) {
-	repo.storage = append(repo.storage, movies...)
+func (repo *MovieInMemoryRepository) Add(movies domain.Movie) {
+	repo.storage = append(repo.storage, movies)
 }
 
 func (repo *MovieInMemoryRepository) GetById(id uint64) (domain.Movie, error) {

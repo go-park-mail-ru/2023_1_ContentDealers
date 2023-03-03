@@ -27,6 +27,10 @@ func Content(movieRepo *repository.MovieInMemoryRepository,
 			},
 		},
 	}
-	movieRepo.Add(movies)
-	movieSelectionRepo.Add(selections)
+	for _, movie := range movies {
+		movieRepo.Add(movie)
+	}
+	for _, selection := range selections {
+		movieSelectionRepo.Add(selection)
+	}
 }

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
 	"log"
 	"net/http"
+
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
 )
 
 const addr = ":8080"

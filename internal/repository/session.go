@@ -2,10 +2,11 @@ package repository
 
 import (
 	"errors"
+	"time"
+
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
 	"github.com/google/uuid"
-	"time"
 )
 
 var ErrSessionNotFound = errors.New("session not found")

@@ -1,14 +1,15 @@
-package delievery
+package delivery
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
 	"io"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
 )
 
 type UserHandler struct {

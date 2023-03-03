@@ -19,8 +19,8 @@ func NewMovieSelectionInMemoryRepository() MovieSelectionInMemoryRepository {
 	return MovieSelectionInMemoryRepository{}
 }
 
-func (repo *MovieSelectionInMemoryRepository) Add(selections []domain.MovieSelection) {
-	repo.storage = append(repo.storage, selections...)
+func (repo *MovieSelectionInMemoryRepository) Add(selections domain.MovieSelection) {
+	repo.storage = append(repo.storage, selections)
 }
 
 func (repo *MovieSelectionInMemoryRepository) GetAll() ([]domain.MovieSelection, error) {

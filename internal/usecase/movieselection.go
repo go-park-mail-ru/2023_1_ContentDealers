@@ -11,7 +11,7 @@ type MovieSelectionUseCase struct {
 	repo MovieSelectionRepository
 }
 
-func NewMovieSelectionUseCase(repo MovieSelectionRepository) MovieSelectionUseCase {
+func NewMovieSelection(repo MovieSelectionRepository) MovieSelectionUseCase {
 	return MovieSelectionUseCase{repo: repo}
 }
 

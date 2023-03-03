@@ -1,12 +1,13 @@
-package delievery
+package delivery
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"

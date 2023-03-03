@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
@@ -18,7 +19,7 @@ type UserUseCase struct {
 	repo UserRepository
 }
 
-func NewUserUseCase(repo UserRepository) *UserUseCase {
+func NewUser(repo UserRepository) *UserUseCase {
 	return &UserUseCase{repo: repo}
 }
 
