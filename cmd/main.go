@@ -33,7 +33,12 @@ func Run() error {
 	userHandler := delivery.NewUserHandler(userUseCase, sessionUseCase)
 	movieSelectionHandler := delivery.NewMovieSelectionHandler(movieSelectionUseCase)
 
-	router := setup.Routes(userHandler, movieSelectionHandler, sessionUseCase)
+	router := setup.Routes(&setup.SettingsRouter{
+		UserHandler:           userHandler,
+		MovieSelectionHandler: movieSelectionHandler,
+		SessionUseCase:        sessionUseCase,
+		AllowedOrigins:        []string{"example.com"},
+	})
 
 	server := http.Server{
 		Addr:    addr,

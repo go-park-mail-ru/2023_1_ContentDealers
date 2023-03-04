@@ -16,16 +16,21 @@ func NotFound(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `{"status":404}`)
 }
 
-func Routes(userHandler delivery.UserHandler,
-	movieSelectionHandler delivery.MovieSelectionHandler,
-	sessionUseCase *usecase.SessionUseCase) *mux.Router {
+type SettingsRouter struct {
+	AllowedOrigins        []string
+	UserHandler           delivery.UserHandler
+	MovieSelectionHandler delivery.MovieSelectionHandler
+	SessionUseCase        *usecase.SessionUseCase
+}
+
+func Routes(s *SettingsRouter) *mux.Router {
 	corsMiddleware := cors.New(cors.Options{
 		// TODO: поменять настройки CORS, когда будет известен домен
-		AllowedOrigins:   []string{"example.com"},
+		AllowedOrigins:   s.AllowedOrigins,
 		AllowCredentials: true,
 		Debug:            true,
 	})
-	authMiddleware := middleware.NewAuthMiddleware(sessionUseCase)
+	authMiddleware := middleware.NewAuthMiddleware(s.SessionUseCase)
 
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(NotFound)
@@ -38,14 +43,14 @@ func Routes(userHandler delivery.UserHandler,
 	authRouter.Use(authMiddleware.Authorized)
 	unAuthRouter.Use(authMiddleware.UnAuthorized)
 
-	router.HandleFunc("/selections", movieSelectionHandler.GetAll)
-	router.HandleFunc("/selections/{id:[0-9]+}", movieSelectionHandler.GetById)
+	router.HandleFunc("/selections", s.MovieSelectionHandler.GetAll)
+	router.HandleFunc("/selections/{id:[0-9]+}", s.MovieSelectionHandler.GetById)
 
-	unAuthRouter.HandleFunc("/signin", userHandler.SignIn).Methods("POST")
-	unAuthRouter.HandleFunc("/signup", userHandler.SignUp).Methods("POST")
+	unAuthRouter.HandleFunc("/signin", s.UserHandler.SignIn).Methods("POST")
+	unAuthRouter.HandleFunc("/signup", s.UserHandler.SignUp).Methods("POST")
 
-	authRouter.HandleFunc("/logout", userHandler.Logout).Methods("POST")
-	authRouter.HandleFunc("/profile", userHandler.GetUserInfo).Methods("GET")
+	authRouter.HandleFunc("/logout", s.UserHandler.Logout).Methods("POST")
+	authRouter.HandleFunc("/profile", s.UserHandler.GetUserInfo).Methods("GET")
 
 	return router
 }
