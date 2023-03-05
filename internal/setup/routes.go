@@ -27,6 +27,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 	corsMiddleware := cors.New(cors.Options{
 		// TODO: поменять настройки CORS, когда будет известен домен
 		AllowedOrigins:   s.AllowedOrigins,
+		AllowedMethods:   []string{"POST", "GET", "OPTIONS"},
 		AllowCredentials: true,
 		Debug:            true,
 	})

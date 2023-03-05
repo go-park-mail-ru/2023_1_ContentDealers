@@ -12,6 +12,8 @@ import (
 
 const salt = "hjqrhjqw124617ajfhajs"
 
+var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+
 var ErrWrongCredentials = errors.New("wrong credentials")
 
 type UserRepository interface {
@@ -35,7 +37,6 @@ func ValidateCredentials(data domain.UserCredentials) error {
 	if len([]rune(data.Password)) < minLenPassword || len([]rune(data.Password)) > maxLenPassword {
 		return fmt.Errorf("password length is incorrect")
 	}
-	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 	if !emailRegex.MatchString(data.Email) {
 		return fmt.Errorf("mail not validated")
 	}

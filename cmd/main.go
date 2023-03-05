@@ -37,7 +37,7 @@ func Run() error {
 		UserHandler:           userHandler,
 		MovieSelectionHandler: movieSelectionHandler,
 		SessionUseCase:        sessionUseCase,
-		AllowedOrigins:        []string{"example.com"},
+		AllowedOrigins:        []string{"89.208.199.170"},
 	})
 
 	server := http.Server{
