@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"log"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
+
+const salt = "hjqrhjqw124617ajfhajs"
 
 var ErrWrongCredentials = errors.New("wrong credentials")
 
@@ -48,6 +51,7 @@ func (uc *UserUseCase) RegisterUser(credentials domain.UserCredentials) (domain.
 		log.Printf("data has not been validated: %s", err)
 		return domain.User{}, err
 	}
+	credentials.Password = generatePasswordHash(credentials.Password)
 	return uc.repo.Add(credentials)
 }
 
@@ -56,6 +60,7 @@ func (uc *UserUseCase) AuthUser(credentials domain.UserCredentials) (domain.User
 	if err != nil {
 		return domain.User{}, err
 	}
+	credentials.Password = generatePasswordHash(credentials.Password)
 	if realUser.Password != credentials.Password {
 		return domain.User{}, ErrWrongCredentials
 	}
@@ -64,4 +69,11 @@ func (uc *UserUseCase) AuthUser(credentials domain.UserCredentials) (domain.User
 
 func (uc *UserUseCase) GetById(id uint64) (domain.User, error) {
 	return uc.repo.GetById(id)
+}
+
+func generatePasswordHash(password string) string {
+	hash := sha256.New()
+	hash.Write([]byte(password))
+
+	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }

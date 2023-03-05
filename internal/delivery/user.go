@@ -149,7 +149,9 @@ func (h *UserHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	response, err := json.Marshal(map[string]interface{}{
 		"status": http.StatusOK,
 		"body": map[string]interface{}{
-			"user": user,
+			"user": map[string]string{
+				"email": user.Email,
+			},
 		},
 	})
 
