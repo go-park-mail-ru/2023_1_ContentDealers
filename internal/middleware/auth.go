@@ -6,16 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 	"github.com/google/uuid"
 )
 
-func NewAuth(sessionUseCase *usecase.Session) Auth {
+func NewAuth(sessionUseCase contract.SessionUseCase) Auth {
 	return Auth{sessionUseCase: sessionUseCase}
 }
 
 type Auth struct {
-	sessionUseCase *usecase.Session
+	sessionUseCase contract.SessionUseCase
 }
 
 func (mw *Auth) UnAuthorized(handler http.Handler) http.Handler {
