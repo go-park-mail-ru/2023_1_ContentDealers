@@ -17,6 +17,8 @@ var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`
 const maxLenPassword = 30
 const minLenPassword = 3
 
+var _ contract.UserUseCase = (*User)(nil)
+
 type User struct {
 	repo contract.UserRepository
 }

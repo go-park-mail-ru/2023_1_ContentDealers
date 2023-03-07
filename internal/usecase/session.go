@@ -10,6 +10,8 @@ import (
 
 const SessionTimeout = time.Hour * 12
 
+var _ contract.SessionUseCase = (*Session)(nil)
+
 type Session struct {
 	repo contract.SessionRepository
 }

@@ -5,6 +5,8 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
+var _ contract.MovieSelectionUseCase = (*MovieSelection)(nil)
+
 type MovieSelection struct {
 	repo contract.MovieSelectionRepository
 }
