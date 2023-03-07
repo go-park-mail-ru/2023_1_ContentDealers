@@ -14,7 +14,7 @@ import (
 var testCasesSignInUp = []testenv.TestCase{
 	{
 		// регистрация: успех
-		Path:   "/signup",
+		Path:   "/user/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    testenv.TestUser.Email,
@@ -24,7 +24,7 @@ var testCasesSignInUp = []testenv.TestCase{
 	},
 	{
 		// регистрация: пользователь уже существует
-		Path:   "/signup",
+		Path:   "/user/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    testenv.TestUser.Email,
@@ -34,7 +34,7 @@ var testCasesSignInUp = []testenv.TestCase{
 	},
 	{
 		// вход: несуществующий пользователь
-		Path:   "/signin",
+		Path:   "/user/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    "NotExist@mail.ru",
@@ -44,7 +44,7 @@ var testCasesSignInUp = []testenv.TestCase{
 	},
 	{
 		// вход: неверный пароль
-		Path:   "/signin",
+		Path:   "/user/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    testenv.TestUser.Email,
@@ -54,7 +54,7 @@ var testCasesSignInUp = []testenv.TestCase{
 	},
 	{
 		// вход: успех
-		Path:   "/signin",
+		Path:   "/user/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    testenv.TestUser.Email,
@@ -64,7 +64,7 @@ var testCasesSignInUp = []testenv.TestCase{
 	},
 	{
 		// вход: повторно можно авторизироваться, если в запросе не было кук
-		Path:   "/signin",
+		Path:   "/user/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    testenv.TestUser.Email,
@@ -74,7 +74,7 @@ var testCasesSignInUp = []testenv.TestCase{
 	},
 	{
 		// регистрация: невалидная почта
-		Path:   "/signup",
+		Path:   "/user/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    "roma.mail.ru",
@@ -84,7 +84,7 @@ var testCasesSignInUp = []testenv.TestCase{
 	},
 	{
 		// регистрация: короткий пароль
-		Path:   "/signup",
+		Path:   "/user/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    testenv.TestUser.Email,
@@ -94,7 +94,7 @@ var testCasesSignInUp = []testenv.TestCase{
 	},
 	{
 		// регистрация: отсутствие пароля
-		Path:   "/signup",
+		Path:   "/user/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email": testenv.TestUser.Email,
