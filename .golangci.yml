@@ -24,6 +24,7 @@ linters-settings:
   gomnd:
     ignored-files:
       - internal\\setup\\content.go
+      - internal/setup/content.go
 
 linters:
   disable-all: true
