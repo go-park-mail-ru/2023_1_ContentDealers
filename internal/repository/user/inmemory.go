@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
@@ -11,6 +12,7 @@ import (
 var _ contract.UserRepository = (*InMemoryRepository)(nil)
 
 type InMemoryRepository struct {
+	mu        sync.RWMutex
 	storage   []domain.User
 	currentID uint64
 }
@@ -23,6 +25,8 @@ func (repo *InMemoryRepository) Add(user domain.UserCredentials) (domain.User, e
 	if _, err := repo.GetByEmail(user.Email); !errors.Is(err, domain.ErrUserNotFound) {
 		return domain.User{}, domain.ErrUserAlreadyExists
 	}
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 	toAdd := domain.User{
 		ID:              repo.currentID,
 		UserCredentials: user,
@@ -33,10 +37,14 @@ func (repo *InMemoryRepository) Add(user domain.UserCredentials) (domain.User, e
 }
 
 func (repo *InMemoryRepository) GetAll() ([]domain.User, error) {
+	repo.mu.RLock()
+	defer repo.mu.RUnlock()
 	return repo.storage, nil
 }
 
 func (repo *InMemoryRepository) GetByEmail(email string) (domain.User, error) {
+	repo.mu.RLock()
+	defer repo.mu.RUnlock()
 	for _, user := range repo.storage {
 		if user.Email == email {
 			return user, nil
@@ -46,6 +54,8 @@ func (repo *InMemoryRepository) GetByEmail(email string) (domain.User, error) {
 }
 
 func (repo *InMemoryRepository) GetByID(id uint64) (domain.User, error) {
+	repo.mu.RLock()
+	defer repo.mu.RUnlock()
 	for _, user := range repo.storage {
 		if user.ID == id {
 			return user, nil

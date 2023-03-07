@@ -1,6 +1,8 @@
 package movieselection
 
 import (
+	"sync"
+
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
@@ -8,6 +10,7 @@ import (
 var _ contract.MovieSelectionRepository = (*InMemoryRepository)(nil)
 
 type InMemoryRepository struct {
+	mu      sync.RWMutex
 	storage []domain.MovieSelection
 }
 
@@ -16,10 +19,14 @@ func NewInMemoryRepository() InMemoryRepository {
 }
 
 func (repo *InMemoryRepository) Add(selections domain.MovieSelection) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 	repo.storage = append(repo.storage, selections)
 }
 
 func (repo *InMemoryRepository) GetAll() ([]domain.MovieSelection, error) {
+	repo.mu.RLock()
+	defer repo.mu.RUnlock()
 	return repo.storage, nil
 }
 
