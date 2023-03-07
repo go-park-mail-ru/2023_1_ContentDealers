@@ -2,7 +2,9 @@ name: Go
 
 on:
   push:
-    branches: [ "movie-selection-endpoint_FILM-6" ]
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   lint:
