@@ -16,7 +16,7 @@ import (
 var testCasesWithCookie = []testenv.TestCase{
 	{
 		// signup с куки: запрещено
-		Path:   "/signup",
+		Path:   "/user/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    testenv.TestUser.Email,
@@ -27,7 +27,7 @@ var testCasesWithCookie = []testenv.TestCase{
 	},
 	{
 		// signin с куки: запрещено
-		Path:   "/signin",
+		Path:   "/user/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    testenv.TestUser.Email,
@@ -38,7 +38,7 @@ var testCasesWithCookie = []testenv.TestCase{
 	},
 	{
 		// profile с куки: разрешено
-		Path:       "/profile",
+		Path:       "/user/profile",
 		Method:     "GET",
 		WithCookie: true,
 		StatusCode: 200,
@@ -59,35 +59,35 @@ var testCasesWithCookie = []testenv.TestCase{
 	},
 	{
 		// profile без куки: запрещено
-		Path:       "/profile",
+		Path:       "/user/profile",
 		Method:     "GET",
 		WithCookie: false,
 		StatusCode: 401,
 	},
 	{
 		// logout без куки: запрещено
-		Path:       "/logout",
+		Path:       "/user/logout",
 		Method:     "POST",
 		WithCookie: false,
 		StatusCode: 401,
 	},
 	{
 		// logout с куки: разрешено
-		Path:       "/logout",
+		Path:       "/user/logout",
 		Method:     "POST",
 		WithCookie: true,
 		StatusCode: 200,
 	},
 	{
 		// profile с "протухшей" кукой: запрещено
-		Path:       "/profile",
+		Path:       "/user/profile",
 		Method:     "GET",
 		WithCookie: true,
 		StatusCode: 401,
 	},
 	{
 		// signin с "протухшей" кукой: на сервере она удалена, поэтому сервер просто выдаст новую
-		Path:   "/signin",
+		Path:   "/user/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    testenv.TestUser.Email,
@@ -106,7 +106,7 @@ func TestApiCookie(t *testing.T) {
 		t.Errorf("internal error: error while unmarshalling JSON: %s", err)
 	}
 	reqBodyReader := bytes.NewReader(reqBody)
-	req := httptest.NewRequest("POST", "/signup", reqBodyReader)
+	req := httptest.NewRequest("POST", "/user/signup", reqBodyReader)
 	w := httptest.NewRecorder()
 	testEnv.Router.ServeHTTP(w, req)
 	require.Equal(t, http.StatusCreated, w.Code, fmt.Sprintf("TestApiCookie signup, wrong status %d, expected %d", w.Code, http.StatusCreated))
@@ -114,7 +114,7 @@ func TestApiCookie(t *testing.T) {
 	// авторизация
 
 	reqBodyReader = bytes.NewReader(reqBody)
-	req = httptest.NewRequest("POST", "/signin", reqBodyReader)
+	req = httptest.NewRequest("POST", "/user/signin", reqBodyReader)
 	w = httptest.NewRecorder()
 	testEnv.Router.ServeHTTP(w, req)
 	require.Equal(t, http.StatusOK, w.Code, fmt.Sprintf("TestApiCookie signin, wrong status %d, expected %d", w.Code, http.StatusOK))
