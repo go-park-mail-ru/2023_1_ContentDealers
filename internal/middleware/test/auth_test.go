@@ -9,18 +9,18 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/test_env"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/testenv"
 	"github.com/stretchr/testify/require"
 )
 
-var testCasesWithCookie = []test_env.TestCase{
+var testCasesWithCookie = []testenv.TestCase{
 	{
 		// signup с куки: запрещено
 		Path:   "/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
-			"email":    test_env.TestUser.Email,
-			"password": test_env.TestUser.Password,
+			"email":    testenv.TestUser.Email,
+			"password": testenv.TestUser.Password,
 		},
 		WithCookie: true,
 		StatusCode: 403,
@@ -30,8 +30,8 @@ var testCasesWithCookie = []test_env.TestCase{
 		Path:   "/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
-			"email":    test_env.TestUser.Email,
-			"password": test_env.TestUser.Password,
+			"email":    testenv.TestUser.Email,
+			"password": testenv.TestUser.Password,
 		},
 		WithCookie: true,
 		StatusCode: 403,
@@ -90,8 +90,8 @@ var testCasesWithCookie = []test_env.TestCase{
 		Path:   "/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
-			"email":    test_env.TestUser.Email,
-			"password": test_env.TestUser.Password,
+			"email":    testenv.TestUser.Email,
+			"password": testenv.TestUser.Password,
 		},
 		WithCookie: true,
 		StatusCode: 200,
@@ -99,9 +99,9 @@ var testCasesWithCookie = []test_env.TestCase{
 }
 
 func TestApiCookie(t *testing.T) {
-	testEnv := test_env.NewTestEnv()
+	testEnv := testenv.NewTestEnv()
 	// регистрация
-	reqBody, err := json.Marshal(test_env.TestUser)
+	reqBody, err := json.Marshal(testenv.TestUser)
 	if err != nil {
 		t.Errorf("internal error: error while unmarshalling JSON: %s", err)
 	}

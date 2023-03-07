@@ -1,27 +1,27 @@
-package delivery
+package movieselection
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/gorilla/mux"
-
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
 )
 
-type MovieSelectionHandler struct {
-	useCase *usecase.MovieSelectionUseCase
+type Handler struct {
+	useCase contract.MovieSelectionUseCase
 }
 
-func NewMovieSelectionHandler(useCase *usecase.MovieSelectionUseCase) MovieSelectionHandler {
-	return MovieSelectionHandler{useCase: useCase}
+func NewHandler(useCase contract.MovieSelectionUseCase) Handler {
+	return Handler{useCase: useCase}
 }
 
-func (h *MovieSelectionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	selections, err := h.useCase.GetAll()
@@ -33,7 +33,7 @@ func (h *MovieSelectionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, err := json.Marshal(map[string]interface{}{
-		"status": 200,
+		"status": http.StatusOK,
 		"body": map[string]interface{}{
 			"movie_selections": selections,
 		},
@@ -50,7 +50,7 @@ func (h *MovieSelectionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
-func (h *MovieSelectionHandler) GetById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	idRaw := mux.Vars(r)["id"]
@@ -63,10 +63,10 @@ func (h *MovieSelectionHandler) GetById(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	movieSelection, err := h.useCase.GetById(id)
+	movieSelection, err := h.useCase.GetByID(id)
 	if err != nil {
-		switch err {
-		case repository.ErrMovieSelectionNotFound:
+		switch {
+		case errors.Is(err, domain.ErrMovieSelectionNotFound):
 			w.WriteHeader(http.StatusNotFound)
 			io.WriteString(w, `{"status":404}`)
 		default:
@@ -78,7 +78,7 @@ func (h *MovieSelectionHandler) GetById(w http.ResponseWriter, r *http.Request) 
 	}
 
 	response, err := json.Marshal(map[string]interface{}{
-		"status": 200,
+		"status": http.StatusOK,
 		"body": map[string]interface{}{
 			"selection": movieSelection,
 		},

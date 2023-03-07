@@ -3,16 +3,16 @@ package test
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/test_env"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/testenv"
 	"github.com/stretchr/testify/require"
 )
 
-var testCasesMovies = []test_env.TestCase{
+var testCasesMovies = []testenv.TestCase{
 	{
 		Path:   "/selections",
 		Method: "GET",
@@ -50,7 +50,7 @@ var testCasesMovies = []test_env.TestCase{
 }
 
 func TestApiMovies(t *testing.T) {
-	testEnv := test_env.NewTestEnv()
+	testEnv := testenv.NewTestEnv()
 
 	for numCase, testCase := range testCasesMovies {
 		req := httptest.NewRequest(testCase.Method, testCase.Path, nil)
@@ -62,7 +62,7 @@ func TestApiMovies(t *testing.T) {
 		if err != nil {
 			t.Errorf("internal error: error while unmarshalling JSON: %s", err)
 		}
-		resBody, err := ioutil.ReadAll(w.Body)
+		resBody, err := io.ReadAll(w.Body)
 		if err != nil {
 			t.Errorf("error while reading response body: %s", err)
 		}

@@ -3,14 +3,21 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movie"
+	movieSelectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movieselection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
+	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
+
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
 )
 
 const addr = ":8080"
+const ReadHeaderTimeout = 5 * time.Second
 
 func main() {
 	if err := Run(); err != nil {
@@ -19,10 +26,10 @@ func main() {
 }
 
 func Run() error {
-	userRepository := repository.NewUserInMemoryRepository()
-	sessionRepository := repository.NewSessionInMemoryRepository()
-	movieRepository := repository.NewMovieInMemoryRepository()
-	movieSelectionRepository := repository.NewMovieSelectionInMemoryRepository()
+	userRepository := userRepo.NewInMemoryRepository()
+	sessionRepository := session.NewInMemoryRepository()
+	movieRepository := movie.NewInMemoryRepository()
+	movieSelectionRepository := movieSelectionRepo.NewInMemoryRepository()
 
 	setup.Content(&movieRepository, &movieSelectionRepository)
 
@@ -30,8 +37,8 @@ func Run() error {
 	sessionUseCase := usecase.NewSession(&sessionRepository)
 	movieSelectionUseCase := usecase.NewMovieSelection(&movieSelectionRepository)
 
-	userHandler := delivery.NewUserHandler(userUseCase, sessionUseCase)
-	movieSelectionHandler := delivery.NewMovieSelectionHandler(movieSelectionUseCase)
+	userHandler := user.NewHandler(userUseCase, sessionUseCase)
+	movieSelectionHandler := movieselection.NewHandler(movieSelectionUseCase)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:           userHandler,
@@ -41,8 +48,9 @@ func Run() error {
 	})
 
 	server := http.Server{
-		Addr:    addr,
-		Handler: router,
+		Addr:              addr,
+		Handler:           router,
+		ReadHeaderTimeout: ReadHeaderTimeout,
 	}
 
 	log.Println("start listening on", addr)

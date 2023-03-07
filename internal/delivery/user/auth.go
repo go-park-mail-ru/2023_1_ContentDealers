@@ -1,30 +1,17 @@
-package delivery
+package user
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
 )
 
-type UserHandler struct {
-	userUseCase    *usecase.UserUseCase
-	sessionUseCase *usecase.SessionUseCase
-}
-
-func NewUserHandler(useCase *usecase.UserUseCase, sessionUseCase *usecase.SessionUseCase) UserHandler {
-	return UserHandler{
-		userUseCase:    useCase,
-		sessionUseCase: sessionUseCase,
-	}
-}
-
-func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
@@ -36,10 +23,10 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, `{"status":400}`)
 		return
 	}
-	newUser, err := h.userUseCase.RegisterUser(credentials)
+	newUser, err := h.userUseCase.Register(credentials)
 	if err != nil {
-		switch err {
-		case repository.ErrUserAlreadyExists:
+		switch {
+		case errors.Is(err, domain.ErrUserAlreadyExists):
 			w.WriteHeader(http.StatusConflict)
 			io.WriteString(w, `{"status":409}`)
 		default:
@@ -56,7 +43,7 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `{"status":201}`)
 }
 
-func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
@@ -69,14 +56,14 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userUseCase.AuthUser(credentials)
+	user, err := h.userUseCase.Auth(credentials)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		io.WriteString(w, `{"status":404}`)
 		return
 	}
 
-	session, err := h.sessionUseCase.CreateSession(user)
+	session, err := h.sessionUseCase.Create(user)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -96,7 +83,7 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, `{"status":200}`)
 }
 
-func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	ctx := r.Context()
@@ -108,7 +95,7 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.sessionUseCase.DeleteSession(session.ID)
+	err := h.sessionUseCase.Delete(session.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, `{"status":500}`)
@@ -126,42 +113,4 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &sessionCookie)
 	w.WriteHeader(http.StatusOK)
 	io.WriteString(w, `{"status":200}`)
-}
-
-func (h *UserHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	ctx := r.Context()
-	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain.Session)
-	if !ok {
-		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status":500}`)
-		return
-	}
-
-	user, err := h.userUseCase.GetById(session.UserID)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status":500}`)
-	}
-
-	response, err := json.Marshal(map[string]interface{}{
-		"status": http.StatusOK,
-		"body": map[string]interface{}{
-			"user": map[string]string{
-				"email": user.Email,
-			},
-		},
-	})
-
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status":500}`)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
 }

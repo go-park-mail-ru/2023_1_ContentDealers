@@ -7,18 +7,18 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/test_env"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/testenv"
 	"github.com/stretchr/testify/require"
 )
 
-var testCasesSignInUp = []test_env.TestCase{
+var testCasesSignInUp = []testenv.TestCase{
 	{
 		// регистрация: успех
 		Path:   "/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
-			"email":    test_env.TestUser.Email,
-			"password": test_env.TestUser.Password,
+			"email":    testenv.TestUser.Email,
+			"password": testenv.TestUser.Password,
 		},
 		StatusCode: 201,
 	},
@@ -27,8 +27,8 @@ var testCasesSignInUp = []test_env.TestCase{
 		Path:   "/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
-			"email":    test_env.TestUser.Email,
-			"password": test_env.TestUser.Password,
+			"email":    testenv.TestUser.Email,
+			"password": testenv.TestUser.Password,
 		},
 		StatusCode: 409,
 	},
@@ -38,7 +38,7 @@ var testCasesSignInUp = []test_env.TestCase{
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    "NotExist@mail.ru",
-			"password": test_env.TestUser.Password,
+			"password": testenv.TestUser.Password,
 		},
 		StatusCode: 404,
 	},
@@ -47,7 +47,7 @@ var testCasesSignInUp = []test_env.TestCase{
 		Path:   "/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
-			"email":    test_env.TestUser.Email,
+			"email":    testenv.TestUser.Email,
 			"password": "wrongPassword",
 		},
 		StatusCode: 404,
@@ -57,8 +57,8 @@ var testCasesSignInUp = []test_env.TestCase{
 		Path:   "/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
-			"email":    test_env.TestUser.Email,
-			"password": test_env.TestUser.Password,
+			"email":    testenv.TestUser.Email,
+			"password": testenv.TestUser.Password,
 		},
 		StatusCode: 200,
 	},
@@ -67,8 +67,8 @@ var testCasesSignInUp = []test_env.TestCase{
 		Path:   "/signin",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
-			"email":    test_env.TestUser.Email,
-			"password": test_env.TestUser.Password,
+			"email":    testenv.TestUser.Email,
+			"password": testenv.TestUser.Password,
 		},
 		StatusCode: 200,
 	},
@@ -78,7 +78,7 @@ var testCasesSignInUp = []test_env.TestCase{
 		Method: "POST",
 		RequestBody: map[string]interface{}{
 			"email":    "roma.mail.ru",
-			"password": test_env.TestUser.Password,
+			"password": testenv.TestUser.Password,
 		},
 		StatusCode: 400,
 	},
@@ -87,7 +87,7 @@ var testCasesSignInUp = []test_env.TestCase{
 		Path:   "/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
-			"email":    test_env.TestUser.Email,
+			"email":    testenv.TestUser.Email,
 			"password": "1",
 		},
 		StatusCode: 400,
@@ -97,14 +97,14 @@ var testCasesSignInUp = []test_env.TestCase{
 		Path:   "/signup",
 		Method: "POST",
 		RequestBody: map[string]interface{}{
-			"email": test_env.TestUser.Email,
+			"email": testenv.TestUser.Email,
 		},
 		StatusCode: 400,
 	},
 }
 
 func TestApiSignInUp(t *testing.T) {
-	testEnv := test_env.NewTestEnv()
+	testEnv := testenv.NewTestEnv()
 
 	for numCase, testCase := range testCasesSignInUp {
 		reqBody, err := json.Marshal(testCase.RequestBody)

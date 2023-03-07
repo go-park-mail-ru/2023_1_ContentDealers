@@ -2,7 +2,8 @@ package setup
 
 import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movie"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movieselection"
 )
 
 var Movies = []domain.Movie{
@@ -60,8 +61,8 @@ var MovieSelections = []domain.MovieSelection{
 	},
 }
 
-func Content(movieRepo *repository.MovieInMemoryRepository,
-	movieSelectionRepo *repository.MovieSelectionInMemoryRepository) {
+func Content(movieRepo *movie.InMemoryRepository,
+	movieSelectionRepo *movieselection.InMemoryRepository) {
 	for _, movie := range Movies {
 		movieRepo.Add(movie)
 	}
