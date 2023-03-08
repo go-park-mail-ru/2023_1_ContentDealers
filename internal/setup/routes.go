@@ -41,7 +41,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter := router.Methods("GET", "POST").Subrouter()
 	unAuthRouter := router.Methods("GET", "POST").Subrouter()
 
-	router.Use(middleware.ValidateRequestContentType)
+	router.Use(middleware.RequireJSONContentType)
 	router.Use(corsMiddleware.Handler)
 	router.Use(middleware.SetContentTypeJSON)
 	authRouter.Use(authMiddleware.RequireAuth)

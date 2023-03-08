@@ -12,7 +12,7 @@ func SetContentTypeJSON(handler http.Handler) http.Handler {
 	})
 }
 
-func ValidateRequestContentType(handler http.Handler) http.Handler {
+func RequireJSONContentType(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		contentType := r.Header.Get("Content-Type")
 		if contentType == "" || strings.Contains(contentType, "application/json") {
