@@ -75,6 +75,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		Value:    session.ID.String(),
 		Expires:  session.ExpiresAt,
 		HttpOnly: true,
+		Path:     "/",
 		// FIXME: Secure: true,
 	}
 
@@ -107,6 +108,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Expires:  time.Now().AddDate(0, 0, -1),
 		HttpOnly: true,
+		Path:     "/",
 		// FIXME: Secure: true,
 	}
 

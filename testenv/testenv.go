@@ -27,7 +27,7 @@ type TestCase struct {
 
 var TestUser = domain.UserCredentials{
 	Email:    "vova@mail.ru",
-	Password: "password",
+	Password: "passW_0rd",
 }
 
 type TestEnv struct {

@@ -107,6 +107,8 @@ func TestApiCookie(t *testing.T) {
 	}
 	reqBodyReader := bytes.NewReader(reqBody)
 	req := httptest.NewRequest("POST", "/user/signup", reqBodyReader)
+	req.Header.Add("Content-Type", "application/json")
+
 	w := httptest.NewRecorder()
 	testEnv.Router.ServeHTTP(w, req)
 	require.Equal(t, http.StatusCreated, w.Code, fmt.Sprintf("TestApiCookie signup, wrong status %d, expected %d", w.Code, http.StatusCreated))
@@ -115,6 +117,7 @@ func TestApiCookie(t *testing.T) {
 
 	reqBodyReader = bytes.NewReader(reqBody)
 	req = httptest.NewRequest("POST", "/user/signin", reqBodyReader)
+	req.Header.Add("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 	testEnv.Router.ServeHTTP(w, req)
 	require.Equal(t, http.StatusOK, w.Code, fmt.Sprintf("TestApiCookie signin, wrong status %d, expected %d", w.Code, http.StatusOK))
@@ -128,6 +131,9 @@ func TestApiCookie(t *testing.T) {
 		req = httptest.NewRequest(testCase.Method, testCase.Path, reqBodyReader)
 		if testCase.WithCookie {
 			req.Header.Add("Cookie", cookie)
+		}
+		if reqBodyReader != nil {
+			req.Header.Add("Content-Type", "application/json")
 		}
 		w = httptest.NewRecorder()
 		testEnv.Router.ServeHTTP(w, req)

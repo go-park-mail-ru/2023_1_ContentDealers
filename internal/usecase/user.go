@@ -4,9 +4,9 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"regexp"
-	"unicode/utf8"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
+
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
@@ -14,8 +14,7 @@ const salt = "hjqrhjqw124617ajfhajs"
 
 var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
 
-const maxLenPassword = 30
-const minLenPassword = 3
+var incorrentPasswordRegex = regexp.MustCompile(`(^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$)`)
 
 var _ contract.UserUseCase = (*User)(nil)
 
@@ -59,9 +58,8 @@ func generatePasswordHash(password string) string {
 }
 
 func validateCredentials(credentials domain.UserCredentials) error {
-	runesInPassword := utf8.RuneCountInString(credentials.Password)
-	if runesInPassword < minLenPassword || runesInPassword > maxLenPassword {
-		return domain.ErrIncorrectPasswordLen
+	if incorrentPasswordRegex.MatchString(credentials.Password) {
+		return domain.ErrNotValidPassword
 	}
 	if !emailRegex.MatchString(credentials.Email) {
 		return domain.ErrNotValidEmail

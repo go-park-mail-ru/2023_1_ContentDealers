@@ -18,7 +18,7 @@ type Auth struct {
 	sessionUseCase contract.SessionUseCase
 }
 
-func (mw *Auth) UnAuthorized(handler http.Handler) http.Handler {
+func (mw *Auth) RequireUnAuth(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionIDRaw, err := r.Cookie("session_id")
 		if err != nil {
@@ -44,7 +44,7 @@ func (mw *Auth) UnAuthorized(handler http.Handler) http.Handler {
 	})
 }
 
-func (mw *Auth) Authorized(handler http.Handler) http.Handler {
+func (mw *Auth) RequireAuth(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionIDRaw, err := r.Cookie("session_id")
 		if err != nil {

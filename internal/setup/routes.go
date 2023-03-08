@@ -41,10 +41,11 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter := router.Methods("GET", "POST").Subrouter()
 	unAuthRouter := router.Methods("GET", "POST").Subrouter()
 
+	router.Use(middleware.ValidateRequestContentType)
 	router.Use(corsMiddleware.Handler)
 	router.Use(middleware.SetContentTypeJSON)
-	authRouter.Use(authMiddleware.Authorized)
-	unAuthRouter.Use(authMiddleware.UnAuthorized)
+	authRouter.Use(authMiddleware.RequireAuth)
+	unAuthRouter.Use(authMiddleware.RequireUnAuth)
 
 	router.HandleFunc("/selections", s.MovieSelectionHandler.GetAll)
 	router.HandleFunc("/selections/{id:[0-9]+}", s.MovieSelectionHandler.GetByID)

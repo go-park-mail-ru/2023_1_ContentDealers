@@ -114,6 +114,8 @@ func TestApiSignInUp(t *testing.T) {
 		reqBodyReader := bytes.NewReader(reqBody)
 
 		req := httptest.NewRequest(testCase.Method, testCase.Path, reqBodyReader)
+		req.Header.Add("Content-Type", "application/json")
+
 		w := httptest.NewRecorder()
 		testEnv.Router.ServeHTTP(w, req)
 		require.Equal(t, testCase.StatusCode, w.Code, fmt.Sprintf("TestApiSignInUp %d, test case %v, wrong status", numCase, testCase))
