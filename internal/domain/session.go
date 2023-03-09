@@ -1,9 +1,13 @@
 package domain
 
 import (
-	"github.com/google/uuid"
+	"errors"
 	"time"
+
+	"github.com/google/uuid"
 )
+
+var ErrSessionNotFound = errors.New("session not found")
 
 type Session struct {
 	ID        uuid.UUID

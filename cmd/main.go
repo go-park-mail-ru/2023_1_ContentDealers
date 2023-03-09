@@ -1,64 +1,62 @@
 package main
 
 import (
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delievery"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/middleware"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
-	"io"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movie"
+	movieSelectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movieselection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
+	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
+
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
 )
 
+const addr = ":8080"
+const ReadHeaderTimeout = 5 * time.Second
+
 func main() {
-	userRepository := repository.NewUserInMemoryRepository()
-	sessionRepository := repository.NewSessionInMemoryRepository()
+	if err := Run(); err != nil {
+		log.Fatal(err)
+	}
+}
 
-	userUseCase := usecase.NewUserUseCase(&userRepository)
-	sessionUseCase := usecase.NewSessionUseCase(&sessionRepository)
+func Run() error {
+	userRepository := userRepo.NewInMemoryRepository()
+	sessionRepository := session.NewInMemoryRepository()
+	movieRepository := movie.NewInMemoryRepository()
+	movieSelectionRepository := movieSelectionRepo.NewInMemoryRepository()
 
-	userHandler := delievery.NewUserHandler(userUseCase, sessionUseCase)
+	setup.Content(&movieRepository, &movieSelectionRepository)
 
-	router := mux.NewRouter()
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, `{"status": 200}`)
-	}).Methods("GET")
+	userUseCase := usecase.NewUser(&userRepository)
+	sessionUseCase := usecase.NewSession(&sessionRepository)
+	movieSelectionUseCase := usecase.NewMovieSelection(&movieSelectionRepository)
 
-	authMiddleware := middleware.NewAuthMiddleware(sessionUseCase)
+	userHandler := user.NewHandler(userUseCase, sessionUseCase)
+	movieSelectionHandler := movieselection.NewHandler(movieSelectionUseCase)
 
-	authRouter := router.Methods("GET", "POST").Subrouter()
-	authRouter.Use(authMiddleware.Authorized)
-
-	unAuthRouter := router.Methods("GET", "POST").Subrouter()
-	unAuthRouter.Use(authMiddleware.UnAuthorized)
-
-	unAuthRouter.HandleFunc("/signin", userHandler.SignIn).Methods("POST")
-	unAuthRouter.HandleFunc("/signup", userHandler.SignUp).Methods("POST")
-	authRouter.HandleFunc("/logout", userHandler.Logout).Methods("POST")
-	authRouter.HandleFunc("/profile", userHandler.GetUserInfo).Methods("GET")
-
-	corsHandler := cors.New(cors.Options{
-		// TODO: поменять настройки CORS, когда будет известен домен
-		AllowedOrigins:   []string{"*"},
-		AllowCredentials: true,
-		Debug:            true,
+	router := setup.Routes(&setup.SettingsRouter{
+		UserHandler:           userHandler,
+		MovieSelectionHandler: movieSelectionHandler,
+		SessionUseCase:        sessionUseCase,
+		AllowedOrigins:        []string{"89.208.199.170"},
 	})
 
-	router.Use(corsHandler.Handler)
-
-	addr := ":8080"
-
 	server := http.Server{
-		Addr:    addr,
-		Handler: router,
+		Addr:              addr,
+		Handler:           router,
+		ReadHeaderTimeout: ReadHeaderTimeout,
 	}
 
 	log.Println("start listening on", addr)
 
 	if err := server.ListenAndServe(); err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

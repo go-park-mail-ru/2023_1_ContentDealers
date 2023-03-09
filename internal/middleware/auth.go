@@ -2,22 +2,23 @@ package middleware
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
-	"github.com/google/uuid"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
+	"github.com/google/uuid"
 )
 
-func NewAuthMiddleware(sessionUseCase *usecase.SessionUseCase) AuthMiddleware {
-	return AuthMiddleware{sessionUseCase: sessionUseCase}
+func NewAuth(sessionUseCase contract.SessionUseCase) Auth {
+	return Auth{sessionUseCase: sessionUseCase}
 }
 
-type AuthMiddleware struct {
-	sessionUseCase *usecase.SessionUseCase
+type Auth struct {
+	sessionUseCase contract.SessionUseCase
 }
 
-func (mw *AuthMiddleware) UnAuthorized(handler http.Handler) http.Handler {
+func (mw *Auth) RequireUnAuth(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionIDRaw, err := r.Cookie("session_id")
 		if err != nil {
@@ -32,7 +33,7 @@ func (mw *AuthMiddleware) UnAuthorized(handler http.Handler) http.Handler {
 			return
 		}
 
-		session, err := mw.sessionUseCase.GetSession(sessionID)
+		session, err := mw.sessionUseCase.Get(sessionID)
 		if err == nil && session.ExpiresAt.After(time.Now()) {
 			w.WriteHeader(http.StatusForbidden)
 			io.WriteString(w, `{"status": 403}`)
@@ -43,7 +44,7 @@ func (mw *AuthMiddleware) UnAuthorized(handler http.Handler) http.Handler {
 	})
 }
 
-func (mw *AuthMiddleware) Authorized(handler http.Handler) http.Handler {
+func (mw *Auth) RequireAuth(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionIDRaw, err := r.Cookie("session_id")
 		if err != nil {
@@ -59,7 +60,7 @@ func (mw *AuthMiddleware) Authorized(handler http.Handler) http.Handler {
 			return
 		}
 
-		session, err := mw.sessionUseCase.GetSession(sessionID)
+		session, err := mw.sessionUseCase.Get(sessionID)
 		if err != nil || session.ExpiresAt.Before(time.Now()) {
 			w.WriteHeader(http.StatusUnauthorized)
 			io.WriteString(w, `{"status": 401}`)
