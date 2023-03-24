@@ -4,11 +4,10 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/middleware"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/middleware"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
@@ -23,7 +22,7 @@ type SettingsRouter struct {
 	AllowedOrigins        []string
 	UserHandler           user.Handler
 	MovieSelectionHandler movieselection.Handler
-	SessionUseCase        contract.SessionUseCase
+	SessionUseCase        SessionUseCase
 }
 
 func Routes(s *SettingsRouter) *mux.Router {
@@ -41,7 +40,6 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter := router.Methods("GET", "POST").Subrouter()
 	unAuthRouter := router.Methods("GET", "POST").Subrouter()
 
-	router.Use(middleware.RequireJSONContentType)
 	router.Use(corsMiddleware.Handler)
 	router.Use(middleware.SetContentTypeJSON)
 	authRouter.Use(authMiddleware.RequireAuth)

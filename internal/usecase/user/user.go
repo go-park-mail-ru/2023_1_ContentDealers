@@ -1,11 +1,9 @@
-package usecase
+package user
 
 import (
 	"crypto/sha256"
 	"fmt"
 	"regexp"
-
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
@@ -16,13 +14,11 @@ var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`
 
 var incorrentPasswordRegex = regexp.MustCompile(`(^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$)`)
 
-var _ contract.UserUseCase = (*User)(nil)
-
 type User struct {
-	repo contract.UserRepository
+	repo UserRepository
 }
 
-func NewUser(repo contract.UserRepository) *User {
+func NewUser(repo UserRepository) *User {
 	return &User{repo: repo}
 }
 

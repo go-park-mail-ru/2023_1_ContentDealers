@@ -13,7 +13,9 @@ import (
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
+	movieSelectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/movieselection"
+	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
+	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
 )
 
 const addr = ":8080"
@@ -33,9 +35,9 @@ func Run() error {
 
 	setup.Content(&movieRepository, &movieSelectionRepository)
 
-	userUseCase := usecase.NewUser(&userRepository)
-	sessionUseCase := usecase.NewSession(&sessionRepository)
-	movieSelectionUseCase := usecase.NewMovieSelection(&movieSelectionRepository)
+	userUseCase := userUseCase.NewUser(&userRepository)
+	sessionUseCase := sessionUseCase.NewSession(&sessionRepository)
+	movieSelectionUseCase := movieSelectionUseCase.NewMovieSelection(&movieSelectionRepository)
 
 	userHandler := user.NewHandler(userUseCase, sessionUseCase)
 	movieSelectionHandler := movieselection.NewHandler(movieSelectionUseCase)

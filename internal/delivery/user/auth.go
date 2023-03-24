@@ -18,29 +18,27 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	credentials := domain.UserCredentials{}
 	err := decoder.Decode(&credentials)
 	if err != nil {
-		log.Printf("error while unmarshalling JSON: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"status":400}`)
+		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
 	}
-	newUser, err := h.userUseCase.Register(credentials)
+	_, err = h.userUseCase.Register(credentials)
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrUserAlreadyExists):
 			w.WriteHeader(http.StatusConflict)
-			io.WriteString(w, `{"status":409}`)
+			io.WriteString(w, `{"message":"user already exists"}`)
+		case errors.Is(err, domain.ErrNotValidEmail) ||
+			errors.Is(err, domain.ErrNotValidPassword):
+			w.WriteHeader(http.StatusInternalServerError)
+			io.WriteString(w, `{"message":"email or password not validated"}`)
 		default:
-			// TODO: данные не прошли валидацию, нужен кастомный тип ошибки
-			log.Println(err)
-			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, `{"status":400}`)
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
 
-	log.Printf("New User - %v", newUser)
 	w.WriteHeader(http.StatusCreated)
-	io.WriteString(w, `{"status":201}`)
 }
 
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
@@ -50,16 +48,15 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	credentials := domain.UserCredentials{}
 	err := decoder.Decode(&credentials)
 	if err != nil {
-		log.Printf("error while unmarshalling JSON: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"status":400}`)
+		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
 	}
 
 	user, err := h.userUseCase.Auth(credentials)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		io.WriteString(w, `{"status":404}`)
+		io.WriteString(w, `{"message":"user not found"}`)
 		return
 	}
 
@@ -67,7 +64,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status":500}`)
+		return
 	}
 
 	sessionCookie := http.Cookie{
@@ -81,7 +78,6 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &sessionCookie)
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, `{"status":200}`)
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -92,14 +88,12 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status":500}`)
 		return
 	}
 
 	err := h.sessionUseCase.Delete(session.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status":500}`)
 		return
 	}
 
@@ -114,5 +108,4 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &sessionCookie)
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, `{"status":200}`)
 }

@@ -1,14 +1,14 @@
-package contract
+package user
 
 import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/google/uuid"
 )
 
-type SessionRepository interface {
-	Add(session domain.Session) error
-	Get(id uuid.UUID) (domain.Session, error)
-	Delete(id uuid.UUID) error
+type UserUseCase interface {
+	Register(credentials domain.UserCredentials) (domain.User, error)
+	Auth(credentials domain.UserCredentials) (domain.User, error)
+	GetByID(id uint64) (domain.User, error)
 }
 
 type SessionUseCase interface {

@@ -1,7 +1,6 @@
 package testenv
 
 import (
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
@@ -9,8 +8,11 @@ import (
 	movieSelectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movieselection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
+
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase"
+	movieSelectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/movieselection"
+	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
+	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
 	"github.com/gorilla/mux"
 )
 
@@ -31,14 +33,14 @@ var TestUser = domain.UserCredentials{
 }
 
 type TestEnv struct {
-	UserRepository           contract.UserRepository
-	SessionRepository        contract.SessionRepository
-	MovieRepository          contract.MovieRepository
-	MovieSelectionRepository contract.MovieSelectionRepository
+	UserRepository           UserRepository
+	SessionRepository        SessionRepository
+	MovieRepository          MovieRepository
+	MovieSelectionRepository MovieSelectionRepository
 
-	UserUseCase           contract.UserUseCase
-	SessionUseCase        contract.SessionUseCase
-	MovieSelectionUseCase contract.MovieSelectionUseCase
+	UserUseCase           UserUseCase
+	SessionUseCase        SessionUseCase
+	MovieSelectionUseCase MovieSelectionUseCase
 
 	UserHandler           user.Handler
 	MovieSelectionHandler movieselection.Handler
@@ -47,38 +49,38 @@ type TestEnv struct {
 }
 
 func NewTestEnv() *TestEnv {
-	UserRepository := userRepo.NewInMemoryRepository()
-	SessionRepository := session.NewInMemoryRepository()
-	MovieRepository := movie.NewInMemoryRepository()
-	MovieSelectionRepository := movieSelectionRepo.NewInMemoryRepository()
+	userRepository := userRepo.NewInMemoryRepository()
+	sessionRepository := session.NewInMemoryRepository()
+	movieRepository := movie.NewInMemoryRepository()
+	movieSelectionRepository := movieSelectionRepo.NewInMemoryRepository()
 
-	setup.Content(&MovieRepository, &MovieSelectionRepository)
+	setup.Content(&movieRepository, &movieSelectionRepository)
 
-	UserUseCase := usecase.NewUser(&UserRepository)
-	SessionUseCase := usecase.NewSession(&SessionRepository)
-	MovieSelectionUseCase := usecase.NewMovieSelection(&MovieSelectionRepository)
+	userUseCase := userUseCase.NewUser(&userRepository)
+	sessionUseCase := sessionUseCase.NewSession(&sessionRepository)
+	movieSelectionUseCase := movieSelectionUseCase.NewMovieSelection(&movieSelectionRepository)
 
-	UserHandler := user.NewHandler(UserUseCase, SessionUseCase)
-	MovieSelectionHandler := movieselection.NewHandler(MovieSelectionUseCase)
+	userHandler := user.NewHandler(userUseCase, sessionUseCase)
+	movieSelectionHandler := movieselection.NewHandler(movieSelectionUseCase)
 
-	Router := setup.Routes(&setup.SettingsRouter{
-		UserHandler:           UserHandler,
-		MovieSelectionHandler: MovieSelectionHandler,
-		SessionUseCase:        SessionUseCase,
+	router := setup.Routes(&setup.SettingsRouter{
+		UserHandler:           userHandler,
+		MovieSelectionHandler: movieSelectionHandler,
+		SessionUseCase:        sessionUseCase,
 		AllowedOrigins:        []string{TestOrigin},
 	})
 
 	return &TestEnv{
-		UserRepository:           &UserRepository,
-		SessionRepository:        &SessionRepository,
-		MovieRepository:          &MovieRepository,
-		MovieSelectionRepository: &MovieSelectionRepository,
-		UserUseCase:              UserUseCase,
-		SessionUseCase:           SessionUseCase,
-		MovieSelectionUseCase:    MovieSelectionUseCase,
-		UserHandler:              UserHandler,
-		MovieSelectionHandler:    MovieSelectionHandler,
-		Router:                   Router,
+		UserRepository:           &userRepository,
+		SessionRepository:        &sessionRepository,
+		MovieRepository:          &movieRepository,
+		MovieSelectionRepository: &movieSelectionRepository,
+		UserUseCase:              userUseCase,
+		SessionUseCase:           sessionUseCase,
+		MovieSelectionUseCase:    movieSelectionUseCase,
+		UserHandler:              userHandler,
+		MovieSelectionHandler:    movieSelectionHandler,
+		Router:                   router,
 	}
 
 }

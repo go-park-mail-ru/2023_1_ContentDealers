@@ -3,11 +3,8 @@ package movie
 import (
 	"sync"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
-
-var _ contract.MovieRepository = (*InMemoryRepository)(nil)
 
 type InMemoryRepository struct {
 	mu      sync.RWMutex

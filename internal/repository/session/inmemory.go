@@ -4,12 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/google/uuid"
 )
-
-var _ contract.SessionRepository = (*InMemoryRepository)(nil)
 
 type InMemoryRepository struct {
 	mu      sync.RWMutex

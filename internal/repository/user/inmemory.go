@@ -4,12 +4,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
-
-// Проверка соответствию интерфейса
-var _ contract.UserRepository = (*InMemoryRepository)(nil)
 
 type InMemoryRepository struct {
 	mu        sync.RWMutex

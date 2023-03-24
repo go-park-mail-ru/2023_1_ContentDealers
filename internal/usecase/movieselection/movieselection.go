@@ -1,17 +1,14 @@
-package usecase
+package movieselection
 
 import (
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
-var _ contract.MovieSelectionUseCase = (*MovieSelection)(nil)
-
 type MovieSelection struct {
-	repo contract.MovieSelectionRepository
+	repo MovieSelectionRepository
 }
 
-func NewMovieSelection(repo contract.MovieSelectionRepository) *MovieSelection {
+func NewMovieSelection(repo MovieSelectionRepository) *MovieSelection {
 	return &MovieSelection{repo: repo}
 }
 

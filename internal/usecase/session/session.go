@@ -1,22 +1,19 @@
-package usecase
+package session
 
 import (
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/contract"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/google/uuid"
 )
 
 const SessionTimeout = time.Hour * 12
 
-var _ contract.SessionUseCase = (*Session)(nil)
-
 type Session struct {
-	repo contract.SessionRepository
+	repo SessionRepository
 }
 
-func NewSession(repo contract.SessionRepository) *Session {
+func NewSession(repo SessionRepository) *Session {
 	return &Session{repo: repo}
 }
 
