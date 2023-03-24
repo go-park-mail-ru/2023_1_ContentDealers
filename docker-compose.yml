@@ -1,0 +1,38 @@
+version: '3'
+
+# для обновления скрипта иницилазиции бд postgres
+# sudo rm -rf temp_db_data/pgdata/* && sudo docker compose up
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment: 
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    ports:
+      # изменен стандартный порт!
+      - '5432:5432'
+    volumes:
+      # данные бд
+      - ./tmp_persist:/var/lib/postgresql/data
+      # скрипт для инициализации бд 
+      - ./scripts/db.sql:/docker-entrypoint-initdb.d/db.sql
+  adminer:
+    image: adminer
+    restart: always
+    links:
+        - "postgres:postgres"
+    ports:
+      - 8090:8080
+  redis:
+    image: 'redis'
+    volumes:
+      - ./tmp_persist/redis_data:/data
+    ports:
+      - '6379:6379'

@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movie"
 	movieSelectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movieselection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
@@ -28,12 +27,20 @@ func main() {
 }
 
 func Run() error {
-	userRepository := userRepo.NewInMemoryRepository()
-	sessionRepository := session.NewInMemoryRepository()
-	movieRepository := movie.NewInMemoryRepository()
-	movieSelectionRepository := movieSelectionRepo.NewInMemoryRepository()
 
-	setup.Content(&movieRepository, &movieSelectionRepository)
+	db, err := setup.NewClientPostgres()
+	if err != nil {
+		return err
+	}
+
+	redisClient, err := setup.NewClientRedis()
+	if err != nil {
+		return err
+	}
+
+	userRepository := userRepo.NewRepository(db)
+	sessionRepository := session.NewRepository(redisClient)
+	movieSelectionRepository := movieSelectionRepo.NewRepository(db)
 
 	userUseCase := userUseCase.NewUser(&userRepository)
 	sessionUseCase := sessionUseCase.NewSession(&sessionRepository)

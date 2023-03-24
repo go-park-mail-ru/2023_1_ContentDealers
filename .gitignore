@@ -1,3 +1,6 @@
+tmp_persist/pgdata/*
+tmp_persist/redis_data/*
+
 # IDE folders
 .idea
 

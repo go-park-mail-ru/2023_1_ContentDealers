@@ -10,9 +10,11 @@ import (
 
 const salt = "hjqrhjqw124617ajfhajs"
 
-var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-
-var incorrentPasswordRegex = regexp.MustCompile(`(^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$)`)
+// TODO: нужно изменить регулярки
+var (
+	emailRegex             = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	incorrentPasswordRegex = regexp.MustCompile(`(^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$)`)
+)
 
 type User struct {
 	repo UserRepository
@@ -54,11 +56,13 @@ func generatePasswordHash(password string) string {
 }
 
 func validateCredentials(credentials domain.UserCredentials) error {
-	if incorrentPasswordRegex.MatchString(credentials.Password) {
-		return domain.ErrNotValidPassword
-	}
-	if !emailRegex.MatchString(credentials.Email) {
-		return domain.ErrNotValidEmail
-	}
+	// TODO: регулярки нужно изменить (снизить строгость пароля)
 	return nil
+	// if incorrentPasswordRegex.MatchString(credentials.Password) {
+	// 	return domain.ErrNotValidPassword
+	// }
+	// if !emailRegex.MatchString(credentials.Email) {
+	// 	return domain.ErrNotValidEmail
+	// }
+	// return nil
 }

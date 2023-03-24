@@ -70,7 +70,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	sessionCookie := http.Cookie{
 		Name:     "session_id",
 		Value:    session.ID.String(),
-		Expires:  session.ExpiresAt,
+		Expires:  time.Time(session.ExpiresAt),
 		HttpOnly: true,
 		Path:     "/",
 		// FIXME: Secure: true,
