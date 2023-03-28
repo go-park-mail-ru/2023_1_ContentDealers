@@ -18,6 +18,8 @@ create table users (
     id bigserial primary key,
     email text not null unique,
     password_hash text not null,
+    birthday timestamp not null,
+    avatar_url text,
     created_at timestamp not null default now(),
     -- timestamptz
     updated_at timestamp not null default now()

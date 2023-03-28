@@ -28,7 +28,7 @@ type SettingsRouter struct {
 func Routes(s *SettingsRouter) *mux.Router {
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins:   s.AllowedOrigins,
-		AllowedMethods:   []string{"POST", "GET", "OPTIONS"},
+		AllowedMethods:   []string{"POST", "GET", "OPTIONS", "PATCH"},
 		AllowCredentials: true,
 		Debug:            true,
 	})
@@ -53,6 +53,10 @@ func Routes(s *SettingsRouter) *mux.Router {
 
 	authRouter.HandleFunc("/user/logout", s.UserHandler.Logout).Methods("POST")
 	authRouter.HandleFunc("/user/profile", s.UserHandler.Info).Methods("GET")
+
+	// TODO: PATCH в постмане выдавал 405 Method not allowed
+	authRouter.HandleFunc("/user/update/avatar", s.UserHandler.UpdateAvatar).Methods("POST")
+	// authRouter.HandleFunc("/user/update/profile", s.UserHandler.UploadAvatar).Methods("GET")
 
 	return router
 }

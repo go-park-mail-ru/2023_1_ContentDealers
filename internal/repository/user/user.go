@@ -3,34 +3,44 @@ package user
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"io"
+	"log"
+	"os"
 	"strings"
-	"sync"
+	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
+const (
+	shortFormDate = "2006-01-02"
+	dirAvatars    = "./media/avatars"
+)
+
 type Repository struct {
-	mu        sync.RWMutex
-	storage   []domain.User
-	currentID uint64
-	DB        *sql.DB
+	DB *sql.DB
 }
 
 func NewRepository(db *sql.DB) Repository {
 	return Repository{DB: db}
 }
 
-// TODO: кажется, что DTO здесь будет очень лишним
-func (repo *Repository) Add(user domain.UserCredentials) (domain.User, error) {
+func (repo *Repository) Add(user domain.User) (domain.User, error) {
 	var lastInsertId uint64
+	log.Println(user.Birthday)
+
 	err := repo.DB.QueryRow(
-		`insert into users(email, password_hash) 
-        values ($1, $2) 
+		`insert into users (email, password_hash, birthday, avatar_url) 
+        values ($1, $2, $3, $4) 
         returning id`,
 		user.Email,
-		user.Password,
+		user.PasswordHash,
+		user.Birthday,
+		user.AvatarURL,
 	).Scan(&lastInsertId)
 	if err != nil {
+		log.Println("sdfgsdfgdg ", err)
 		// TODO: можно ли проверить конкретную ошибку postgresql (нарушение unique)?
 		// https://www.manniwood.com/2016_08_14/pgxfiles_04.html
 		// https://stackoverflow.com/questions/70515729/how-to-handle-postgres-query-error-with-pgx-driver-in-golang
@@ -39,18 +49,15 @@ func (repo *Repository) Add(user domain.UserCredentials) (domain.User, error) {
 		}
 		return domain.User{}, err
 	}
-	toAdd := domain.User{
-		ID:              lastInsertId,
-		UserCredentials: user,
-	}
-	return toAdd, nil
+	user.ID = lastInsertId
+	return user, nil
 }
 
 func (repo *Repository) GetByEmail(email string) (domain.User, error) {
 	user := domain.User{}
 	err := repo.DB.
-		QueryRow(`select id, email, password_hash FROM users WHERE email = $1`, email).
-		Scan(&user.ID, &user.Email, &user.Password)
+		QueryRow(`select id, email, password_hash, birthday, avatar_url FROM users WHERE email = $1`, email).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Birthday, &user.AvatarURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.User{}, domain.ErrUserNotFound
@@ -61,15 +68,61 @@ func (repo *Repository) GetByEmail(email string) (domain.User, error) {
 }
 
 func (repo *Repository) GetByID(id uint64) (domain.User, error) {
+	// TODO: копипаст метода GetByEmail (нужен общий метод для запроса)
 	user := domain.User{}
 	err := repo.DB.
-		QueryRow(`select id, email FROM users WHERE id = $1`, id).
-		Scan(&user.ID, &user.Email)
+		QueryRow(`select id, email, password_hash, birthday, avatar_url FROM users WHERE id = $1`, id).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Birthday, &user.AvatarURL)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return domain.User{}, domain.ErrUserNotFound
 		}
 		return domain.User{}, err
 	}
+	return user, nil
+}
+
+func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.User, error) {
+
+	currentTime := time.Now()
+	year := fmt.Sprintf("%d", currentTime.Year())
+	month := fmt.Sprintf("%d", int(currentTime.Month()))
+	day := fmt.Sprintf("%d", currentTime.Day())
+
+	// TODO: разделитель пути зависит от операционной системы
+	dir := fmt.Sprintf("%s/%s/%s/%s/", dirAvatars, year, month, day)
+
+	// если директория существовала, err == nil
+	// TODO: хардкод прав на директорию
+	err := os.MkdirAll(dir, 0777)
+	if err != nil {
+		return domain.User{}, fmt.Errorf("failed to create folder for avatar")
+	}
+	filepath := dir + fmt.Sprintf("%d.jpg", user.ID)
+
+	outAvatar, err := os.Create(filepath)
+	defer outAvatar.Close()
+	if err != nil {
+		return domain.User{}, fmt.Errorf("failed to create avatar file")
+	}
+	_, err = io.Copy(outAvatar, file)
+
+	if err != nil {
+		return domain.User{}, fmt.Errorf("failed to copy avatar file to local directory")
+	}
+
+	// FIXME: нет удаления старой аватарки (нужно зайти в папке с предыдущего обновления записи, удалить аву, после этого обновить запись в бд с новым url аватарки)
+
+	_, err = repo.DB.Exec(
+		`update users 
+		set avatar_url = $1
+		where id = $2;`,
+		filepath,
+		user.ID,
+	)
+	if err != nil {
+		return domain.User{}, err
+	}
+	user.AvatarURL = filepath
 	return user, nil
 }

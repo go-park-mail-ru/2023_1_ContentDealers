@@ -34,7 +34,7 @@ func (mw *Auth) RequireUnAuth(handler http.Handler) http.Handler {
 		}
 
 		session, err := mw.sessionUseCase.Get(sessionID)
-		if err == nil && time.Time(session.ExpiresAt).After(time.Now()) {
+		if err == nil && session.ExpiresAt.After(time.Now()) {
 			w.WriteHeader(http.StatusForbidden)
 			io.WriteString(w, `{"message": "user is already logged in"}`)
 			return
@@ -61,7 +61,7 @@ func (mw *Auth) RequireAuth(handler http.Handler) http.Handler {
 		}
 
 		session, err := mw.sessionUseCase.Get(sessionID)
-		if err != nil || time.Time(session.ExpiresAt).Before(time.Now()) {
+		if err != nil || session.ExpiresAt.Before(time.Now()) {
 			w.WriteHeader(http.StatusUnauthorized)
 			io.WriteString(w, `{"message": "user session expired"}`)
 			return

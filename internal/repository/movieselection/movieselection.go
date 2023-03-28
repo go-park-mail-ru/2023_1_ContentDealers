@@ -2,15 +2,12 @@ package movieselection
 
 import (
 	"database/sql"
-	"sync"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
 type Repository struct {
-	mu      sync.RWMutex
-	storage []domain.MovieSelection
-	DB      *sql.DB
+	DB *sql.DB
 }
 
 func NewRepository(db *sql.DB) Repository {
