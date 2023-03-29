@@ -3,6 +3,7 @@ package user
 import (
 	"crypto/sha256"
 	"fmt"
+	"io"
 	"regexp"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
@@ -24,21 +25,22 @@ func NewUser(repo UserRepository) *User {
 	return &User{repo: repo}
 }
 
-func (uc *User) Register(credentials domain.UserCredentials) (domain.User, error) {
-	if err := validateCredentials(credentials); err != nil {
+func (uc *User) Register(user domain.User) (domain.User, error) {
+	if err := validateCredentials(user); err != nil {
 		return domain.User{}, err
 	}
-	credentials.Password = generatePasswordHash(credentials.Password)
-	return uc.repo.Add(credentials)
+	user.PasswordHash = generatePasswordHash(user.PasswordHash)
+	return uc.repo.Add(user)
 }
 
-func (uc *User) Auth(credentials domain.UserCredentials) (domain.User, error) {
-	realUser, err := uc.repo.GetByEmail(credentials.Email)
+func (uc *User) Auth(user domain.User) (domain.User, error) {
+	realUser, err := uc.repo.GetByEmail(user.Email)
 	if err != nil {
 		return domain.User{}, err
 	}
-	credentials.Password = generatePasswordHash(credentials.Password)
-	if realUser.Password != credentials.Password {
+	// кажется, можно сделать красивей
+	user.PasswordHash = generatePasswordHash(user.PasswordHash)
+	if realUser.PasswordHash != user.PasswordHash {
 		return domain.User{}, domain.ErrWrongCredentials
 	}
 	return realUser, nil
@@ -48,6 +50,10 @@ func (uc *User) GetByID(id uint64) (domain.User, error) {
 	return uc.repo.GetByID(id)
 }
 
+func (uc *User) UpdateAvatar(user domain.User, file io.Reader) (domain.User, error) {
+	return uc.repo.UpdateAvatar(user, file)
+}
+
 func generatePasswordHash(password string) string {
 	hash := sha256.New()
 	hash.Write([]byte(password))
@@ -55,7 +61,7 @@ func generatePasswordHash(password string) string {
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
 
-func validateCredentials(credentials domain.UserCredentials) error {
+func validateCredentials(credentials domain.User) error {
 	// TODO: регулярки нужно изменить (снизить строгость пароля)
 	return nil
 	// if incorrentPasswordRegex.MatchString(credentials.Password) {

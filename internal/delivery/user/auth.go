@@ -11,18 +11,39 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
+const (
+	shortFormDate = "2006-Jan-02"
+)
+
+// TODO: SignUp принимает только json данные для регистрации
+// аватар устанавливается или обновляется другой ручкой
+// если аватар нужно устанавливать при регистрации, фроненд вызовет отдельную ручку
 func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
-	credentials := domain.UserCredentials{}
-	err := decoder.Decode(&credentials)
+	userCreate := userCreateDTO{}
+	err := decoder.Decode(&userCreate)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
 	}
-	_, err = h.userUseCase.Register(credentials)
+
+	time, err := time.Parse(shortFormDate, userCreate.Birthday)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, `{"message":"failed to parse birthday from string to time"}`)
+		return
+	}
+	user := domain.User{
+		ID:           userCreate.Id,
+		Email:        userCreate.Email,
+		PasswordHash: userCreate.Password,
+		Birthday:     time,
+	}
+
+	_, err = h.userUseCase.Register(user)
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrUserAlreadyExists):
@@ -45,7 +66,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
-	credentials := domain.UserCredentials{}
+	credentials := userCredentialsDTO{}
 	err := decoder.Decode(&credentials)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -53,7 +74,13 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userUseCase.Auth(credentials)
+	user := domain.User{
+		Email:        credentials.Email,
+		PasswordHash: credentials.Password,
+	}
+
+	// TODO: перезаписывание user, стоит ли так делать?
+	user, err = h.userUseCase.Auth(user)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		io.WriteString(w, `{"message":"user not found"}`)

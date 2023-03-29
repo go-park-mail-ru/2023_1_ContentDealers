@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
@@ -13,31 +12,29 @@ import (
 )
 
 type Repository struct {
-	mu        sync.RWMutex
-	storage   map[uuid.UUID]domain.Session
 	redisConn redis.Conn
 }
 
 func NewRepository(redisConn redis.Conn) Repository {
-	return Repository{storage: map[uuid.UUID]domain.Session{}, redisConn: redisConn}
+	return Repository{redisConn: redisConn}
 }
 
 func (repo *Repository) Add(session domain.Session) error {
 	if time.Time(session.ExpiresAt).Before(time.Now()) {
 		return nil
 	}
-	dto := sessionDTO{
+	sessRow := sessionRow{
 		ExpiresAtString: session.ExpiresAt.Format(time.RFC3339),
 		UserID:          session.UserID,
 	}
 
 	// TODO: сериализую только user_id
 	// 1. в session еще есть поля,
-	// 2. иммет ли смысл сериализовать UserAgent? (в лекциях его сериализовать)
+	// 2. иммет ли смысл сериализовать UserAgent? (в лекциях его сериализовали)
 
 	dataSerialized, err := json.Marshal(map[string]interface{}{
-		"user_id":    dto.UserID,
-		"expires_at": dto.ExpiresAtString,
+		"user_id":    sessRow.UserID,
+		"expires_at": sessRow.ExpiresAtString,
 	})
 	if err != nil {
 		return err
@@ -55,7 +52,7 @@ func (repo *Repository) Add(session domain.Session) error {
 }
 
 func (repo *Repository) Get(sessionID uuid.UUID) (domain.Session, error) {
-	dto := sessionDTO{}
+	sessRow := sessionRow{}
 
 	data, err := redis.Bytes(repo.redisConn.Do("GET", sessionID))
 	if err != nil {
@@ -64,17 +61,17 @@ func (repo *Repository) Get(sessionID uuid.UUID) (domain.Session, error) {
 		}
 		return domain.Session{}, fmt.Errorf("cant get data in redis: %w", err)
 	}
-	err = json.Unmarshal(data, &dto)
+	err = json.Unmarshal(data, &sessRow)
 	if err != nil {
 		return domain.Session{}, fmt.Errorf("cant unpack session data from redis: %w", err)
 	}
-	time, err := time.Parse(time.RFC3339, dto.ExpiresAtString)
+	time, err := time.Parse(time.RFC3339, sessRow.ExpiresAtString)
 	if err != nil {
 		return domain.Session{}, nil
 	}
 	session := domain.Session{
 		ExpiresAt: time,
-		UserID:    dto.UserID,
+		UserID:    sessRow.UserID,
 		ID:        sessionID,
 	}
 	return session, nil

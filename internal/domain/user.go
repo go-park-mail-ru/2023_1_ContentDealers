@@ -1,6 +1,9 @@
 package domain
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var (
 	ErrWrongCredentials  = errors.New("wrong credentials")
@@ -11,11 +14,9 @@ var (
 )
 
 type User struct {
-	ID uint64
-	UserCredentials
-}
-
-type UserCredentials struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	ID           uint64
+	Email        string
+	PasswordHash string
+	AvatarURL    string
+	Birthday     time.Time
 }
