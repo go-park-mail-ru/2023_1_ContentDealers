@@ -91,10 +91,10 @@ func getDirByDate(date time.Time) string {
 	return fmt.Sprintf("%s/%s/%s", year, month, day)
 }
 
-func (repo *Repository) deleteAvatarLocalStorage(user domain.User) error {
+func (repo *Repository) deleteAvatar(user domain.User) error {
 	var updateDate time.Time
 
-	// TODO: модель не может иметь тип sql.NullString
+	// 1. удаление из локальной директории
 	if user.AvatarURL == "" {
 		return nil
 	}
@@ -115,11 +115,22 @@ func (repo *Repository) deleteAvatarLocalStorage(user domain.User) error {
 			return err
 		}
 	}
+
+	// 2. удаление урла из БД
+	_, err = repo.DB.Exec(
+		`update users 
+		set avatar_url = null
+		where id = $1;`,
+		user.ID,
+	)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.User, error) {
-	err := repo.deleteAvatarLocalStorage(user)
+	err := repo.deleteAvatar(user)
 	if err != nil {
 		return domain.User{}, err
 	}
