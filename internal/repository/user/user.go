@@ -41,7 +41,7 @@ func (repo *Repository) Add(user domain.User) (domain.User, error) {
 	).Scan(&lastInsertId)
 	if err != nil {
 		log.Println("sdfgsdfgdg ", err)
-		// TODO: можно ли проверить конкретную ошибку postgresql (нарушение unique)?
+		// TODO: можно ли проверить конкртеную ошибку postgresql (нарушение unique)?
 		// https://www.manniwood.com/2016_08_14/pgxfiles_04.html
 		// https://stackoverflow.com/questions/70515729/how-to-handle-postgres-query-error-with-pgx-driver-in-golang
 		if strings.Contains(err.Error(), "duplicate key value") {
@@ -82,23 +82,58 @@ func (repo *Repository) GetByID(id uint64) (domain.User, error) {
 	return user, nil
 }
 
-func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.User, error) {
-
-	currentTime := time.Now()
-	year := fmt.Sprintf("%d", currentTime.Year())
-	month := fmt.Sprintf("%d", int(currentTime.Month()))
-	day := fmt.Sprintf("%d", currentTime.Day())
+func getDirByDate(date time.Time) string {
+	year := fmt.Sprintf("%d", date.Year())
+	month := fmt.Sprintf("%d", int(date.Month()))
+	day := fmt.Sprintf("%d", date.Day())
 
 	// TODO: разделитель пути зависит от операционной системы
-	dir := fmt.Sprintf("%s/%s/%s/%s/", dirAvatars, year, month, day)
+	return fmt.Sprintf("%s/%s/%s", year, month, day)
+}
+
+func (repo *Repository) deleteAvatarLocalStorage(user domain.User) error {
+	var updateDate time.Time
+
+	// TODO: модель не может иметь тип sql.NullString
+	if user.AvatarURL == "" {
+		return nil
+	}
+	err := repo.DB.
+		QueryRow(`select updated_at FROM users WHERE id = $1`, user.ID).
+		Scan(&updateDate)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.ErrUserNotFound
+		}
+		return err
+	}
+
+	filepathForDelete := fmt.Sprintf("%s/%s/%d.jpg", dirAvatars, getDirByDate(updateDate), user.ID)
+	if _, err := os.Stat(filepathForDelete); !errors.Is(err, os.ErrNotExist) {
+		err := os.Remove(filepathForDelete)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.User, error) {
+	err := repo.deleteAvatarLocalStorage(user)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	// TODO: разделитель пути зависит от операционной системы
+	dir := fmt.Sprintf("%s/%s", dirAvatars, getDirByDate(time.Now()))
 
 	// если директория существовала, err == nil
 	// TODO: хардкод прав на директорию
-	err := os.MkdirAll(dir, 0777)
+	err = os.MkdirAll(dir, 0777)
 	if err != nil {
 		return domain.User{}, fmt.Errorf("failed to create folder for avatar")
 	}
-	filepath := dir + fmt.Sprintf("%d.jpg", user.ID)
+	filepath := fmt.Sprintf("%s/%d.jpg", dir, user.ID)
 
 	outAvatar, err := os.Create(filepath)
 	defer outAvatar.Close()
@@ -110,8 +145,6 @@ func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.U
 	if err != nil {
 		return domain.User{}, fmt.Errorf("failed to copy avatar file to local directory")
 	}
-
-	// FIXME: нет удаления старой аватарки (нужно зайти в папке с предыдущего обновления записи, удалить аву, после этого обновить запись в бд с новым url аватарки)
 
 	_, err = repo.DB.Exec(
 		`update users 
