@@ -4,6 +4,8 @@ tmp_persist/redis_data/*
 # IDE folders
 .idea
 
+# .env 
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

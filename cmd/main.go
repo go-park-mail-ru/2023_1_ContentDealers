@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -17,7 +18,6 @@ import (
 	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
 )
 
-const addr = ":8080"
 const ReadHeaderTimeout = 5 * time.Second
 
 func main() {
@@ -28,7 +28,14 @@ func main() {
 
 func Run() error {
 
-	db, err := setup.NewClientPostgres()
+	config, err := setup.GetConfig()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v", config)
+
+	db, err := setup.NewClientPostgres(config.Storage)
 	if err != nil {
 		return err
 	}
@@ -53,8 +60,10 @@ func Run() error {
 		UserHandler:           userHandler,
 		MovieSelectionHandler: movieSelectionHandler,
 		SessionUseCase:        sessionUseCase,
-		AllowedOrigins:        []string{"89.208.199.170"},
+		AllowedOrigins:        []string{config.CORS.AllowedOrigins},
 	})
+
+	addr := fmt.Sprintf("%s:%s", config.Listen.BindIP, config.Listen.Port)
 
 	server := http.Server{
 		Addr:              addr,

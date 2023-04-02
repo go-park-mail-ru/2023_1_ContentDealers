@@ -1,0 +1,13 @@
+is_debug: true
+listen:
+  port: 8080
+cors:
+  allowed_origins: 89.208.199.170
+storage:
+  # password from env
+  user:     postgres
+  dbname:   postgres
+  host:     127.0.0.1
+  port:     5432
+  sslmode:  disable
+
