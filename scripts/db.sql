@@ -1,10 +1,9 @@
 drop table if exists users cascade;
 drop table if exists roles cascade;
 drop table if exists persons cascade;
-drop table if exists roles_persons cascade;
+drop table if exists films_roles_persons cascade;
 drop table if exists content cascade;
 drop table if exists films cascade;
-drop table if exists films_persons cascade;
 drop table if exists countries cascade;
 drop table if exists genres cascade;
 drop table if exists content_countries cascade;
@@ -35,7 +34,7 @@ create table users (
     email text not null unique,
     password_hash text not null,
     date_birth date not null,
-    avatar_url text
+    avatar_url text,
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
 );
@@ -55,12 +54,6 @@ create table persons (
     age integer
 );
 
-create table roles_persons (
-    role_id bigint references roles(id) on delete cascade,
-    person_id bigint references persons(id) on delete cascade,
-    film_id bigint references films(id) on delete cascade,
-    PRIMARY KEY (role_id, person_id, film_id)
-);
 
 create table content (
     id bigserial primary key,
@@ -80,11 +73,13 @@ create table films (
     trailer_url text
 );
 
-create table films_persons (
-    film_id bigint references films(id) on delete cascade,
+create table films_roles_persons (
+    role_id bigint references roles(id) on delete cascade,
     person_id bigint references persons(id) on delete cascade,
-    primary key (film_id, person_id)
+    film_id bigint references films(id) on delete cascade,
+    PRIMARY KEY (role_id, person_id, film_id)
 );
+
 
 create table countries (
     id bigserial primary key,
@@ -127,4 +122,3 @@ create trigger set_timestamp_users
 before update on users
 for each row
 execute procedure set_timestamp();
-
