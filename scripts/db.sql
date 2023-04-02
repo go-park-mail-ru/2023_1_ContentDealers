@@ -1,16 +1,18 @@
-drop table if exists users;
-drop table if exists roles;
-drop table if exists persons;
-drop table if exists roles_persons;
-drop table if exists content;
-drop table if exists films;
-drop table if exists films_persons;
-drop table if exists countries;
-drop table if exists genres;
-drop table if exists content_countries;
-drop table if exists content_genres;
-drop table if exists series;
-drop table if exists episodes;
+drop table if exists users cascade;
+drop table if exists roles cascade;
+drop table if exists persons cascade;
+drop table if exists roles_persons cascade;
+drop table if exists content cascade;
+drop table if exists films cascade;
+drop table if exists films_persons cascade;
+drop table if exists countries cascade;
+drop table if exists genres cascade;
+drop table if exists content_countries cascade;
+drop table if exists content_genres cascade;
+drop table if exists series cascade;
+drop table if exists episodes cascade;
+
+-- namespace, gender, function set_timestamp
 
 CREATE SCHEMA filmium;
 SET search_path=filmium;
@@ -18,12 +20,24 @@ SET search_path=filmium;
 CREATE DOMAIN gender CHAR(1)
     CHECK (value IN ( 'F' , 'M' ));
 
+create or replace function set_timestamp()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+-- tables
+
 create table users (
     id bigserial primary key,
     email text not null unique,
     password_hash text not null,
     date_birth date not null,
     avatar_url text
+    created_at timestamp not null default now(),
+    updated_at timestamp not null default now()
 );
 
 create table roles (
@@ -44,14 +58,15 @@ create table persons (
 create table roles_persons (
     role_id bigint references roles(id) on delete cascade,
     person_id bigint references persons(id) on delete cascade,
-    PRIMARY KEY (role_id, person_id)
+    film_id bigint references films(id) on delete cascade,
+    PRIMARY KEY (role_id, person_id, film_id)
 );
 
 create table content (
     id bigserial primary key,
     title text,
     description text,
-    rating numeric(2, 2),
+    rating numeric(4, 2),
     year integer,
     is_free boolean,
     age_limit integer,
@@ -105,3 +120,11 @@ create table episodes (
     content_url text,
     title text
 );
+
+-- trigger
+
+create trigger set_timestamp_users
+before update on users
+for each row
+execute procedure set_timestamp();
+
