@@ -1,11 +1,15 @@
 version: '3'
 
-# для обновления скрипта иницилазиции бд postgres
-# sudo rm -rf temp_db_data/pgdata/* && sudo docker compose up
+# для того, чтобы скрипт инициализации отработал, БД должна быть пуста
+  # 1. sudo rm -rf tmp_persist/pgdata/*
+  # 2. sudo -i && rm -rf tmp_persist/pgdata/*
+
+# docker compose up --build 
+  # если произошли изменения в Dockerfile
 
 services:
   postgres:
-    image: postgres
+    build: .
     restart: always
     environment: 
       - PGDATA=/var/lib/postgresql/data/pgdata
@@ -16,13 +20,10 @@ services:
         max-size: 10m
         max-file: "3"
     ports:
-      # изменен стандартный порт!
       - '5432:5432'
     volumes:
-      # данные бд
+      # локальная директория для хранения данных бд
       - ./tmp_persist:/var/lib/postgresql/data
-      # скрипт для инициализации бд 
-      - ./scripts/db.sql:/docker-entrypoint-initdb.d/db.sql
   adminer:
     image: adminer
     restart: always
