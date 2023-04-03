@@ -6,8 +6,10 @@ version: '3'
 
 # docker compose up --build 
   # если произошли изменения в Dockerfile
+  # или есть скрипт заполнения бд, скачиваемый по ссылке, изменился
 
 services:
+  # зайти в контейнере в бд "psql -U postgres"
   postgres:
     build: .
     restart: always

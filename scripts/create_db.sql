@@ -10,6 +10,8 @@ drop table if exists content_countries cascade;
 drop table if exists content_genres cascade;
 drop table if exists series cascade;
 drop table if exists episodes cascade;
+drop table if exists selections cascade;
+drop table if exists films_selections cascade;
 
 -- namespace, gender, function set_timestamp
 
@@ -73,13 +75,23 @@ create table films (
     trailer_url text
 );
 
+create table selections (
+    id bigserial primary key,
+    title text
+);
+
+create table films_selections (
+    film_id bigint references films(id) on delete cascade,
+    selection_id bigint references selections(id) on delete cascade,
+    PRIMARY KEY (film_id, selection_id)
+);
+
 create table films_roles_persons (
     role_id bigint references roles(id) on delete cascade,
     person_id bigint references persons(id) on delete cascade,
     film_id bigint references films(id) on delete cascade,
     PRIMARY KEY (role_id, person_id, film_id)
 );
-
 
 create table countries (
     id bigserial primary key,
