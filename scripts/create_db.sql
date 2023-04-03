@@ -11,7 +11,7 @@ drop table if exists content_genres cascade;
 drop table if exists series cascade;
 drop table if exists episodes cascade;
 drop table if exists selections cascade;
-drop table if exists films_selections cascade;
+drop table if exists content_selections cascade;
 
 -- namespace, gender, function set_timestamp
 
@@ -80,10 +80,10 @@ create table selections (
     title text
 );
 
-create table films_selections (
-    film_id bigint references films(id) on delete cascade,
+create table content_selections (
+    content_id bigint references content(id) on delete cascade,
     selection_id bigint references selections(id) on delete cascade,
-    PRIMARY KEY (film_id, selection_id)
+    PRIMARY KEY (content_id, selection_id)
 );
 
 create table films_roles_persons (
