@@ -1,13 +1,19 @@
 version: '3'
 
-# для обновления скрипта иницилазиции бд postgres
-# sudo rm -rf temp_db_data/pgdata/* && sudo docker compose up
+# для того, чтобы скрипт инициализации отработал, БД должна быть пуста
+  # 1. sudo rm -rf tmp_persist/pgdata/*
+  # 2. sudo -i && rm -rf tmp_persist/pgdata/*
+
+# docker compose up --build 
+  # если произошли изменения в Dockerfile
+  # или есть скрипт заполнения бд, скачиваемый по ссылке, изменился
 
 # docker compose config - подставляет переменные окружения из .env в ${POSTGRES_PASSWORD} и показывает итоговый конфиг 
 
 services:
+  # зайти в контейнере в бд "psql -U postgres"
   postgres:
-    image: postgres
+    build: .
     restart: always
     environment: 
       - PGDATA=/var/lib/postgresql/data/pgdata
@@ -20,10 +26,8 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      # данные бд
+      # локальная директория для хранения данных бд
       - ./tmp_persist:/var/lib/postgresql/data
-      # скрипт для инициализации бд 
-      - ./scripts/db.sql:/docker-entrypoint-initdb.d/db.sql
   adminer:
     image: adminer
     restart: always

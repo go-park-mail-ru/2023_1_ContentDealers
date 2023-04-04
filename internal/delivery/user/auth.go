@@ -15,7 +15,7 @@ const (
 	shortFormDate = "2006-Jan-02"
 )
 
-// TODO: SignUp принимает только json данные для регистрации
+// SignUp TODO: SignUp принимает только json данные для регистрации
 // аватар устанавливается или обновляется другой ручкой
 // если аватар нужно устанавливать при регистрации, фроненд вызовет отдельную ручку
 func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
@@ -30,17 +30,16 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	time, err := time.Parse(shortFormDate, userCreate.Birthday)
+	birthdayTime, err := time.Parse(shortFormDate, userCreate.Birthday)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"message":"failed to parse birthday from string to time"}`)
+		io.WriteString(w, `{"message":"failed to parse birthday from string to birthdayTime"}`)
 		return
 	}
 	user := domain.User{
-		ID:           userCreate.Id,
 		Email:        userCreate.Email,
 		PasswordHash: userCreate.Password,
-		Birthday:     time,
+		Birthday:     birthdayTime,
 	}
 
 	_, err = h.userUseCase.Register(user)
