@@ -18,5 +18,5 @@ type User struct {
 	Email        string
 	PasswordHash string
 	AvatarURL    string
-	Birthday     time.Time
+	DateBirth    time.Time
 }

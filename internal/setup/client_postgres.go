@@ -7,6 +7,10 @@ import (
 	_ "github.com/jackc/pgx/stdlib"
 )
 
+const (
+	maxOpenConns = 10
+)
+
 func NewClientPostgres(cfg StorageConfig) (*sql.DB, error) {
 	// TODO: пока хардкод, нужно читать конфиг (cleanenv, viper, gotoenv)
 	// Пароли не нужно хранить в конфиге, поэтому нужно думать с переменнными среды
@@ -30,6 +34,6 @@ func NewClientPostgres(cfg StorageConfig) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	db.SetMaxOpenConns(10)
+	db.SetMaxOpenConns(maxOpenConns)
 	return db, nil
 }

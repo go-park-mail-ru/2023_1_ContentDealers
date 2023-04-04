@@ -14,11 +14,11 @@ func NewRepository(db *sql.DB) Repository {
 	return Repository{DB: db}
 }
 
-func (repo *Repository) Add(selections domain.MovieSelection) {
+func (repo *Repository) Add(selections domain.Selection) {
 }
 
-func (repo *Repository) GetAll() ([]domain.MovieSelection, error) {
-	var selections []domain.MovieSelection
+func (repo *Repository) GetAll() ([]domain.Selection, error) {
+	var selections []domain.Selection
 	rows, err := repo.DB.Query(
 		`select s.id, s.title, m.id, m.title, m.description, m.preview_url 
 		FROM selections s
@@ -30,8 +30,8 @@ func (repo *Repository) GetAll() ([]domain.MovieSelection, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		s := domain.MovieSelection{}
-		m := domain.Movie{}
+		s := domain.Selection{}
+		m := domain.Film{}
 		err = rows.Scan(&s.ID, &s.Title, &m.ID, &m.Title, &m.Description, &m.PreviewURL)
 		if err != nil {
 			return nil, err
@@ -47,7 +47,7 @@ func (repo *Repository) GetAll() ([]domain.MovieSelection, error) {
 	return selections, nil
 }
 
-func (repo *Repository) GetByID(id uint64) (domain.MovieSelection, error) {
+func (repo *Repository) GetByID(id uint64) (domain.Selection, error) {
 	rows, err := repo.DB.Query(
 		`select s.id, s.title, m.id, m.title, m.description, m.preview_url 
 			FROM selections s
@@ -56,16 +56,16 @@ func (repo *Repository) GetByID(id uint64) (domain.MovieSelection, error) {
 			where s.id = $1
 			order by s.id, m.id`, id)
 	if err != nil {
-		return domain.MovieSelection{}, err
+		return domain.Selection{}, err
 	}
 	defer rows.Close()
-	selection := domain.MovieSelection{}
+	selection := domain.Selection{}
 	i := 0
 	for rows.Next() {
 		// TODO: возможнос стоит сделать два запроса, один для
 		// названия выборки, второй для всех входящих в нее фильмов
-		s := domain.MovieSelection{}
-		m := domain.Movie{}
+		s := domain.Selection{}
+		m := domain.Film{}
 		if i == 0 {
 			err = rows.Scan(&selection.ID, &selection.Title, &m.ID,
 				&m.Title, &m.Description, &m.PreviewURL)
@@ -74,7 +74,7 @@ func (repo *Repository) GetByID(id uint64) (domain.MovieSelection, error) {
 				&m.Description, &m.PreviewURL)
 		}
 		if err != nil {
-			return domain.MovieSelection{}, err
+			return domain.Selection{}, err
 		}
 		selection.Movies = append(selection.Movies, &m)
 		i += 1

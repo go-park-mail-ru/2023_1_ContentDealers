@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	shortFormDate = "2006-01-02"
-	dirAvatars    = "./media/avatars"
+	shortFormDate             = "2006-01-02"
+	dirAvatars                = "./media/avatars"
+	allPerms      os.FileMode = 0777
 )
 
 type Repository struct {
@@ -27,7 +28,7 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (repo *Repository) Add(user domain.User) (domain.User, error) {
-	var lastInsertId uint64
+	var lastInsertedID uint64
 	log.Println(user.Birthday)
 
 	err := repo.DB.QueryRow(
@@ -38,8 +39,9 @@ func (repo *Repository) Add(user domain.User) (domain.User, error) {
 		user.PasswordHash,
 		user.Birthday,
 		user.AvatarURL,
-	).Scan(&lastInsertId)
+	).Scan(&lastInsertedID)
 	if err != nil {
+		// FIXME:
 		log.Println("sdfgsdfgdg ", err)
 		// TODO: можно ли проверить конкртеную ошибку postgresql (нарушение unique)?
 		// https://www.manniwood.com/2016_08_14/pgxfiles_04.html
@@ -49,7 +51,7 @@ func (repo *Repository) Add(user domain.User) (domain.User, error) {
 		}
 		return domain.User{}, err
 	}
-	user.ID = lastInsertId
+	user.ID = lastInsertedID
 	return user, nil
 }
 
@@ -109,8 +111,8 @@ func (repo *Repository) deleteAvatar(user domain.User) error {
 	}
 
 	filepathForDelete := fmt.Sprintf("%s/%s/%d.jpg", dirAvatars, getDirByDate(updateDate), user.ID)
-	if _, err := os.Stat(filepathForDelete); !errors.Is(err, os.ErrNotExist) {
-		err := os.Remove(filepathForDelete)
+	if _, err = os.Stat(filepathForDelete); !errors.Is(err, os.ErrNotExist) {
+		err = os.Remove(filepathForDelete)
 		if err != nil {
 			return err
 		}
@@ -140,7 +142,7 @@ func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.U
 
 	// если директория существовала, err == nil
 	// TODO: хардкод прав на директорию
-	err = os.MkdirAll(dir, 0777)
+	err = os.MkdirAll(dir, allPerms)
 	if err != nil {
 		return domain.User{}, fmt.Errorf("failed to create folder for avatar")
 	}

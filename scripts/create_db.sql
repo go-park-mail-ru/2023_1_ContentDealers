@@ -1,7 +1,7 @@
 drop table if exists users cascade;
 drop table if exists roles cascade;
 drop table if exists persons cascade;
-drop table if exists films_roles_persons cascade;
+drop table if exists content_roles_persons cascade;
 drop table if exists content cascade;
 drop table if exists films cascade;
 drop table if exists countries cascade;
@@ -15,11 +15,18 @@ drop table if exists content_selections cascade;
 
 -- namespace, gender, function set_timestamp
 
-CREATE SCHEMA filmium;
-SET search_path=filmium;
+create schema if not exists filmium;
+set search_path=filmium;
 
-CREATE DOMAIN gender CHAR(1)
-    CHECK (value IN ( 'F' , 'M' ));
+drop domain if exists gender cascade;
+create domain gender char(1)
+    check (value IN ('F', 'M'));
+
+drop type filmium.content_type cascade;
+create type content_type as enum (
+    'film',
+    'series'
+);
 
 create or replace function set_timestamp()
 returns trigger as $$
@@ -36,71 +43,71 @@ create table users (
     email text not null unique,
     password_hash text not null,
     date_birth date not null,
-    avatar_url text,
+    avatar_url text not null default 'media/default_avatar.jpg',
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
 );
 
 create table roles (
     id bigserial primary key,
-    title text
+    title text unique not null
 );
 
 create table persons (
     id bigserial primary key,
-    name text,
-    gender filmium.gender,
+    name text not null,
+    gender filmium.gender not null,
     growth integer,
     birthplace text,
-    avatar_url text,
+    avatar_url text not null default 'media/default_avatar.jpg',
     age integer
 );
 
-
 create table content (
     id bigserial primary key,
-    title text,
-    description text,
+    title text not null,
+    description text not null,
     rating numeric(4, 2),
     year integer,
-    is_free boolean,
-    age_limit integer,
-    preview_url text
+    is_free boolean not null default true,
+    age_limit integer not null default 0,
+    preview_url text not null,
+    trailer_url text not null,
+    type content_type not null
 );
 
 create table films (
     id bigserial primary key,
-    content_id bigint references content(id) on delete cascade,
-    content_url text,
-    trailer_url text
+    content_id bigint not null references content(id) on delete cascade,
+    content_url text not null
 );
 
 create table selections (
     id bigserial primary key,
-    title text
+    title text not null
 );
 
 create table content_selections (
     content_id bigint references content(id) on delete cascade,
     selection_id bigint references selections(id) on delete cascade,
-    PRIMARY KEY (content_id, selection_id)
+    primary key (content_id, selection_id)
 );
 
-create table films_roles_persons (
+create table content_roles_persons (
     role_id bigint references roles(id) on delete cascade,
     person_id bigint references persons(id) on delete cascade,
-    film_id bigint references films(id) on delete cascade,
-    PRIMARY KEY (role_id, person_id, film_id)
+    content_id bigint references content(id) on delete cascade,
+    primary key (role_id, person_id, content_id)
 );
 
 create table countries (
     id bigserial primary key,
-    name text
+    name text not null
 );
 
 create table genres (
     id bigserial primary key,
-    name text
+    name text not null
 );
 
 create table content_countries (
@@ -117,19 +124,18 @@ create table content_genres (
 
 create table series (
     id bigserial primary key,
-    content_id bigint references content(id) on delete cascade
+    content_id bigint not null references content(id) on delete cascade
 );
 
 create table episodes (
     id bigserial primary key,
-    series_id bigint references series(id) on delete cascade,
-    season_num integer,
-    content_url text,
-    title text
+    series_id bigint not null references series(id) on delete cascade,
+    season_num integer not null,
+    content_url text not null,
+    title text not null
 );
 
 -- trigger
-
 create trigger set_timestamp_users
 before update on users
 for each row

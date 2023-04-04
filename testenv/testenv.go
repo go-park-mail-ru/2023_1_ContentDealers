@@ -1,7 +1,7 @@
 package testenv
 
 import (
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movie"
@@ -10,7 +10,7 @@ import (
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	movieSelectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/movieselection"
+	movieSelectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
 	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
 	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
 	"github.com/gorilla/mux"
@@ -43,7 +43,7 @@ type TestEnv struct {
 	MovieSelectionUseCase MovieSelectionUseCase
 
 	UserHandler           user.Handler
-	MovieSelectionHandler movieselection.Handler
+	MovieSelectionHandler selection.Handler
 
 	Router *mux.Router
 }
@@ -61,7 +61,7 @@ func NewTestEnv() *TestEnv {
 	movieSelectionUseCase := movieSelectionUseCase.NewMovieSelection(&movieSelectionRepository)
 
 	userHandler := user.NewHandler(userUseCase, sessionUseCase)
-	movieSelectionHandler := movieselection.NewHandler(movieSelectionUseCase)
+	movieSelectionHandler := selection.NewHandler(movieSelectionUseCase)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:           userHandler,

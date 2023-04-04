@@ -16,6 +16,7 @@ const (
 	nameFormFile = "avatar"
 	// 10Mb (32Mb по умолчанию)
 	maxSizeBody = 10 << 20
+	buffSize    = 512
 )
 
 type Handler struct {
@@ -62,7 +63,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 	// TODO: здесь ведь нужно закрывать? это не ответственность репозитория? его зона ответственности - просто сохранить?
 
-	buff := make([]byte, 512)
+	buff := make([]byte, buffSize)
 	_, err = file.Read(buff)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

@@ -4,7 +4,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/middleware"
 
@@ -21,7 +21,7 @@ func NotFound(w http.ResponseWriter, r *http.Request) {
 type SettingsRouter struct {
 	AllowedOrigins        []string
 	UserHandler           user.Handler
-	MovieSelectionHandler movieselection.Handler
+	MovieSelectionHandler selection.Handler
 	SessionUseCase        SessionUseCase
 }
 

@@ -1,4 +1,4 @@
-package movieselection
+package selection
 
 import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
@@ -12,10 +12,10 @@ func NewMovieSelection(repo MovieSelectionRepository) *MovieSelection {
 	return &MovieSelection{repo: repo}
 }
 
-func (uc *MovieSelection) GetAll() ([]domain.MovieSelection, error) {
+func (uc *MovieSelection) GetAll() ([]domain.Selection, error) {
 	return uc.repo.GetAll()
 }
 
-func (uc *MovieSelection) GetByID(id uint64) (domain.MovieSelection, error) {
+func (uc *MovieSelection) GetByID(id uint64) (domain.Selection, error) {
 	return uc.repo.GetByID(id)
 }

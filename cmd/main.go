@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	movieSelectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movieselection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	movieSelectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/movieselection"
+	movieSelectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
 	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
 	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
 )
@@ -54,7 +54,7 @@ func Run() error {
 	movieSelectionUseCase := movieSelectionUseCase.NewMovieSelection(&movieSelectionRepository)
 
 	userHandler := user.NewHandler(userUseCase, sessionUseCase)
-	movieSelectionHandler := movieselection.NewHandler(movieSelectionUseCase)
+	movieSelectionHandler := selection.NewHandler(movieSelectionUseCase)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:           userHandler,

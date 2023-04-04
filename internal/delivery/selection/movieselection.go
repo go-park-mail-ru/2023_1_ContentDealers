@@ -1,4 +1,4 @@
-package movieselection
+package selection
 
 import (
 	"encoding/json"

@@ -6,18 +6,18 @@ import (
 )
 
 type MovieRepository interface {
-	GetByID(id uint64) (domain.Movie, error)
-	GetAll() ([]domain.Movie, error)
+	GetByID(id uint64) (domain.Film, error)
+	GetAll() ([]domain.Film, error)
 }
 
 type MovieSelectionRepository interface {
-	GetAll() ([]domain.MovieSelection, error)
-	GetByID(id uint64) (domain.MovieSelection, error)
+	GetAll() ([]domain.Selection, error)
+	GetByID(id uint64) (domain.Selection, error)
 }
 
 type MovieSelectionUseCase interface {
-	GetAll() ([]domain.MovieSelection, error)
-	GetByID(id uint64) (domain.MovieSelection, error)
+	GetAll() ([]domain.Selection, error)
+	GetByID(id uint64) (domain.Selection, error)
 }
 
 type SessionRepository interface {

@@ -1,11 +1,11 @@
 package user
 
 type userCreateDTO struct {
-	Id        uint64 `json:"id"`
+	ID        uint64 `json:"id"`
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 	AvatarURL string `json:"avatar_url"`
-	Birthday  string `json:"birthday"`
+	Birthday  string `json:"date_birth"`
 }
 
 type userCredentialsDTO struct {

@@ -20,7 +20,7 @@ func NewRepository(redisConn redis.Conn) Repository {
 }
 
 func (repo *Repository) Add(session domain.Session) error {
-	if time.Time(session.ExpiresAt).Before(time.Now()) {
+	if session.ExpiresAt.Before(time.Now()) {
 		return nil
 	}
 	sessRow := sessionRow{
@@ -41,11 +41,11 @@ func (repo *Repository) Add(session domain.Session) error {
 	}
 
 	// TODO: session.ID или session.ID.String()
-	timeToLive := session.ExpiresAt.Sub(time.Now())
+	timeToLive := time.Until(session.ExpiresAt)
 	result, err := redis.String(repo.redisConn.Do("SET", session.ID,
 		dataSerialized, "EX", timeToLive.Seconds()))
 	if err != nil {
-		return fmt.Errorf("cant set data in redis:", err)
+		return fmt.Errorf("cant set data in redis: %w", err)
 	}
 	if result != "OK" {
 		return fmt.Errorf("'set' in redis replies 'not OK'")
