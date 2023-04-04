@@ -8,6 +8,8 @@ version: '3'
   # если произошли изменения в Dockerfile
   # или есть скрипт заполнения бд, скачиваемый по ссылке, изменился
 
+# docker compose config - подставляет переменные окружения из .env в ${POSTGRES_PASSWORD} и показывает итоговый конфиг 
+
 services:
   # зайти в контейнере в бд "psql -U postgres"
   postgres:
@@ -16,7 +18,7 @@ services:
     environment: 
       - PGDATA=/var/lib/postgresql/data/pgdata
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     logging:
       options:
         max-size: 10m
