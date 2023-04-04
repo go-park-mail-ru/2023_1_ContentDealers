@@ -29,7 +29,7 @@ func (repo *Repository) GetByID(id uint64) (domain.Movie, error) {
 }
 
 func (repo *Repository) GetAll() ([]domain.Movie, error) {
-	movies := []domain.Movie{}
+	var movies []domain.Movie
 	rows, err := repo.DB.Query("SELECT id, title, description, preview_url FROM movies")
 	if err != nil {
 		return nil, err

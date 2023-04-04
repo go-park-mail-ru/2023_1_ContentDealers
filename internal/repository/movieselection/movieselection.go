@@ -18,7 +18,7 @@ func (repo *Repository) Add(selections domain.MovieSelection) {
 }
 
 func (repo *Repository) GetAll() ([]domain.MovieSelection, error) {
-	selections := []domain.MovieSelection{}
+	var selections []domain.MovieSelection
 	rows, err := repo.DB.Query(
 		`select s.id, s.title, m.id, m.title, m.description, m.preview_url 
 		FROM selections s
@@ -58,6 +58,7 @@ func (repo *Repository) GetByID(id uint64) (domain.MovieSelection, error) {
 	if err != nil {
 		return domain.MovieSelection{}, err
 	}
+	defer rows.Close()
 	selection := domain.MovieSelection{}
 	i := 0
 	for rows.Next() {

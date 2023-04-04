@@ -39,9 +39,11 @@ func (repo *Repository) Add(session domain.Session) error {
 	if err != nil {
 		return err
 	}
-	// 86400s = 24h
+
 	// TODO: session.ID или session.ID.String()
-	result, err := redis.String(repo.redisConn.Do("SET", session.ID, dataSerialized, "EX", 86400))
+	timeToLive := session.ExpiresAt.Sub(time.Now())
+	result, err := redis.String(repo.redisConn.Do("SET", session.ID,
+		dataSerialized, "EX", timeToLive.Seconds()))
 	if err != nil {
 		return fmt.Errorf("cant set data in redis:", err)
 	}
@@ -65,12 +67,12 @@ func (repo *Repository) Get(sessionID uuid.UUID) (domain.Session, error) {
 	if err != nil {
 		return domain.Session{}, fmt.Errorf("cant unpack session data from redis: %w", err)
 	}
-	time, err := time.Parse(time.RFC3339, sessRow.ExpiresAtString)
+	expireTime, err := time.Parse(time.RFC3339, sessRow.ExpiresAtString)
 	if err != nil {
 		return domain.Session{}, nil
 	}
 	session := domain.Session{
-		ExpiresAt: time,
+		ExpiresAt: expireTime,
 		UserID:    sessRow.UserID,
 		ID:        sessionID,
 	}
