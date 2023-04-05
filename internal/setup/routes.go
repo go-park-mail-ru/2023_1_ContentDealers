@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/middleware"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup/logger"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -25,6 +26,7 @@ type SettingsRouter struct {
 	MovieSelectionHandler movieselection.Handler
 	SessionUseCase        SessionUseCase
 	CryptToken            csrf.CryptToken
+	Logger                logger.Logger
 }
 
 func Routes(s *SettingsRouter) *mux.Router {
@@ -34,6 +36,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 		AllowCredentials: true,
 		Debug:            true,
 	})
+	corsMiddleware.Log = s.Logger
 	authMiddleware := middleware.NewAuth(s.SessionUseCase)
 	CSRFMiddleware := middleware.NewCSRF(s.CryptToken)
 

@@ -1,0 +1,8 @@
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "  Actual request no headers added: origin 'example.com' not allowed",
+  "time": "2023-04-05T20:59:47+03:00"
+}

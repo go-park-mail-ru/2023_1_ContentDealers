@@ -12,6 +12,7 @@ import (
 	movieSelectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movieselection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup/logger"
 	"github.com/joho/godotenv"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/csrf"
@@ -30,30 +31,34 @@ func main() {
 }
 
 func Run() error {
+	logger, err := logger.NewLogger()
 
 	config, err := setup.GetConfig()
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 
-	fmt.Printf("%v", config)
-
 	db, err := setup.NewClientPostgres(config.Storage)
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 
 	redisClient, err := setup.NewClientRedis()
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 
 	err = godotenv.Load()
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 	cryptToken, err := csrf.NewCryptToken(os.Getenv("CSRF_TOKEN"))
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 
@@ -65,8 +70,8 @@ func Run() error {
 	sessionUseCase := sessionUseCase.NewSession(&sessionRepository)
 	movieSelectionUseCase := movieSelectionUseCase.NewMovieSelection(&movieSelectionRepository)
 
-	userHandler := user.NewHandler(userUseCase, sessionUseCase, cryptToken)
-	movieSelectionHandler := movieselection.NewHandler(movieSelectionUseCase)
+	userHandler := user.NewHandler(userUseCase, sessionUseCase, cryptToken, logger)
+	movieSelectionHandler := movieselection.NewHandler(movieSelectionUseCase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:           userHandler,
@@ -74,6 +79,7 @@ func Run() error {
 		SessionUseCase:        sessionUseCase,
 		AllowedOrigins:        []string{config.CORS.AllowedOrigins},
 		CryptToken:            cryptToken,
+		Logger:                logger,
 	})
 
 	addr := fmt.Sprintf("%s:%s", config.Listen.BindIP, config.Listen.Port)
@@ -84,7 +90,7 @@ func Run() error {
 		ReadHeaderTimeout: ReadHeaderTimeout,
 	}
 
-	log.Println("start listening on", addr)
+	logger.Infoln("start listening on", addr)
 
 	if err := server.ListenAndServe(); err != nil {
 		return err

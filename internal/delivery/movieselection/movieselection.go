@@ -9,15 +9,17 @@ import (
 	"net/http"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup/logger"
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
 	useCase MovieSelectionUseCase
+	logger  logger.Logger
 }
 
-func NewHandler(useCase MovieSelectionUseCase) Handler {
-	return Handler{useCase: useCase}
+func NewHandler(useCase MovieSelectionUseCase, logger logger.Logger) Handler {
+	return Handler{useCase: useCase, logger: logger}
 }
 
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +27,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	selections, err := h.useCase.GetAll()
 	if err != nil {
-		log.Println(err)
+		h.logger.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -37,6 +39,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
+		h.logger.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -53,6 +56,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	_, err := fmt.Sscanf(idRaw, "%d", &id)
 	if err != nil {
+		h.logger.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"movie selection id is not numeric"}`)
 		return
@@ -60,6 +64,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	movieSelection, err := h.useCase.GetByID(id)
 	if err != nil {
+		h.logger.Error(err)
 		switch {
 		case errors.Is(err, domain.ErrMovieSelectionNotFound):
 			w.WriteHeader(http.StatusNotFound)
@@ -78,7 +83,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		log.Println(err)
+		h.logger.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
