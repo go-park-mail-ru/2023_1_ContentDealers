@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/middleware"
 
 	"github.com/gorilla/mux"
@@ -23,6 +24,7 @@ type SettingsRouter struct {
 	UserHandler           user.Handler
 	MovieSelectionHandler movieselection.Handler
 	SessionUseCase        SessionUseCase
+	CryptToken            csrf.CryptToken
 }
 
 func Routes(s *SettingsRouter) *mux.Router {
@@ -33,6 +35,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 		Debug:            true,
 	})
 	authMiddleware := middleware.NewAuth(s.SessionUseCase)
+	CSRFMiddleware := middleware.NewCSRF(s.CryptToken)
 
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(NotFound)
@@ -43,6 +46,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 	router.Use(corsMiddleware.Handler)
 	router.Use(middleware.SetContentTypeJSON)
 	authRouter.Use(authMiddleware.RequireAuth)
+	authRouter.Use(CSRFMiddleware.RequireCSRF)
 	unAuthRouter.Use(authMiddleware.RequireUnAuth)
 
 	router.HandleFunc("/selections", s.MovieSelectionHandler.GetAll)
@@ -53,6 +57,8 @@ func Routes(s *SettingsRouter) *mux.Router {
 
 	authRouter.HandleFunc("/user/logout", s.UserHandler.Logout).Methods("POST")
 	authRouter.HandleFunc("/user/profile", s.UserHandler.Info).Methods("GET")
+	// только авторизированные могут запрашивать токен
+	authRouter.HandleFunc("/user/csrf", s.UserHandler.GetCSRF).Methods("GET")
 
 	// TODO: PATCH в постмане выдавал 405 Method not allowed
 	authRouter.HandleFunc("/user/update/avatar", s.UserHandler.UpdateAvatar).Methods("POST")

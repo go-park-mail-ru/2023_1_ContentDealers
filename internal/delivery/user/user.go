@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
@@ -21,12 +22,14 @@ const (
 type Handler struct {
 	userUseCase    UserUseCase
 	sessionUseCase SessionUseCase
+	cryptToken     csrf.CryptToken
 }
 
-func NewHandler(user UserUseCase, session SessionUseCase) Handler {
+func NewHandler(user UserUseCase, session SessionUseCase, cryptToken csrf.CryptToken) Handler {
 	return Handler{
 		userUseCase:    user,
 		sessionUseCase: session,
+		cryptToken:     cryptToken,
 	}
 }
 
