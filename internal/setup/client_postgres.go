@@ -3,16 +3,29 @@ package setup
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/jackc/pgx/stdlib"
 )
 
-func NewClientPostgres(cfg StorageConfig) (*sql.DB, error) {
-	// TODO: пока хардкод, нужно читать конфиг (cleanenv, viper, gotoenv)
-	// Пароли не нужно хранить в конфиге, поэтому нужно думать с переменнными среды
-	// 1. https://www.youtube.com/watch?v=sDsAf3gikpQ&list=PLbTTxxr-hMmyFAvyn7DeOgNRN8BQdjFm8&index=5
-	// 2. https://www.youtube.com/watch?v=asLUNpndGj0&t=1310s
+const (
+	attemptsPing = 5
+	delayPing    = 3 * time.Second
+)
 
+func pingDB(db *sql.DB, delay time.Duration, attempts int) error {
+	var err error
+	for i := 0; i < attempts; i++ {
+		err = db.Ping()
+		if err == nil {
+			return nil
+		}
+		time.Sleep(delay)
+	}
+	return fmt.Errorf("failed to ping db after %d attempt with %s delay: %w", attempts, delay.String(), err)
+}
+
+func NewClientPostgres(cfg StorageConfig) (*sql.DB, error) {
 	dsn := fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=%s sslmode=%s",
 		cfg.User,
 		cfg.DBName,
@@ -25,8 +38,7 @@ func NewClientPostgres(cfg StorageConfig) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cant parse config: %w", err)
 	}
-	// TODO: нужно несколько раз пробовать подключаться с перерывами
-	err = db.Ping()
+	err = pingDB(db, delayPing, attemptsPing)
 	if err != nil {
 		return nil, err
 	}

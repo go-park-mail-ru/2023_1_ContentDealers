@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"log"
 	"net/http"
@@ -106,6 +107,8 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	user.Email = html.EscapeString(user.Email)
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
