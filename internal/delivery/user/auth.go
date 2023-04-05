@@ -76,7 +76,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	user := domain.User{
 		Email:        credentials.Email,
-		PasswordHash: credentials.Password,
+		PasswordHash: credentials.Password, // no hash
 	}
 
 	// TODO: перезаписывание user, стоит ли так делать?

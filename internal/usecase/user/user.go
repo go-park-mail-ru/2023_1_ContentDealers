@@ -1,15 +1,11 @@
 package user
 
 import (
-	"crypto/sha256"
-	"fmt"
 	"io"
 	"regexp"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
-
-const salt = "hjqrhjqw124617ajfhajs"
 
 // TODO: нужно изменить регулярки
 var (
@@ -29,7 +25,11 @@ func (uc *User) Register(user domain.User) (domain.User, error) {
 	if err := validateCredentials(user); err != nil {
 		return domain.User{}, err
 	}
-	user.PasswordHash = generatePasswordHash(user.PasswordHash)
+	passwordHash, err := hashPassword(user.PasswordHash)
+	if err != nil {
+		return domain.User{}, err
+	}
+	user.PasswordHash = passwordHash
 	return uc.repo.Add(user)
 }
 
@@ -38,9 +38,11 @@ func (uc *User) Auth(user domain.User) (domain.User, error) {
 	if err != nil {
 		return domain.User{}, err
 	}
-	// кажется, можно сделать красивей
-	user.PasswordHash = generatePasswordHash(user.PasswordHash)
-	if realUser.PasswordHash != user.PasswordHash {
+	isVaild, err := verifyPassword(user.PasswordHash, realUser.PasswordHash)
+	if err != nil {
+		return domain.User{}, err
+	}
+	if !isVaild {
 		return domain.User{}, domain.ErrWrongCredentials
 	}
 	return realUser, nil
@@ -52,13 +54,6 @@ func (uc *User) GetByID(id uint64) (domain.User, error) {
 
 func (uc *User) UpdateAvatar(user domain.User, file io.Reader) (domain.User, error) {
 	return uc.repo.UpdateAvatar(user, file)
-}
-
-func generatePasswordHash(password string) string {
-	hash := sha256.New()
-	hash.Write([]byte(password))
-
-	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }
 
 func validateCredentials(credentials domain.User) error {
