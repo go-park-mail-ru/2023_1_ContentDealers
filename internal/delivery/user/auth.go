@@ -15,9 +15,16 @@ const (
 	shortFormDate = "2006-Jan-02"
 )
 
-// TODO: SignUp принимает только json данные для регистрации
-// аватар устанавливается или обновляется другой ручкой
-// если аватар нужно устанавливать при регистрации, фроненд вызовет отдельную ручку
+// @Summary SignUp
+// @Tags auth
+// @Description Создать аккаунт
+// @Accept  json
+// @Produce  json
+// @Param input body userCreateDTO true "Информация об аккаунте"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /user/signup [post]
 func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
@@ -37,7 +44,6 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := domain.User{
-		ID:           userCreate.Id,
 		Email:        userCreate.Email,
 		PasswordHash: userCreate.Password,
 		Birthday:     time,
@@ -47,11 +53,11 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrUserAlreadyExists):
-			w.WriteHeader(http.StatusConflict)
+			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"message":"user already exists"}`)
 		case errors.Is(err, domain.ErrNotValidEmail) ||
 			errors.Is(err, domain.ErrNotValidPassword):
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"message":"email or password not validated"}`)
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
@@ -59,9 +65,19 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 }
 
+// @Summary SignIn
+// @Tags auth
+// @Description Войти в аккаунт
+// @Accept  json
+// @Produce  json
+// @Param input body userCredentialsDTO true "Данные для входа в аккаунт"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /user/signin [post]
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
@@ -82,7 +98,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	// TODO: перезаписывание user, стоит ли так делать?
 	user, err = h.userUseCase.Auth(user)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"user not found"}`)
 		return
 	}
@@ -107,6 +123,16 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// @Summary Logout
+// @Tags auth
+// @Description Выйти из аккаунта
+// @Description Необходимы куки
+// @Description Необходим csrf токен
+// @Produce  json
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /user/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 

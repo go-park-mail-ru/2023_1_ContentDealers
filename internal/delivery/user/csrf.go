@@ -10,6 +10,15 @@ import (
 
 const ExpirationTimeCSRF = 2 * time.Hour
 
+// @Summary CSRF
+// @Tags user
+// @Description Получить CSRF токен
+// @Description Необходимы куки
+// @Produce  json
+// @Success 200 {object} tokenDTO
+// @Failure 400
+// @Failure 500
+// @Router /user/csrf [get]
 func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := r.Context().Value("session")
 	session, ok := sessionRaw.(domain.Session)

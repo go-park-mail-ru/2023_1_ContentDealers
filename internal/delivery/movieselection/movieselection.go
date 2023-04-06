@@ -22,6 +22,17 @@ func NewHandler(useCase MovieSelectionUseCase, logger logger.Logger) Handler {
 	return Handler{useCase: useCase, logger: logger}
 }
 
+// @Summary Get All
+// @Tags movieselection
+// @Description Получить все подборки
+// @Description Через параметры можно указать лимит фильмов / сериалов в одной подборке
+// @Produce  json
+// @Param limit query integer false "Ограничение на количество"
+// @Param offset query integer false "Смешение от первого фильма"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /selections [get]
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
@@ -48,6 +59,17 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
+// @Summary Get By Id
+// @Tags movieselection
+// @Description Получить конкретную подборку
+// @Description Через параметры можно указать лимит фильмов / сериалов в одной подборке
+// @Produce  json
+// @Param limit query integer false "Ограничение на количество"
+// @Param offset query integer false "Смешение от первого фильма"
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /selections/id [get]
 func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 

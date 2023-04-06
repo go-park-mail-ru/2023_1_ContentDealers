@@ -24,6 +24,12 @@ import (
 
 const ReadHeaderTimeout = 5 * time.Second
 
+// @title Filmium Backend API
+// @version 1.0
+// @description API Server for Filmium Application
+
+// @host localhost:8080
+// @BasePath /
 func main() {
 	if err := Run(); err != nil {
 		log.Fatal(err)

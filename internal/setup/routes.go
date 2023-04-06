@@ -12,6 +12,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+
+	_ "github.com/go-park-mail-ru/2023_1_ContentDealers/docs"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
@@ -64,8 +67,10 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter.HandleFunc("/user/csrf", s.UserHandler.GetCSRF).Methods("GET")
 
 	// TODO: PATCH в постмане выдавал 405 Method not allowed
-	authRouter.HandleFunc("/user/update/avatar", s.UserHandler.UpdateAvatar).Methods("POST")
+	authRouter.HandleFunc("/user/avatar/upload", s.UserHandler.UpdateAvatar).Methods("POST")
 	// authRouter.HandleFunc("/user/update/profile", s.UserHandler.UploadAvatar).Methods("GET")
+
+	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(httpSwagger.URL("./swagger/doc.json")))
 
 	return router
 }

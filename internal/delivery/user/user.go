@@ -35,6 +35,18 @@ func NewHandler(user UserUseCase, session SessionUseCase, cryptToken csrf.CryptT
 	}
 }
 
+// @Summary Upload Avatar
+// @Tags user
+// @Description Обновить аватар пользователя
+// @Description Необходимы куки
+// @Description Необходим CSRF токен
+// @Description Принимаем multipart/form-data
+// @Accept  mpfd
+// @Produce  json
+// @Success 200
+// @Failure 400
+// @Failure 500
+// @Router /user/avatar/upload [post]
 func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
@@ -97,6 +109,16 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// @Summary Profile
+// @Tags user
+// @Description Обновить аватар
+// @Description Необходимы куки
+// @Description Необходим CSRF токен
+// @Produce  json
+// @Success 200 {object} profileDTO
+// @Failure 400
+// @Failure 500
+// @Router /user/profile [get]
 func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
