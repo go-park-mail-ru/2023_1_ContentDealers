@@ -6,6 +6,11 @@ type ContentPerson struct {
 	Role Role
 }
 
+type ContentSelection struct {
+	ID    uint64
+	Title string
+}
+
 type Content struct {
 	ID           uint64
 	Title        string
@@ -19,6 +24,6 @@ type Content struct {
 	Type         string
 	PersonsRoles []ContentPerson
 	Genres       []Genre
-	Selections   []Selection
+	Selections   []ContentSelection
 	Countries    []Country
 }

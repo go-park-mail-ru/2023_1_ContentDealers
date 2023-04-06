@@ -54,16 +54,16 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	_, err := fmt.Sscanf(idRaw, "%d", &id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"message":"movie selection id is not numeric"}`)
+		io.WriteString(w, `{"message":"film selection id is not numeric"}`)
 		return
 	}
 
 	movieSelection, err := h.useCase.GetByID(id)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrMovieSelectionNotFound):
+		case errors.Is(err, domain.ErrRepoNotFound):
 			w.WriteHeader(http.StatusNotFound)
-			io.WriteString(w, `{"message":"movie selection not found"}`)
+			io.WriteString(w, `{"message":"film selection not found"}`)
 		default:
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
