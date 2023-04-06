@@ -108,16 +108,10 @@ const docTemplate = `{
                         "description": "OK"
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/user.errorResponseDTO"
-                        }
+                        "description": "Bad Request"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/user.errorResponseDTO"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -140,16 +134,10 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/user.errorResponseDTO"
-                        }
+                        "description": "Bad Request"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/user.errorResponseDTO"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -195,16 +183,10 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/user.errorResponseDTO"
-                        }
+                        "description": "Bad Request"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/user.errorResponseDTO"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -285,14 +267,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "user.errorResponseDTO": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
         "user.profileDTO": {
             "type": "object",
             "properties": {

@@ -2062,3 +2062,91 @@
   "msg": "  Actual request no headers added: missing origin",
   "time": "2023-04-06T11:00:00+03:00"
 }
+{
+  "extra": {},
+  "file": "/cmd/main.go:99",
+  "func": "main.Run()",
+  "level": "info",
+  "msg": "start listening on :8080",
+  "time": "2023-04-06T11:12:58+03:00"
+}
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "Handler: Actual request",
+  "time": "2023-04-06T11:13:06+03:00"
+}
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "  Actual request no headers added: missing origin",
+  "time": "2023-04-06T11:13:06+03:00"
+}
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "Handler: Actual request",
+  "time": "2023-04-06T11:13:06+03:00"
+}
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "  Actual request no headers added: missing origin",
+  "time": "2023-04-06T11:13:06+03:00"
+}
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "Handler: Actual request",
+  "time": "2023-04-06T11:13:06+03:00"
+}
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "  Actual request no headers added: missing origin",
+  "time": "2023-04-06T11:13:06+03:00"
+}
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "Handler: Actual request",
+  "time": "2023-04-06T11:13:06+03:00"
+}
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "  Actual request no headers added: missing origin",
+  "time": "2023-04-06T11:13:06+03:00"
+}
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "Handler: Actual request",
+  "time": "2023-04-06T11:13:06+03:00"
+}
+{
+  "extra": {},
+  "file": "cors.go:381",
+  "func": "github.com/rs/cors.(*Cors).logf()",
+  "level": "info",
+  "msg": "  Actual request no headers added: missing origin",
+  "time": "2023-04-06T11:13:06+03:00"
+}
