@@ -2,4 +2,4 @@ package domain
 
 import "errors"
 
-var ErrRepoNotFound = errors.New("object wasn't found")
+var ErrRepoNotFound = errors.New("object not found")

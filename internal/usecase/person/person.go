@@ -7,7 +7,10 @@ import (
 )
 
 type Person struct {
-	repo Repository
+	repo    Repository
+	content ContentRepository
+	role    RoleRepository
+	genre   GenreRepository
 }
 
 func NewPerson(repo Repository) *Person {
@@ -15,5 +18,21 @@ func NewPerson(repo Repository) *Person {
 }
 
 func (uc *Person) GetByID(ctx context.Context, id uint64) (domain.Person, error) {
-	return uc.repo.GetByID(ctx, id)
+	person, err := uc.repo.GetByID(ctx, id)
+	if err != nil {
+		return domain.Person{}, err
+	}
+	person.ParticipatedIn, err = uc.content.GetByPersonID(ctx, id)
+	if err != nil {
+		return domain.Person{}, err
+	}
+	person.Roles, err = uc.role.GetByPersonID(ctx, id)
+	if err != nil {
+		return domain.Person{}, err
+	}
+	person.Genres, err = uc.genre.GetByPersonID(ctx, id)
+	if err != nil {
+		return domain.Person{}, err
+	}
+	return person, nil
 }

@@ -1,7 +1,9 @@
 package selection
 
 import (
+	"context"
 	"database/sql"
+	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
@@ -14,70 +16,47 @@ func NewRepository(db *sql.DB) Repository {
 	return Repository{DB: db}
 }
 
-func (repo *Repository) Add(selections domain.Selection) {
-}
+const queryFetchTemplate = `select s.id, s.title from selections s`
 
-func (repo *Repository) GetAll() ([]domain.Selection, error) {
-	var selections []domain.Selection
-	rows, err := repo.DB.Query(
-		`select s.id, s.title, m.id, m.title, m.description, m.preview_url 
-		FROM selections s
-		join movie_selections ms on ms.selection_id = s.id
-		join movies m on ms.movie_id = m.id
-		order by s.id, m.id`)
+func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([]domain.Selection, error) {
+	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
+	var result []domain.Selection
 	for rows.Next() {
 		s := domain.Selection{}
-		m := domain.Film{}
-		err = rows.Scan(&s.ID, &s.Title, &m.ID, &m.Title, &m.Description, &m.PreviewURL)
+		err = rows.Scan(&s.ID, &s.Title)
 		if err != nil {
 			return nil, err
 		}
-		if len(selections) == 0 || selections[len(selections)-1].ID != s.ID {
-			s.Movies = append(s.Movies, &m)
-			selections = append(selections, s)
-		} else {
-			lastSelection := &selections[len(selections)-1].Movies
-			*lastSelection = append(*lastSelection, &m)
-		}
+		result = append(result, s)
 	}
-	return selections, nil
+	return result, nil
 }
 
-func (repo *Repository) GetByID(id uint64) (domain.Selection, error) {
-	rows, err := repo.DB.Query(
-		`select s.id, s.title, m.id, m.title, m.description, m.preview_url 
-			FROM selections s
-			join movie_selections ms on ms.selection_id = s.id
-			join movies m on ms.movie_id = m.id
-			where s.id = $1
-			order by s.id, m.id`, id)
+func (repo *Repository) GetAll(ctx context.Context, limit uint, offset uint) ([]domain.Selection, error) {
+	orderById := `order by id desc`
+	limitAndOffset := `limit $1 offset $2`
+	query := strings.Join([]string{queryFetchTemplate, orderById, limitAndOffset}, " ")
+	return repo.fetch(ctx, query, limit, offset)
+}
+
+func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Selection, error) {
+	filterByID := `where id = $1`
+	query := strings.Join([]string{queryFetchTemplate, filterByID}, " ")
+	selections, err := repo.fetch(ctx, query, id)
 	if err != nil {
 		return domain.Selection{}, err
 	}
-	defer rows.Close()
-	selection := domain.Selection{}
-	i := 0
-	for rows.Next() {
-		// TODO: возможнос стоит сделать два запроса, один для
-		// названия выборки, второй для всех входящих в нее фильмов
-		s := domain.Selection{}
-		m := domain.Film{}
-		if i == 0 {
-			err = rows.Scan(&selection.ID, &selection.Title, &m.ID,
-				&m.Title, &m.Description, &m.PreviewURL)
-		} else {
-			err = rows.Scan(&s.ID, &s.Title, &m.ID, &m.Title,
-				&m.Description, &m.PreviewURL)
-		}
-		if err != nil {
-			return domain.Selection{}, err
-		}
-		selection.Movies = append(selection.Movies, &m)
-		i += 1
-	}
-	return selection, nil
+	return selections[0], nil
+}
+
+func (repo *Repository) GetByContentID(ctx context.Context, ContentID uint64) ([]domain.Selection, error) {
+	joinContent := `join content_selections cs on cs.selection_id = s.id
+					join content c on c.id = cs.content_id`
+	filterByContentID := `where c.id = $1`
+	query := strings.Join([]string{queryFetchTemplate, joinContent, filterByContentID}, " ")
+	return repo.fetch(ctx, query, ContentID)
 }

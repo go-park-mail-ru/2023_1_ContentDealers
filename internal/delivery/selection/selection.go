@@ -13,10 +13,10 @@ import (
 )
 
 type Handler struct {
-	useCase MovieSelectionUseCase
+	useCase UseCase
 }
 
-func NewHandler(useCase MovieSelectionUseCase) Handler {
+func NewHandler(useCase UseCase) Handler {
 	return Handler{useCase: useCase}
 }
 

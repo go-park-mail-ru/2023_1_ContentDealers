@@ -18,10 +18,10 @@ var (
 )
 
 type User struct {
-	repo UserRepository
+	repo Repository
 }
 
-func NewUser(repo UserRepository) *User {
+func NewUser(repo Repository) *User {
 	return &User{repo: repo}
 }
 

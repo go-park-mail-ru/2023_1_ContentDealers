@@ -1,4 +1,4 @@
-package person
+package film
 
 import (
 	"encoding/json"
@@ -29,16 +29,16 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	_, err := fmt.Sscanf(idRaw, "%d", &id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"message":"person id is not numeric"}`)
+		io.WriteString(w, `{"message":"film id is not numeric"}`)
 		return
 	}
 
-	person, err := h.useCase.GetByID(id)
+	film, err := h.useCase.GetByID(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrRepoNotFound):
 			w.WriteHeader(http.StatusNotFound)
-			io.WriteString(w, `{"message":"person not found"}`)
+			io.WriteString(w, `{"message":"film not found"}`)
 		default:
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -48,7 +48,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"person": person,
+			"film": film,
 		},
 	})
 

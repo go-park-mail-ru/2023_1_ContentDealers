@@ -1,14 +1,8 @@
 package domain
 
-type ContentPerson struct {
-	ID   uint64
-	Name string
-	Role Role
-}
-
-type ContentSelection struct {
-	ID    uint64
-	Title string
+type PersonRoles struct {
+	Person Person
+	Role   Role
 }
 
 type Content struct {
@@ -22,8 +16,8 @@ type Content struct {
 	TrailerURL   string
 	PreviewURL   string
 	Type         string
-	PersonsRoles []ContentPerson
+	PersonsRoles []PersonRoles
 	Genres       []Genre
-	Selections   []ContentSelection
+	Selections   []Selection
 	Countries    []Country
 }
