@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
@@ -26,7 +29,10 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 )
 
-const ReadHeaderTimeout = 5 * time.Second
+const (
+	ReadHeaderTimeout = 5 * time.Second
+	shutdownTimeout   = 5 * time.Second
+)
 
 // @title Filmium Backend API
 // @version 1.0
@@ -94,6 +100,9 @@ func Run() error {
 		Logger:                logger,
 	})
 
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	addr := fmt.Sprintf("%s:%s", cfg.Listen.BindIP, cfg.Listen.Port)
 
 	server := http.Server{
@@ -102,10 +111,24 @@ func Run() error {
 		ReadHeaderTimeout: ReadHeaderTimeout,
 	}
 
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen and server: %v", err)
+		}
+	}()
 	logger.Infoln("start listening on", addr)
 
-	if err := server.ListenAndServe(); err != nil {
-		return err
+	<-ctx.Done()
+
+	logger.Infoln("server shutdown")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	err = server.Shutdown(shutdownCtx)
+	if err != nil {
+		return fmt.Errorf("shutdown : %w", err)
 	}
 	return nil
 }
