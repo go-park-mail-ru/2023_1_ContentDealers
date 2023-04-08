@@ -13,28 +13,28 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
-type CryptToken struct {
+type CSRF struct {
 	Secret []byte
 }
 
-type TokenData struct {
+func NewCSRF(secret string) (CSRF, error) {
+	tmp := []byte(secret)
+	// проверка секрета на валидность (длина секрета 16, 24, 32 байта)
+	_, err := aes.NewCipher(tmp)
+	if err != nil {
+		return CSRF{}, fmt.Errorf("cypher problem %v", err)
+	}
+	return CSRF{Secret: tmp}, nil
+}
+
+type tokenData struct {
 	SessionID string
 	UserID    uint64
 	Exp       int64
 }
 
-func NewCryptToken(secret string) (CryptToken, error) {
-	tmp := []byte(secret)
-	// проверка секрета на валидность (длина секрета 16, 24, 32 байта)
-	_, err := aes.NewCipher(tmp)
-	if err != nil {
-		return CryptToken{}, fmt.Errorf("cypher problem %v", err)
-	}
-	return CryptToken{Secret: tmp}, nil
-}
-
-func (tk *CryptToken) Create(s domain.Session, tokenExpTime int64) (string, error) {
-	block, err := aes.NewCipher(tk.Secret)
+func (c *CSRF) Create(s domain.Session, tokenExpTime int64) (string, error) {
+	block, err := aes.NewCipher(c.Secret)
 	if err != nil {
 		return "", err
 	}
@@ -49,7 +49,7 @@ func (tk *CryptToken) Create(s domain.Session, tokenExpTime int64) (string, erro
 		return "", err
 	}
 
-	td := &TokenData{SessionID: s.ID.String(), UserID: s.UserID, Exp: tokenExpTime}
+	td := &tokenData{SessionID: s.ID.String(), UserID: s.UserID, Exp: tokenExpTime}
 	data, _ := json.Marshal(td)
 	ciphertext := aesgcm.Seal(nil, nonce, data, nil)
 
@@ -60,9 +60,9 @@ func (tk *CryptToken) Create(s domain.Session, tokenExpTime int64) (string, erro
 	return token, nil
 }
 
-func (tk *CryptToken) Check(s domain.Session, inputToken string) (bool, error) {
+func (c *CSRF) Check(s domain.Session, inputToken string) (bool, error) {
 	// объект блочного шифра AES
-	block, err := aes.NewCipher(tk.Secret)
+	block, err := aes.NewCipher(c.Secret)
 	if err != nil {
 		return false, err
 	}
@@ -89,7 +89,7 @@ func (tk *CryptToken) Check(s domain.Session, inputToken string) (bool, error) {
 		return false, fmt.Errorf("decrypt fail: %v", err)
 	}
 
-	td := TokenData{}
+	td := tokenData{}
 	err = json.Unmarshal(plaintext, &td)
 	if err != nil {
 		return false, fmt.Errorf("bad json: %v", err)
@@ -99,7 +99,7 @@ func (tk *CryptToken) Check(s domain.Session, inputToken string) (bool, error) {
 		return false, fmt.Errorf("token expired")
 	}
 
-	expected := TokenData{SessionID: s.ID.String(), UserID: s.UserID}
+	expected := tokenData{SessionID: s.ID.String(), UserID: s.UserID}
 	td.Exp = 0
 	return td == expected, nil
 }

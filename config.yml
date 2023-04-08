@@ -10,4 +10,9 @@ storage:
   host:     127.0.0.1
   port:     5432
   sslmode:  disable
+redis:
+  user:     user
+  host:     localhost
+  port:     6379
+  dbnum:    0
 

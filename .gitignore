@@ -5,6 +5,7 @@ tmp_persist/redis_data/*
 .idea
 
 # .env 
+log 
 
 # Binaries for programs and plugins
 *.exe

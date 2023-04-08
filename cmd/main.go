@@ -12,14 +12,18 @@ import (
 	movieSelectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movieselection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup/logger"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/joho/godotenv"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/csrf"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
+	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
+	csrfUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
 	movieSelectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/movieselection"
 	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
 	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 )
 
 const ReadHeaderTimeout = 5 * time.Second
@@ -37,32 +41,21 @@ func main() {
 }
 
 func Run() error {
-	logger, err := logger.NewLogger()
+	logger, err := logging.NewLogger()
 
-	config, err := setup.GetConfig()
+	cfg, err := config.GetConfig()
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
 
-	db, err := setup.NewClientPostgres(config.Storage)
+	db, err := postgresql.NewClientPostgres(cfg.Storage)
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
 
-	redisClient, err := setup.NewClientRedis()
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
-
-	err = godotenv.Load()
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
-	cryptToken, err := csrf.NewCryptToken(os.Getenv("CSRF_TOKEN"))
+	redisClient, err := redis.NewClientRedis(cfg.Redis)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -76,19 +69,32 @@ func Run() error {
 	sessionUseCase := sessionUseCase.NewSession(&sessionRepository)
 	movieSelectionUseCase := movieSelectionUseCase.NewMovieSelection(&movieSelectionRepository)
 
-	userHandler := user.NewHandler(userUseCase, sessionUseCase, cryptToken, logger)
+	err = godotenv.Load()
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	csrfUseCase, err := csrfUseCase.NewCSRF(os.Getenv("CSRF_TOKEN"))
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	userHandler := user.NewHandler(userUseCase, sessionUseCase, logger)
+	csrfHandler := csrf.NewHandler(csrfUseCase)
 	movieSelectionHandler := movieselection.NewHandler(movieSelectionUseCase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:           userHandler,
+		CSRFHandler:           csrfHandler,
 		MovieSelectionHandler: movieSelectionHandler,
 		SessionUseCase:        sessionUseCase,
-		AllowedOrigins:        []string{config.CORS.AllowedOrigins},
-		CryptToken:            cryptToken,
+		AllowedOrigins:        []string{cfg.CORS.AllowedOrigins},
+		CSRFUseCase:           csrfUseCase,
 		Logger:                logger,
 	})
 
-	addr := fmt.Sprintf("%s:%s", config.Listen.BindIP, config.Listen.Port)
+	addr := fmt.Sprintf("%s:%s", cfg.Listen.BindIP, cfg.Listen.Port)
 
 	server := http.Server{
 		Addr:              addr,

@@ -1,4 +1,4 @@
-package user
+package csrf
 
 import (
 	"encoding/json"
@@ -6,9 +6,20 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
 )
 
 const ExpirationTimeCSRF = 2 * time.Hour
+
+type Handler struct {
+	csrfUseCase csrf.CSRF
+}
+
+func NewHandler(csrfUseCase csrf.CSRF) Handler {
+	return Handler{
+		csrfUseCase: csrfUseCase,
+	}
+}
 
 // @Summary CSRF
 // @Tags user
@@ -26,7 +37,7 @@ func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	token, err := h.cryptToken.Create(session, time.Now().Add(ExpirationTimeCSRF).Unix())
+	token, err := h.csrfUseCase.Create(session, time.Now().Add(ExpirationTimeCSRF).Unix())
 	if err != nil {
 		// log "csrf token creation error"
 		w.WriteHeader(http.StatusInternalServerError)

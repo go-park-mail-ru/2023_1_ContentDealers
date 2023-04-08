@@ -1,8 +1,9 @@
-package setup
+package postgresql
 
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	_ "github.com/jackc/pgx/stdlib"
@@ -20,6 +21,7 @@ func pingDB(db *sql.DB, delay time.Duration, attempts int) error {
 		if err == nil {
 			return nil
 		}
+		log.Println("db is not connected, wait...")
 		time.Sleep(delay)
 	}
 	return fmt.Errorf("failed to ping db after %d attempt with %s delay: %w", attempts, delay.String(), err)

@@ -4,11 +4,13 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
+	middlewareCSRF "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf/middleware"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/movieselection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/middleware"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup/logger"
+	csrfUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -19,17 +21,18 @@ import (
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	w.Header().Set("Content-Type", "application/json")
 	io.WriteString(w, `{"status":404}`)
+	w.Header().Set("Content-Type", "application/json")
 }
 
 type SettingsRouter struct {
 	AllowedOrigins        []string
 	UserHandler           user.Handler
+	CSRFHandler           csrf.Handler
 	MovieSelectionHandler movieselection.Handler
 	SessionUseCase        SessionUseCase
-	CryptToken            csrf.CryptToken
-	Logger                logger.Logger
+	CSRFUseCase           csrfUseCase.CSRF
+	Logger                logging.Logger
 }
 
 func Routes(s *SettingsRouter) *mux.Router {
@@ -41,7 +44,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 	})
 	corsMiddleware.Log = s.Logger
 	authMiddleware := middleware.NewAuth(s.SessionUseCase)
-	CSRFMiddleware := middleware.NewCSRF(s.CryptToken)
+	CSRFMiddleware := middlewareCSRF.NewCSRF(s.CSRFUseCase)
 
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(NotFound)
@@ -64,7 +67,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter.HandleFunc("/user/logout", s.UserHandler.Logout).Methods("POST")
 	authRouter.HandleFunc("/user/profile", s.UserHandler.Info).Methods("GET")
 	// только авторизированные могут запрашивать токен
-	authRouter.HandleFunc("/user/csrf", s.UserHandler.GetCSRF).Methods("GET")
+	authRouter.HandleFunc("/user/csrf", s.CSRFHandler.GetCSRF).Methods("GET")
 
 	// TODO: PATCH в постмане выдавал 405 Method not allowed
 	authRouter.HandleFunc("/user/avatar/upload", s.UserHandler.UpdateAvatar).Methods("POST")

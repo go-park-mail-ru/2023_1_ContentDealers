@@ -1,6 +1,8 @@
 package setup
 
 import (
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 )
@@ -15,16 +17,8 @@ type Config struct {
 		BindIP string `yaml:"bind_ip"`
 		Port   string `yaml:"port" env-default:"8080"`
 	} `yaml:"listen"`
-	Storage StorageConfig `yaml:"storage"`
-}
-
-type StorageConfig struct {
-	User     string `yaml:"user"`
-	DBName   string `yaml:"dbname"`
-	Password string `env:"POSTGRES_PASSWORD" env-required:"true"`
-	Host     string `yaml:"host"`
-	Port     string `yaml:"port"`
-	SSLmode  string `yaml:"sslmode"`
+	Storage postgresql.StorageConfig `yaml:"storage"`
+	Redis   redis.RedisConfig        `yaml:"redis"`
 }
 
 var instance *Config

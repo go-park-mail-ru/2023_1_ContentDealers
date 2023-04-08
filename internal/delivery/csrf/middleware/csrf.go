@@ -5,18 +5,18 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
 )
 
 const headerCSRF = "csrf-token"
 
 type CSRF struct {
-	cryptToken csrf.CryptToken
+	csrfUseCase csrf.CSRF
 }
 
-func NewCSRF(cryptToken csrf.CryptToken) CSRF {
-	return CSRF{cryptToken: cryptToken}
+func NewCSRF(csrfUseCase csrf.CSRF) CSRF {
+	return CSRF{csrfUseCase: csrfUseCase}
 }
 
 // TODO: RequireCSRF должен обрабатывать запрос после RequireAuth
@@ -39,7 +39,7 @@ func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		isValid, err := mc.cryptToken.Check(session, CSRFToken)
+		isValid, err := mc.csrfUseCase.Check(session, CSRFToken)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
