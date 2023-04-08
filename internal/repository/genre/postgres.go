@@ -1,4 +1,4 @@
-package genres
+package genre
 
 import (
 	"context"

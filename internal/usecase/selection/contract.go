@@ -12,5 +12,5 @@ type Repository interface {
 }
 
 type ContentRepository interface {
-	GetBySelectionIDs(ctx context.Context, IDs []uint64) (map[uint64]domain.Content, error)
+	GetBySelectionIDs(ctx context.Context, IDs []uint64) (map[uint64][]domain.Content, error)
 }

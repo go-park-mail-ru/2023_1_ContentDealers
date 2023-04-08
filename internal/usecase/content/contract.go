@@ -10,7 +10,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id uint64) (domain.Content, error)
 }
 
-type PersonRolesRepository interface {
+type PersonRolesUseCase interface {
 	GetByContentID(ctx context.Context, ContentID uint64) ([]domain.PersonRoles, error)
 }
 

@@ -31,7 +31,7 @@ func NewHandler(user UserUseCase, session SessionUseCase) Handler {
 	}
 }
 
-func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	ctx := r.Context()
@@ -42,7 +42,33 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userUseCase.GetByID(session.UserID)
+	user, err := h.userUseCase.GetByID(ctx, session.UserID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = h.userUseCase.DeleteAvatar(ctx, user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	ctx := r.Context()
+	sessionRaw := ctx.Value("session")
+	session, ok := sessionRaw.(domain.Session)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	user, err := h.userUseCase.GetByID(ctx, session.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -79,7 +105,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	file.Seek(0, io.SeekStart)
 
-	_, err = h.userUseCase.UpdateAvatar(user, file)
+	_, err = h.userUseCase.UpdateAvatar(ctx, user, file)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -99,7 +125,7 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userUseCase.GetByID(session.UserID)
+	user, err := h.userUseCase.GetByID(ctx, session.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

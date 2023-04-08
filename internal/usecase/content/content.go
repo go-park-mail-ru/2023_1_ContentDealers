@@ -8,24 +8,24 @@ import (
 
 type Content struct {
 	repo        Repository
-	personRoles PersonRolesRepository
+	personRoles PersonRolesUseCase
 	genre       GenreRepository
 	selection   SelectionRepository
 	country     CountryRepository
 }
 
 type Options struct {
-	ContentRepo     Repository
-	PersonRolesRepo PersonRolesRepository
-	GenreRepo       GenreRepository
-	SelectionRepo   SelectionRepository
-	CountryRepo     CountryRepository
+	ContentRepo        Repository
+	GenreRepo          GenreRepository
+	SelectionRepo      SelectionRepository
+	CountryRepo        CountryRepository
+	PersonRolesUseCase PersonRolesUseCase
 }
 
 func NewContent(options Options) *Content {
 	return &Content{
 		repo:        options.ContentRepo,
-		personRoles: options.PersonRolesRepo,
+		personRoles: options.PersonRolesUseCase,
 		genre:       options.GenreRepo,
 		selection:   options.SelectionRepo,
 		country:     options.CountryRepo,

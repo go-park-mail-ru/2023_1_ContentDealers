@@ -20,10 +20,10 @@ func NewHandler(useCase UseCase) Handler {
 	return Handler{useCase: useCase}
 }
 
-func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	idRaw := mux.Vars(r)["id"]
+	idRaw := mux.Vars(r)["content_id"]
 	var id uint64
 
 	_, err := fmt.Sscanf(idRaw, "%d", &id)
@@ -33,7 +33,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	film, err := h.useCase.GetByID(id)
+	film, err := h.useCase.GetByContentID(r.Context(), id)
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrRepoNotFound):

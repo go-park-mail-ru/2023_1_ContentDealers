@@ -23,7 +23,7 @@ func NewHandler(useCase UseCase) Handler {
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	selections, err := h.useCase.GetAll()
+	selections, err := h.useCase.GetAll(r.Context(), 15, 15)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -58,7 +58,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	movieSelection, err := h.useCase.GetByID(id)
+	movieSelection, err := h.useCase.GetByID(r.Context(), id)
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrRepoNotFound):

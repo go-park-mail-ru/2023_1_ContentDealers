@@ -11,8 +11,8 @@ type Selection struct {
 	content ContentRepository
 }
 
-func NewMovieSelection(repo Repository) *Selection {
-	return &Selection{repo: repo}
+func NewSelection(repo Repository, content ContentRepository) *Selection {
+	return &Selection{repo: repo, content: content}
 }
 
 func (uc *Selection) joinContent(ctx context.Context, selections *[]domain.Selection) error {
@@ -32,7 +32,7 @@ func (uc *Selection) joinContent(ctx context.Context, selections *[]domain.Selec
 
 	for SelectionID, content := range SelectionIDContent {
 		idx := IDToIdx[SelectionID]
-		(*selections)[idx].Content = append((*selections)[idx].Content, content)
+		(*selections)[idx].Content = append((*selections)[idx].Content, content...)
 	}
 	return nil
 }

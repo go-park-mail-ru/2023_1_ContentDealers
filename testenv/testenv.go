@@ -64,10 +64,10 @@ func NewTestEnv() *TestEnv {
 	movieSelectionHandler := selection.NewHandler(movieSelectionUseCase)
 
 	router := setup.Routes(&setup.SettingsRouter{
-		UserHandler:           userHandler,
-		MovieSelectionHandler: movieSelectionHandler,
-		SessionUseCase:        sessionUseCase,
-		AllowedOrigins:        []string{TestOrigin},
+		UserHandler:      userHandler,
+		SelectionHandler: movieSelectionHandler,
+		SessionUseCase:   sessionUseCase,
+		AllowedOrigins:   []string{TestOrigin},
 	})
 
 	return &TestEnv{

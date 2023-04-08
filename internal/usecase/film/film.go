@@ -11,8 +11,8 @@ type Film struct {
 	content ContentUseCase
 }
 
-func NewFilm(repo Repository) *Film {
-	return &Film{repo: repo}
+func NewFilm(repo Repository, content ContentUseCase) *Film {
+	return &Film{repo: repo, content: content}
 }
 
 func (uc *Film) GetByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {

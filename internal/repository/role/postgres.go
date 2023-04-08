@@ -30,11 +30,9 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (m
 	return result, nil
 }
 
-func (repo *Repository) GetPersonsRoles(ctx context.Context,
-	ContentID uint64,
-	PersonIDs []domain.Person) (map[uint64]domain.Role, error) {
+func (repo *Repository) GetByContentID(ctx context.Context, ContentID uint64) (map[uint64]domain.Role, error) {
 	query := `select crp.person_id, r.id, r.title from roles r 
     		  join content_roles_persons crp on r.id = crp.role_id
-    		  where crp.content_id = $1 and crp.person_id in ($2)`
-	return repo.fetch(ctx, query, ContentID, PersonIDs)
+    		  where crp.content_id = $1`
+	return repo.fetch(ctx, query, ContentID)
 }

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -27,9 +28,9 @@ func NewRepository(db *sql.DB) Repository {
 	return Repository{DB: db}
 }
 
-func (repo *Repository) Add(user domain.User) (domain.User, error) {
+func (repo *Repository) Add(ctx context.Context, user domain.User) (domain.User, error) {
 	var lastInsertedID uint64
-	log.Println(user.Birthday)
+	log.Println(user.DateBirth)
 
 	err := repo.DB.QueryRow(
 		`insert into users (email, password_hash, birthday, avatar_url) 
@@ -37,7 +38,7 @@ func (repo *Repository) Add(user domain.User) (domain.User, error) {
         returning id`,
 		user.Email,
 		user.PasswordHash,
-		user.Birthday,
+		user.DateBirth,
 		user.AvatarURL,
 	).Scan(&lastInsertedID)
 	if err != nil {
@@ -55,11 +56,12 @@ func (repo *Repository) Add(user domain.User) (domain.User, error) {
 	return user, nil
 }
 
-func (repo *Repository) GetByEmail(email string) (domain.User, error) {
+func (repo *Repository) GetByEmail(ctx context.Context, email string) (domain.User, error) {
 	user := domain.User{}
 	err := repo.DB.
-		QueryRow(`select id, email, password_hash, birthday, avatar_url FROM users WHERE email = $1`, email).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Birthday, &user.AvatarURL)
+		QueryRowContext(ctx,
+			`select id, email, password_hash, birthday, avatar_url FROM users WHERE email = $1`, email).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DateBirth, &user.AvatarURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.User{}, domain.ErrUserNotFound
@@ -69,12 +71,13 @@ func (repo *Repository) GetByEmail(email string) (domain.User, error) {
 	return user, nil
 }
 
-func (repo *Repository) GetByID(id uint64) (domain.User, error) {
+func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.User, error) {
 	// TODO: копипаст метода GetByEmail (нужен общий метод для запроса)
 	user := domain.User{}
 	err := repo.DB.
-		QueryRow(`select id, email, password_hash, birthday, avatar_url FROM users WHERE id = $1`, id).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Birthday, &user.AvatarURL)
+		QueryRowContext(ctx,
+			`select id, email, password_hash, birthday, avatar_url FROM users WHERE id = $1`, id).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DateBirth, &user.AvatarURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.User{}, domain.ErrUserNotFound
@@ -93,7 +96,7 @@ func getDirByDate(date time.Time) string {
 	return fmt.Sprintf("%s/%s/%s", year, month, day)
 }
 
-func (repo *Repository) deleteAvatar(user domain.User) error {
+func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) error {
 	var updateDate time.Time
 
 	// 1. удаление из локальной директории
@@ -119,7 +122,7 @@ func (repo *Repository) deleteAvatar(user domain.User) error {
 	}
 
 	// 2. удаление урла из БД
-	_, err = repo.DB.Exec(
+	_, err = repo.DB.ExecContext(ctx,
 		`update users 
 		set avatar_url = null
 		where id = $1;`,
@@ -131,8 +134,8 @@ func (repo *Repository) deleteAvatar(user domain.User) error {
 	return nil
 }
 
-func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.User, error) {
-	err := repo.deleteAvatar(user)
+func (repo *Repository) UpdateAvatar(ctx context.Context, user domain.User, file io.Reader) (domain.User, error) {
+	err := repo.DeleteAvatar(ctx, user)
 	if err != nil {
 		return domain.User{}, err
 	}
@@ -159,7 +162,7 @@ func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.U
 		return domain.User{}, fmt.Errorf("failed to copy avatar file to local directory")
 	}
 
-	_, err = repo.DB.Exec(
+	_, err = repo.DB.ExecContext(ctx,
 		`update users 
 		set avatar_url = $1
 		where id = $2;`,

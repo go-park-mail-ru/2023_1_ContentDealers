@@ -39,10 +39,10 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	user := domain.User{
 		Email:        userCreate.Email,
 		PasswordHash: userCreate.Password,
-		Birthday:     birthdayTime,
+		DateBirth:    birthdayTime,
 	}
 
-	_, err = h.userUseCase.Register(user)
+	_, err = h.userUseCase.Register(r.Context(), user)
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrUserAlreadyExists):
@@ -79,7 +79,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: перезаписывание user, стоит ли так делать?
-	user, err = h.userUseCase.Auth(user)
+	user, err = h.userUseCase.Auth(r.Context(), user)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		io.WriteString(w, `{"message":"user not found"}`)

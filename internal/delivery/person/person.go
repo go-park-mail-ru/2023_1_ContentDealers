@@ -33,7 +33,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	person, err := h.useCase.GetByID(id)
+	person, err := h.useCase.GetByID(r.Context(), id)
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrRepoNotFound):
