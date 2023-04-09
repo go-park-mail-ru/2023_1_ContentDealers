@@ -59,7 +59,7 @@ func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (ma
 		`select cs.content_id, c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
        		   c.trailer_url, c.preview_url, c.type from content c 
        		   join content_selections cs on c.id = cs.content_id
-       		   where cs.content_id = any($1)`, pq.Array(IDs))
+       		   where cs.selection_id = any($1)`, pq.Array(IDs))
 	if err != nil {
 		return nil, err
 	}
