@@ -16,7 +16,8 @@ import (
 
 const (
 	shortFormDate             = "2006-01-02"
-	dirAvatars                = "./media/avatars"
+	// dirAvatars                = "./media/avatars"
+	dirAvatars                = "media/avatars"
 	allPerms      os.FileMode = 0777
 )
 
@@ -137,7 +138,6 @@ func (repo *Repository) UpdateAvatar(ctx context.Context, user domain.User, file
 	err := repo.DeleteAvatar(ctx, user)
 
 	if err != nil {
-		log.Println("yyyyyy 3")
 		return domain.User{}, err
 	}
 

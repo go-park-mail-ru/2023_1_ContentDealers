@@ -98,6 +98,7 @@ func Run() error {
 		FilmHandler:      filmHandler,
 		PersonHandler:    personHandler,
 		AllowedOrigins:   []string{config.CORS.AllowedOrigins},
+		// AllowedOrigins:   []string{"*"},
 	})
 
 	addr := fmt.Sprintf("%s:%s", config.Listen.BindIP, config.Listen.Port)
@@ -108,7 +109,7 @@ func Run() error {
 		ReadHeaderTimeout: ReadHeaderTimeout,
 	}
 
-	log.Println("start listening on", addr)
+	log.Println("start listening on - ", addr)
 
 	if err := server.ListenAndServe(); err != nil {
 		return err

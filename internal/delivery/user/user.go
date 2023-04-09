@@ -135,6 +135,8 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 		"body": map[string]interface{}{
 			"user": map[string]string{
 				"email": user.Email,
+				"date_birth": user.DateBirth.Format("2006-Jan-02"),
+				"avatar_url": user.AvatarURL,
 			},
 		},
 	})

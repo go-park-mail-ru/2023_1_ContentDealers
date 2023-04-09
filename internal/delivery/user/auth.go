@@ -36,10 +36,15 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, `{"message":"failed to parse birthday from string to birthdayTime"}`)
 		return
 	}
+
+	if userCreate.AvatarURL == "" {
+		userCreate.AvatarURL = "media/avatars/default_avatar.jpg"
+	}
 	user := domain.User{
-		Email:        userCreate.Email,
-		PasswordHash: userCreate.Password,
-		DateBirth:    birthdayTime,
+		Email:        	userCreate.Email,
+		PasswordHash: 	userCreate.Password,
+		AvatarURL: 		userCreate.AvatarURL,
+		DateBirth:    	birthdayTime,
 	}
 
 	_, err = h.userUseCase.Register(r.Context(), user)

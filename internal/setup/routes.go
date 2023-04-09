@@ -51,8 +51,8 @@ func Routes(s *SettingsRouter) *mux.Router {
 
 	router.HandleFunc("/selections", s.SelectionHandler.GetAll)
 	router.HandleFunc("/selections/{id:[0-9]+}", s.SelectionHandler.GetByID)
-	router.HandleFunc("/person/{id:[0-9]+}", s.PersonHandler.GetByID)
-	router.HandleFunc("/film/{content_id:[0-9]+}", s.FilmHandler.GetByContentID)
+	router.HandleFunc("/persons/{id:[0-9]+}", s.PersonHandler.GetByID)
+	router.HandleFunc("/films/{content_id:[0-9]+}", s.FilmHandler.GetByContentID)
 
 	unAuthRouter.HandleFunc("/user/signin", s.UserHandler.SignIn).Methods("POST")
 	unAuthRouter.HandleFunc("/user/signup", s.UserHandler.SignUp).Methods("POST")
