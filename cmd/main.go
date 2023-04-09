@@ -79,7 +79,12 @@ func Run() error {
 		PersonRolesUseCase: personRolesUseCase,
 	})
 	filmUseCase := filmUseCase.NewFilm(&filmRepository, contentUseCase)
-	personUseCase := personUseCase.NewPerson(&personRepository)
+	personUseCase := personUseCase.NewPerson(personUseCase.Options{
+		Repo:    &personRepository,
+		Content: &contentRepository,
+		Role:    &roleRepository,
+		Genre:   &genreRepository,
+	})
 
 	userHandler := user.NewHandler(userUseCase, sessionUseCase)
 	selectionHandler := selection.NewHandler(selectionUseCase)

@@ -2,7 +2,6 @@ package person
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
@@ -14,8 +13,20 @@ type Person struct {
 	genre   GenreRepository
 }
 
-func NewPerson(repo Repository) *Person {
-	return &Person{repo: repo}
+type Options struct {
+	Repo    Repository
+	Content ContentRepository
+	Role    RoleRepository
+	Genre   GenreRepository
+}
+
+func NewPerson(options Options) *Person {
+	return &Person{
+		repo:    options.Repo,
+		content: options.Content,
+		role:    options.Role,
+		genre:   options.Genre,
+	}
 }
 
 func (uc *Person) GetByID(ctx context.Context, id uint64) (domain.Person, error) {
@@ -23,21 +34,17 @@ func (uc *Person) GetByID(ctx context.Context, id uint64) (domain.Person, error)
 	if err != nil {
 		return domain.Person{}, err
 	}
-	fmt.Println(person)
 	person.ParticipatedIn, err = uc.content.GetByPersonID(ctx, id)
 	if err != nil {
 		return domain.Person{}, err
 	}
-	fmt.Println(person)
 	person.Roles, err = uc.role.GetByPersonID(ctx, id)
 	if err != nil {
 		return domain.Person{}, err
 	}
-	fmt.Println(person)
 	person.Genres, err = uc.genre.GetByPersonID(ctx, id)
 	if err != nil {
 		return domain.Person{}, err
 	}
-	fmt.Println(person)
 	return person, nil
 }

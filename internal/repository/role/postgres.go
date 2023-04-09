@@ -41,7 +41,7 @@ func (repo *Repository) GetByContentID(ctx context.Context, ContentID uint64) (m
 }
 
 func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]domain.Role, error) {
-	query := `select crp.person_id, r.id, r.title from roles r 
+	query := `select r.id, r.title from roles r 
     		  join content_roles_persons crp on r.id = crp.role_id
     		  where crp.person_id = $1`
 	rows, err := repo.DB.QueryContext(ctx, query, PersonID)
