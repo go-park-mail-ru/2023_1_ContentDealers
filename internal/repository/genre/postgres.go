@@ -55,23 +55,24 @@ func (repo *Repository) GetByContentID(ctx context.Context, contentID uint64) ([
 }
 
 func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]domain.Genre, error) {
-	joinOnPerson := `join content_roles_persons crp on c.id = crp.content_id
-					 join persons p on crp.person_id = p.id`
-	filterByPersonID := `where p.id = $1`
-	query := strings.Join([]string{fetchQueryTemplate, joinOnPerson, filterByPersonID}, " ")
-	genres, err := repo.fetch(ctx, query, PersonID)
+	query := `select distinct(g.id), g.name from genres g
+			join content_genres cg on g.id = cg.genre_id
+			join content_roles_persons crp on cg.content_id = crp.content_id
+			where crp.person_id = $1`
+	rows, err := repo.DB.QueryContext(ctx, query, PersonID)
 	if err != nil {
 		return nil, err
 	}
-	uniqueGenres := map[domain.Genre]struct{}{}
-	for _, genreSlice := range genres {
-		for _, genre := range genreSlice {
-			uniqueGenres[genre] = struct{}{}
+	defer rows.Close()
+
+	result := []domain.Genre{}
+	for rows.Next() {
+		g := domain.Genre{}
+		err = rows.Scan(&g.ID, &g.Name)
+		if err != nil {
+			return nil, err
 		}
-	}
-	result := make([]domain.Genre, 0, len(uniqueGenres))
-	for genre := range uniqueGenres {
-		result = append(result, genre)
+		result = append(result, g)
 	}
 	return result, nil
 }
