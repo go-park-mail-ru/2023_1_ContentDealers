@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/lib/pq"
 )
 
 type Repository struct {
@@ -40,9 +41,9 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (m
 }
 
 func (repo *Repository) GetByContentIDs(ctx context.Context, contentIDs []uint64) (map[uint64][]domain.Genre, error) {
-	filterByIDs := `where c.id in ($1)`
+	filterByIDs := `where c.id = any($1)`
 	query := strings.Join([]string{fetchQueryTemplate, filterByIDs}, " ")
-	return repo.fetch(ctx, query, contentIDs)
+	return repo.fetch(ctx, query, pq.Array(contentIDs))
 }
 
 func (repo *Repository) GetByContentID(ctx context.Context, contentID uint64) ([]domain.Genre, error) {

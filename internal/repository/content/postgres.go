@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/lib/pq"
 )
 
 type Repository struct {
@@ -19,8 +20,8 @@ func NewRepository(db *sql.DB) Repository {
 const fetchQueryTemplate = `select c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
        						c.trailer_url, c.preview_url, c.type from content c`
 
-func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([]domain.Content, error) {
-	rows, err := repo.DB.QueryContext(ctx, query, args)
+func (repo *Repository) fetchByIDs(ctx context.Context, query string, IDs []uint64) ([]domain.Content, error) {
+	rows, err := repo.DB.QueryContext(ctx, query, pq.Array(IDs))
 	if err != nil {
 		return nil, err
 	}
@@ -40,9 +41,9 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 }
 
 func (repo *Repository) GetByIDs(ctx context.Context, ids []uint64) ([]domain.Content, error) {
-	filterByIDs := `where id in ($1)`
+	filterByIDs := `where c.id = any($1)`
 	query := strings.Join([]string{fetchQueryTemplate, filterByIDs}, " ")
-	return repo.fetch(ctx, query, ids)
+	return repo.fetchByIDs(ctx, query, ids)
 }
 
 func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Content, error) {
@@ -55,11 +56,10 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Content,
 
 func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (map[uint64][]domain.Content, error) {
 	rows, err := repo.DB.QueryContext(ctx,
-		`select s.id, c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
+		`select cs.content_id, c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
        		   c.trailer_url, c.preview_url, c.type from content c 
        		   join content_selections cs on c.id = cs.content_id
-       		   join selections s on cs.selection_id = s.id
-       		   where s.id in ($1)`, IDs)
+       		   where cs.content_id = any($1)`, pq.Array(IDs))
 	if err != nil {
 		return nil, err
 	}
@@ -75,4 +75,26 @@ func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (ma
 		result[selectionID] = append(result[selectionID], c)
 	}
 	return result, err
+}
+
+func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.Content, error) {
+	rows, err := repo.DB.QueryContext(ctx,
+		`select c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
+       		   c.trailer_url, c.preview_url, c.type from content c 
+       		   join content_roles_persons crp on c.id = crp.content_id
+       		   where crp.person_id = $1`, id)
+	if err != nil {
+		return nil, err
+	}
+	var result []domain.Content
+	for rows.Next() {
+		c := domain.Content{}
+		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
+			&c.TrailerURL, &c.PreviewURL, &c.Type)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, c)
+	}
+	return result, nil
 }

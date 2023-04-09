@@ -33,7 +33,7 @@ func (repo *Repository) Add(ctx context.Context, user domain.User) (domain.User,
 	log.Println(user.DateBirth)
 
 	err := repo.DB.QueryRow(
-		`insert into users (email, password_hash, birthday, avatar_url) 
+		`insert into users (email, password_hash, date_birth, avatar_url) 
         values ($1, $2, $3, $4) 
         returning id`,
 		user.Email,
@@ -60,7 +60,7 @@ func (repo *Repository) GetByEmail(ctx context.Context, email string) (domain.Us
 	user := domain.User{}
 	err := repo.DB.
 		QueryRowContext(ctx,
-			`select id, email, password_hash, birthday, avatar_url FROM users WHERE email = $1`, email).
+			`select id, email, password_hash, date_birth, avatar_url FROM users WHERE email = $1`, email).
 		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DateBirth, &user.AvatarURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

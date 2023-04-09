@@ -3,7 +3,7 @@ package domain
 type Person struct {
 	ID             uint64
 	Name           string
-	Gender         rune
+	Gender         string
 	Growth         *int
 	Birthplace     *string
 	AvatarURL      string

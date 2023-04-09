@@ -3,6 +3,7 @@ package selection
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
@@ -33,6 +34,7 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 		}
 		result = append(result, s)
 	}
+	fmt.Println(query, result)
 	return result, nil
 }
 

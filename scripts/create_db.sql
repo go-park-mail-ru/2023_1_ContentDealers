@@ -22,7 +22,7 @@ drop domain if exists gender cascade;
 create domain gender char(1)
     check (value IN ('F', 'M'));
 
-drop type filmium.content_type cascade;
+drop type if exists filmium.content_type cascade;
 create type content_type as enum (
     'film',
     'series'

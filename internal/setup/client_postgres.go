@@ -17,7 +17,7 @@ func NewClientPostgres(cfg StorageConfig) (*sql.DB, error) {
 	// 1. https://www.youtube.com/watch?v=sDsAf3gikpQ&list=PLbTTxxr-hMmyFAvyn7DeOgNRN8BQdjFm8&index=5
 	// 2. https://www.youtube.com/watch?v=asLUNpndGj0&t=1310s
 
-	dsn := fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=%s sslmode=%s",
+	dsn := fmt.Sprintf("user=%s dbname=%s password=%s host=%s port=%s sslmode=%s search_path=filmium",
 		cfg.User,
 		cfg.DBName,
 		cfg.Password,

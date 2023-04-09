@@ -23,7 +23,7 @@ func NewHandler(useCase UseCase) Handler {
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	selections, err := h.useCase.GetAll(r.Context(), 15, 15)
+	selections, err := h.useCase.GetAll(r.Context(), 15, 0)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -32,7 +32,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"movie_selections": selections,
+			"selections": selections,
 		},
 	})
 

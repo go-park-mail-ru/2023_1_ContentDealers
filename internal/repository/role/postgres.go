@@ -25,6 +25,9 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (m
 		var id uint64
 		r := domain.Role{}
 		err = rows.Scan(&id, &r.ID, &r.Title)
+		if err != nil {
+			return nil, err
+		}
 		result[id] = r
 	}
 	return result, nil
@@ -35,4 +38,24 @@ func (repo *Repository) GetByContentID(ctx context.Context, ContentID uint64) (m
     		  join content_roles_persons crp on r.id = crp.role_id
     		  where crp.content_id = $1`
 	return repo.fetch(ctx, query, ContentID)
+}
+
+func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]domain.Role, error) {
+	query := `select crp.person_id, r.id, r.title from roles r 
+    		  join content_roles_persons crp on r.id = crp.role_id
+    		  where crp.person_id = $1`
+	rows, err := repo.DB.QueryContext(ctx, query, PersonID)
+	if err != nil {
+		return nil, err
+	}
+	var result []domain.Role
+	for rows.Next() {
+		r := domain.Role{}
+		err = rows.Scan(&r.ID, &r.Title)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, r)
+	}
+	return result, nil
 }
