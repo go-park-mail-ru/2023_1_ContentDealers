@@ -56,7 +56,7 @@ func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"film": film,
+			"film": filmResponse,
 		},
 	})
 

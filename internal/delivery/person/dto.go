@@ -1,20 +1,5 @@
 package person
 
-import "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-
-var a = domain.Person{
-	ID:             0,
-	Name:           "",
-	Gender:         "",
-	Growth:         nil,
-	Birthplace:     nil,
-	AvatarURL:      "",
-	Age:            0,
-	ParticipatedIn: nil,
-	Roles:          nil,
-	Genres:         nil,
-}
-
 type contentDTO struct {
 	ID    uint64 `json:"id"`
 	Title string `json:"title"`
