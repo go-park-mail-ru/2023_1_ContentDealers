@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/gorilla/mux"
 )
@@ -44,6 +45,13 @@ func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
+	}
+
+	filmResponse := filmDTO{}
+	err = dto.Map(&filmResponse, film)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 
 	response, err := json.Marshal(map[string]interface{}{

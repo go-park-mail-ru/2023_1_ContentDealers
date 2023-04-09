@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/gorilla/mux"
 )
@@ -30,9 +31,16 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var selectionsResponse []selectionDTO
+	err = dto.Map(&selectionsResponse, selections)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"selections": selections,
+			"selections": selectionsResponse,
 		},
 	})
 
@@ -58,7 +66,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	movieSelection, err := h.useCase.GetByID(r.Context(), id)
+	selection, err := h.useCase.GetByID(r.Context(), id)
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrRepoNotFound):
@@ -71,9 +79,16 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	selectionResponse := selectionDTO{}
+	err = dto.Map(&selectionResponse, selection)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"selection": movieSelection,
+			"selection": selectionResponse,
 		},
 	})
 

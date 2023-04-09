@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/gorilla/mux"
 )
@@ -46,9 +47,16 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	personResponse := personDTO{}
+	err = dto.Map(&personResponse, person)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"person": person,
+			"person": personResponse,
 		},
 	})
 
