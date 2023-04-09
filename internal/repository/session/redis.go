@@ -43,7 +43,7 @@ func (repo *Repository) Add(session domain.Session) error {
 	// TODO: session.ID или session.ID.String()
 	timeToLive := time.Until(session.ExpiresAt)
 	result, err := redis.String(repo.redisConn.Do("SET", session.ID,
-		dataSerialized, "EX", timeToLive.Seconds()))
+		dataSerialized, "EX", uint(timeToLive.Seconds())))
 	if err != nil {
 		return fmt.Errorf("cant set data in redis: %w", err)
 	}
