@@ -59,7 +59,7 @@ create table persons (
     gender filmium.gender not null,
     growth integer,
     birthplace text,
-    avatar_url text not null default 'media/default_avatar.jpg',
+    avatar_url text not null default 'media/avatars/default_avatar.jpg',
     age integer
 );
 

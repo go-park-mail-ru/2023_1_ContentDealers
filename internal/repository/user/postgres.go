@@ -15,10 +15,10 @@ import (
 )
 
 const (
-	shortFormDate             = "2006-01-02"
+	shortFormDate = "2006-01-02"
 	// dirAvatars                = "./media/avatars"
-	dirAvatars                = "media/avatars"
-	allPerms      os.FileMode = 0777
+	dirAvatars             = "media/avatars"
+	allPerms   os.FileMode = 0777
 )
 
 type Repository struct {
@@ -124,7 +124,7 @@ func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) erro
 	// 2. удаление урла из БД
 	_, err = repo.DB.ExecContext(ctx,
 		`update users 
-		set avatar_url = 'media/default_avatar.jpg'
+		set avatar_url = 'media/avatars/default_avatar.jpg'
 		where id = $1;`,
 		user.ID,
 	)
