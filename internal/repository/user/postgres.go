@@ -76,7 +76,7 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.User, er
 	user := domain.User{}
 	err := repo.DB.
 		QueryRowContext(ctx,
-			`select id, email, password_hash, birthday, avatar_url FROM users WHERE id = $1`, id).
+			`select id, email, password_hash, date_birth, avatar_url FROM users WHERE id = $1`, id).
 		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DateBirth, &user.AvatarURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -98,7 +98,6 @@ func getDirByDate(date time.Time) string {
 
 func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) error {
 	var updateDate time.Time
-
 	// 1. удаление из локальной директории
 	if user.AvatarURL == "" {
 		return nil
@@ -124,7 +123,7 @@ func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) erro
 	// 2. удаление урла из БД
 	_, err = repo.DB.ExecContext(ctx,
 		`update users 
-		set avatar_url = null
+		set avatar_url = 'media/default_avatar.jpg'
 		where id = $1;`,
 		user.ID,
 	)
@@ -136,7 +135,9 @@ func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) erro
 
 func (repo *Repository) UpdateAvatar(ctx context.Context, user domain.User, file io.Reader) (domain.User, error) {
 	err := repo.DeleteAvatar(ctx, user)
+
 	if err != nil {
+		log.Println("yyyyyy 3")
 		return domain.User{}, err
 	}
 
