@@ -25,6 +25,8 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	var result []domain.Country
 	for rows.Next() {
 		c := domain.Country{}
@@ -39,6 +41,7 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 
 func (repo *Repository) GetByContentID(ctx context.Context, ContentID uint64) ([]domain.Country, error) {
 	filterByContentID := `where c.id = $1`
-	query := strings.Join([]string{fetchQueryTemplate, filterByContentID}, " ")
+	orderByID := `order by countries.id`
+	query := strings.Join([]string{fetchQueryTemplate, filterByContentID, orderByID}, " ")
 	return repo.fetch(ctx, query, ContentID)
 }

@@ -24,6 +24,7 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var result []domain.Selection
 	for rows.Next() {
@@ -39,9 +40,9 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 }
 
 func (repo *Repository) GetAll(ctx context.Context, limit uint, offset uint) ([]domain.Selection, error) {
-	orderById := `order by id desc`
+	orderByID := `order by id desc`
 	limitAndOffset := `limit $1 offset $2`
-	query := strings.Join([]string{queryFetchTemplate, orderById, limitAndOffset}, " ")
+	query := strings.Join([]string{queryFetchTemplate, orderByID, limitAndOffset}, " ")
 	return repo.fetch(ctx, query, limit, offset)
 }
 
@@ -59,6 +60,7 @@ func (repo *Repository) GetByContentID(ctx context.Context, ContentID uint64) ([
 	joinContent := `join content_selections cs on cs.selection_id = s.id
 					join content c on c.id = cs.content_id`
 	filterByContentID := `where c.id = $1`
-	query := strings.Join([]string{queryFetchTemplate, joinContent, filterByContentID}, " ")
+	orderByID := `order by s.id`
+	query := strings.Join([]string{queryFetchTemplate, joinContent, filterByContentID, orderByID}, " ")
 	return repo.fetch(ctx, query, ContentID)
 }

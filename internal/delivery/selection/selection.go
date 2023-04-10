@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
@@ -21,10 +22,33 @@ func NewHandler(useCase UseCase) Handler {
 	return Handler{useCase: useCase}
 }
 
+const (
+	defaultLimit  = 15
+	defaultOffset = 0
+)
+
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	selections, err := h.useCase.GetAll(r.Context(), 15, 0)
+	var limit int = defaultLimit
+	var offset int = defaultOffset
+
+	query, err := url.ParseQuery(r.URL.RawQuery)
+	if err == nil {
+		limitRaw := query.Get("limit")
+		_, err = fmt.Sscanf(limitRaw, "%d", &limit)
+		if err != nil || limit <= 0 {
+			limit = defaultLimit
+		}
+
+		offsetRaw := query.Get("offset")
+		_, err = fmt.Sscanf(offsetRaw, "%d", &offset)
+		if err != nil || offset < 0 {
+			offset = defaultOffset
+		}
+	}
+
+	selections, err := h.useCase.GetAll(r.Context(), uint(limit), uint(offset))
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

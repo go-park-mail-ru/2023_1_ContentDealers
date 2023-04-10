@@ -20,6 +20,8 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (m
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	result := map[uint64]domain.Role{}
 	for rows.Next() {
 		var id uint64
@@ -36,18 +38,22 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (m
 func (repo *Repository) GetByContentID(ctx context.Context, ContentID uint64) (map[uint64]domain.Role, error) {
 	query := `select crp.person_id, r.id, r.title from roles r 
     		  join content_roles_persons crp on r.id = crp.role_id
-    		  where crp.content_id = $1`
+    		  where crp.content_id = $1
+			  order by r.id`
 	return repo.fetch(ctx, query, ContentID)
 }
 
 func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]domain.Role, error) {
 	query := `select distinct(r.id), r.title from roles r 
     		  join content_roles_persons crp on r.id = crp.role_id
-    		  where crp.person_id = $1`
+    		  where crp.person_id = $1
+			  order by r.id`
 	rows, err := repo.DB.QueryContext(ctx, query, PersonID)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	var result []domain.Role
 	for rows.Next() {
 		r := domain.Role{}

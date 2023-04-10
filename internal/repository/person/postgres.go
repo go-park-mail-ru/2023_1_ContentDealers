@@ -23,6 +23,8 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	var result []domain.Person
 	for rows.Next() {
 		p := domain.Person{}
@@ -36,8 +38,9 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 }
 
 func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Person, error) {
-	filterByIdQueryPart := `where p.id = $1`
-	fullQuery := strings.Join([]string{fetchQueryTemplate, filterByIdQueryPart}, " ")
+	filterByIDQueryPart := `where p.id = $1`
+	orderByID := `order by p.id`
+	fullQuery := strings.Join([]string{fetchQueryTemplate, filterByIDQueryPart, orderByID}, " ")
 	persons, err := repo.fetch(ctx, fullQuery, id)
 	if err != nil {
 		return domain.Person{}, err
@@ -48,6 +51,7 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Person, 
 func (repo *Repository) GetByContentID(ctx context.Context, ContentID uint64) ([]domain.Person, error) {
 	joinOnContent := `join content_roles_persons crp on crp.person_id = p.id`
 	filterByContentID := `where crp.content_id = $1`
-	query := strings.Join([]string{fetchQueryTemplate, joinOnContent, filterByContentID}, " ")
+	orderByID := `order by p.id`
+	query := strings.Join([]string{fetchQueryTemplate, joinOnContent, filterByContentID, orderByID}, " ")
 	return repo.fetch(ctx, query, ContentID)
 }

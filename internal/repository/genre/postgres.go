@@ -42,7 +42,8 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (m
 
 func (repo *Repository) GetByContentIDs(ctx context.Context, contentIDs []uint64) (map[uint64][]domain.Genre, error) {
 	filterByIDs := `where c.id = any($1)`
-	query := strings.Join([]string{fetchQueryTemplate, filterByIDs}, " ")
+	orderByID := `order by g.id`
+	query := strings.Join([]string{fetchQueryTemplate, filterByIDs, orderByID}, " ")
 	return repo.fetch(ctx, query, pq.Array(contentIDs))
 }
 
@@ -58,7 +59,8 @@ func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]d
 	query := `select distinct(g.id), g.name from genres g
 			join content_genres cg on g.id = cg.genre_id
 			join content_roles_persons crp on cg.content_id = crp.content_id
-			where crp.person_id = $1`
+			where crp.person_id = $1
+			order by g.id`
 	rows, err := repo.DB.QueryContext(ctx, query, PersonID)
 	if err != nil {
 		return nil, err
