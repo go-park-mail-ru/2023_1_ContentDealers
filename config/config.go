@@ -29,7 +29,7 @@ func GetConfig() (*Config, error) {
 		return nil, err
 	}
 	instance = &Config{}
-	err = cleanenv.ReadConfig("config.yml", instance)
+	err = cleanenv.ReadConfig("config_prod.yml", instance)
 	if err != nil {
 		return nil, err
 	}
