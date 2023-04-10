@@ -15,10 +15,9 @@ import (
 )
 
 const (
-	shortFormDate = "2006-01-02"
-	// dirAvatars                = "./media/avatars"
-	dirAvatars             = "media/avatars"
-	allPerms   os.FileMode = 0777
+	shortFormDate             = "2006-01-02"
+	dirAvatars                = "media/avatars"
+	allPerms      os.FileMode = 0777
 )
 
 type Repository struct {
@@ -33,7 +32,7 @@ func (repo *Repository) Add(ctx context.Context, user domain.User) (domain.User,
 	var lastInsertedID uint64
 	log.Println(user.DateBirth)
 
-	err := repo.DB.QueryRow(
+	err := repo.DB.QueryRowContext(ctx,
 		`insert into users (email, password_hash, date_birth, avatar_url) 
         values ($1, $2, $3, $4) 
         returning id`,
@@ -43,8 +42,6 @@ func (repo *Repository) Add(ctx context.Context, user domain.User) (domain.User,
 		user.AvatarURL,
 	).Scan(&lastInsertedID)
 	if err != nil {
-		// FIXME:
-		log.Println("sdfgsdfgdg ", err)
 		// TODO: можно ли проверить конкртеную ошибку postgresql (нарушение unique)?
 		// https://www.manniwood.com/2016_08_14/pgxfiles_04.html
 		// https://stackoverflow.com/questions/70515729/how-to-handle-postgres-query-error-with-pgx-driver-in-golang
@@ -104,7 +101,7 @@ func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) erro
 		return nil
 	}
 	err := repo.DB.
-		QueryRow(`select updated_at FROM users WHERE id = $1`, user.ID).
+		QueryRowContext(ctx, `select updated_at FROM users WHERE id = $1`, user.ID).
 		Scan(&updateDate)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -175,4 +172,23 @@ func (repo *Repository) UpdateAvatar(ctx context.Context, user domain.User, file
 	}
 	user.AvatarURL = filepath
 	return user, nil
+}
+
+func (repo *Repository) Update(ctx context.Context, user domain.User) error {
+	// TODO: может поменять почту на уже существующую у др пользователя в системе, тогда возвращаем ошибку
+	_, err := repo.DB.ExecContext(ctx,
+		`update users 
+		set email = $1,
+			password_hash = $2,
+			date_birth = $3
+		where id = $4;`,
+		user.Email,
+		user.PasswordHash,
+		user.DateBirth,
+		user.ID,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }

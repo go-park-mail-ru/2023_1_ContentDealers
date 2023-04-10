@@ -8,6 +8,6 @@ storage:
   user:     postgres
   dbname:   postgres
   host:     127.0.0.1
-  port:     5432
+  port:     5431
   sslmode:  disable
 

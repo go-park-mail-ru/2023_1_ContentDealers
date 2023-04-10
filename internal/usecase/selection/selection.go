@@ -2,6 +2,7 @@ package selection
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
@@ -25,7 +26,9 @@ func (uc *Selection) joinContent(ctx context.Context, selections *[]domain.Selec
 		IDToIdx[selection.ID] = idx
 	}
 
+	fmt.Println("IDs = ", IDs)
 	SelectionIDContent, err := uc.content.GetBySelectionIDs(ctx, IDs)
+	fmt.Println("SelectionIDContent = ", SelectionIDContent)
 	if err != nil {
 		return err
 	}

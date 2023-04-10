@@ -59,6 +59,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 
 	authRouter.HandleFunc("/user/logout", s.UserHandler.Logout).Methods("POST")
 	authRouter.HandleFunc("/user/profile", s.UserHandler.Info).Methods("GET")
+	authRouter.HandleFunc("/user/update", s.UserHandler.Update).Methods("POST")
 
 	// TODO: PATCH в постмане выдавал 405 Method not allowed
 	authRouter.HandleFunc("/user/avatar/update", s.UserHandler.UploadAvatar).Methods("POST")

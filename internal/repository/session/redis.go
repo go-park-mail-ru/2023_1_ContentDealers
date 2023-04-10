@@ -12,11 +12,11 @@ import (
 )
 
 type Repository struct {
-	redisConn redis.Conn
+	redisPool *redis.Pool
 }
 
-func NewRepository(redisConn redis.Conn) Repository {
-	return Repository{redisConn: redisConn}
+func NewRepository(redisPool *redis.Pool) Repository {
+	return Repository{redisPool: redisPool}
 }
 
 func (repo *Repository) Add(session domain.Session) error {
@@ -41,8 +41,11 @@ func (repo *Repository) Add(session domain.Session) error {
 	}
 
 	// TODO: session.ID или session.ID.String()
+	conn := repo.redisPool.Get()
+	defer conn.Close()
+
 	timeToLive := time.Until(session.ExpiresAt)
-	result, err := redis.String(repo.redisConn.Do("SET", session.ID,
+	result, err := redis.String(conn.Do("SET", session.ID,
 		dataSerialized, "EX", uint(timeToLive.Seconds())))
 	if err != nil {
 		return fmt.Errorf("cant set data in redis: %w", err)
@@ -56,7 +59,10 @@ func (repo *Repository) Add(session domain.Session) error {
 func (repo *Repository) Get(sessionID uuid.UUID) (domain.Session, error) {
 	sessRow := sessionRow{}
 
-	data, err := redis.Bytes(repo.redisConn.Do("GET", sessionID))
+	conn := repo.redisPool.Get()
+	defer conn.Close()
+
+	data, err := redis.Bytes(conn.Do("GET", sessionID))
 	if err != nil {
 		if errors.Is(err, redis.ErrNil) {
 			return domain.Session{}, domain.ErrSessionNotFound
@@ -81,7 +87,10 @@ func (repo *Repository) Get(sessionID uuid.UUID) (domain.Session, error) {
 
 func (repo *Repository) Delete(sessionID uuid.UUID) error {
 	// TODO: может можно лучше обработать ошибку, зачем приводить к Int? result != OK?
-	_, err := redis.Int(repo.redisConn.Do("DEL", sessionID))
+	conn := repo.redisPool.Get()
+	defer conn.Close()
+
+	_, err := redis.Int(conn.Do("DEL", sessionID))
 	if err != nil {
 		return fmt.Errorf("cant delete by redis: %w", err)
 	}

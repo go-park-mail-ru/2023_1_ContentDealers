@@ -59,6 +59,20 @@ func (uc *User) DeleteAvatar(ctx context.Context, user domain.User) error {
 	return uc.repo.DeleteAvatar(ctx, user)
 }
 
+func (uc *User) Update(ctx context.Context, user domain.User) error {
+	if user.PasswordHash == "" {
+		userTmp, err := uc.repo.GetByID(ctx, user.ID)
+		if err != nil {
+			return err
+		}
+		// оставляем тот же пароль
+		user.PasswordHash = userTmp.PasswordHash
+	} else {
+		user.PasswordHash = generatePasswordHash(user.PasswordHash)
+	}
+	return uc.repo.Update(ctx, user)
+}
+
 func generatePasswordHash(password string) string {
 	hash := sha256.New()
 	hash.Write([]byte(password))

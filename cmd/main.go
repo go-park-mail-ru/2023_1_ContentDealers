@@ -98,7 +98,6 @@ func Run() error {
 		FilmHandler:      filmHandler,
 		PersonHandler:    personHandler,
 		AllowedOrigins:   []string{config.CORS.AllowedOrigins},
-		// AllowedOrigins:   []string{"*"},
 	})
 
 	addr := fmt.Sprintf("%s:%s", config.Listen.BindIP, config.Listen.Port)

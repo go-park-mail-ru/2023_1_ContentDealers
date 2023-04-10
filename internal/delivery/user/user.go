@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
@@ -44,6 +45,7 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.userUseCase.GetByID(ctx, session.UserID)
 	if err != nil {
+		// domain.ErrUserNotFound
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -134,7 +136,7 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
 			"user": map[string]string{
-				"email": user.Email,
+				"email":      user.Email,
 				"date_birth": user.DateBirth.Format("2006-Jan-02"),
 				"avatar_url": user.AvatarURL,
 			},
@@ -149,4 +151,53 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(response)
+}
+
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	ctx := r.Context()
+
+	sessionRaw := ctx.Value("session")
+	session, ok := sessionRaw.(domain.Session)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	user, err := h.userUseCase.GetByID(ctx, session.UserID)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	userUpdate := userUpdateDTO{}
+	err = decoder.Decode(&userUpdate)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
+		return
+	}
+
+	birthdayTime, err := time.Parse(shortFormDate, userUpdate.Birthday)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, `{"message":"failed to parse birthday from string to birthdayTime"}`)
+		return
+	}
+
+	user.Email = userUpdate.Email
+	user.DateBirth = birthdayTime
+	user.PasswordHash = userUpdate.Password
+
+	err = h.userUseCase.Update(ctx, user)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
