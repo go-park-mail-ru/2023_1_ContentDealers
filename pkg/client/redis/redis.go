@@ -1,28 +1,29 @@
-package setup
+package redis
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
 )
 
-// нужен пароль
-const redisAddr = "redis://user:@localhost:6379/0"
+// const redisAddr = "redis://user:@localhost:6379/0"
 
-func NewClientRedis() (*redis.Pool, error) {
+func NewClientRedis(cfg RedisConfig) (*redis.Pool, error) {
+	dsn := fmt.Sprintf("redis://%s:@%s:%s/%s", cfg.User, cfg.Host, cfg.Port, cfg.DBNum)
+
 	var redisPool *redis.Pool
 
 	redisPool = &redis.Pool{
 		MaxIdle:     4,
 		IdleTimeout: 120 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.DialURL(redisAddr)
+			c, err := redis.DialURL(dsn)
 			if err != nil {
 				return nil, err
 			}
 			return c, err
 		},
 	}
-
 	return redisPool, nil
 }

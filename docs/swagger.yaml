@@ -1,0 +1,220 @@
+basePath: /
+definitions:
+  user.profileDTO:
+    properties:
+      avatar_url:
+        type: string
+      birthday:
+        type: string
+      email:
+        type: string
+    type: object
+  user.tokenDTO:
+    properties:
+      csrf-token:
+        type: string
+    type: object
+  user.userCreateDTO:
+    properties:
+      avatar_url:
+        type: string
+      birthday:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  user.userCredentialsDTO:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API Server for Filmium Application
+  title: Filmium Backend API
+  version: "1.0"
+paths:
+  /selections:
+    get:
+      description: |-
+        Получить все подборки
+        Через параметры можно указать лимит фильмов / сериалов в одной подборке
+      parameters:
+      - description: Ограничение на количество
+        in: query
+        name: limit
+        type: integer
+      - description: Смешение от первого фильма
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Get All
+      tags:
+      - movieselection
+  /selections/id:
+    get:
+      description: |-
+        Получить конкретную подборку
+        Через параметры можно указать лимит фильмов / сериалов в одной подборке
+      parameters:
+      - description: Ограничение на количество
+        in: query
+        name: limit
+        type: integer
+      - description: Смешение от первого фильма
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Get By Id
+      tags:
+      - movieselection
+  /user/avatar/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: |-
+        Обновить аватар пользователя
+        Необходимы куки
+        Необходим CSRF токен
+        Принимаем multipart/form-data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Upload Avatar
+      tags:
+      - user
+  /user/csrf:
+    get:
+      description: |-
+        Получить CSRF токен
+        Необходимы куки
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.tokenDTO'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: CSRF
+      tags:
+      - user
+  /user/logout:
+    post:
+      description: |-
+        Выйти из аккаунта
+        Необходимы куки
+        Необходим csrf токен
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Logout
+      tags:
+      - auth
+  /user/profile:
+    get:
+      description: |-
+        Обновить аватар
+        Необходимы куки
+        Необходим CSRF токен
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.profileDTO'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Profile
+      tags:
+      - user
+  /user/signin:
+    post:
+      consumes:
+      - application/json
+      description: Войти в аккаунт
+      parameters:
+      - description: Данные для входа в аккаунт
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/user.userCredentialsDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: SignIn
+      tags:
+      - auth
+  /user/signup:
+    post:
+      consumes:
+      - application/json
+      description: Создать аккаунт
+      parameters:
+      - description: Информация об аккаунте
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/user.userCreateDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: SignUp
+      tags:
+      - auth
+swagger: "2.0"

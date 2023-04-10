@@ -43,7 +43,7 @@ create table users (
     email text not null unique,
     password_hash text not null,
     date_birth date not null,
-    avatar_url text not null default 'media/default_avatar.jpg',
+    avatar_url text not null default 'media/avatars/default_avatar.jpg',
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
 );

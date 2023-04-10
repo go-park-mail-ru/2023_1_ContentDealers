@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
@@ -22,16 +26,33 @@ import (
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
 	personRoleUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/personRole"
-	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
-	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
 	contentUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/joho/godotenv"
+
+	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
+	csrfUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
+	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
+	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 )
 
-const ReadHeaderTimeout = 5 * time.Second
+const (
+	ReadHeaderTimeout = 5 * time.Second
+	shutdownTimeout   = 5 * time.Second
+)
 
+// @title Filmium Backend API
+// @version 1.0
+// @description API Server for Filmium Application
+
+// @host localhost:8080
+// @BasePath /
 func main() {
 	if err := Run(); err != nil {
 		log.Fatal(err)
@@ -39,21 +60,24 @@ func main() {
 }
 
 func Run() error {
+	fmt.Println("run")
+	logger, err := logging.NewLogger()
 
-	config, err := setup.GetConfig()
+	cfg, err := config.GetConfig()
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 
-	fmt.Printf("%v", config)
-
-	db, err := setup.NewClientPostgres(config.Storage)
+	db, err := postgresql.NewClientPostgres(cfg.Storage)
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 
-	redisClient, err := setup.NewClientRedis()
+	redisClient, err := redis.NewClientRedis(cfg.Redis)
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 
@@ -86,21 +110,39 @@ func Run() error {
 		Genre:   &genreRepository,
 	})
 
-	userHandler := user.NewHandler(userUseCase, sessionUseCase)
+	err = godotenv.Load()
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+	csrfUseCase, err := csrfUseCase.NewCSRF(os.Getenv("CSRF_TOKEN"))
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
 	selectionHandler := selection.NewHandler(selectionUseCase)
 	filmHandler := film.NewHandler(filmUseCase)
 	personHandler := person.NewHandler(personUseCase)
+	userHandler := user.NewHandler(userUseCase, sessionUseCase, logger)
+	csrfHandler := csrf.NewHandler(csrfUseCase)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:      userHandler,
+		CSRFHandler:      csrfHandler,
 		SelectionHandler: selectionHandler,
-		SessionUseCase:   sessionUseCase,
 		FilmHandler:      filmHandler,
 		PersonHandler:    personHandler,
-		AllowedOrigins:   []string{config.CORS.AllowedOrigins},
+		SessionUseCase:   sessionUseCase,
+		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
+		CSRFUseCase:      csrfUseCase,
+		Logger:           logger,
 	})
 
-	addr := fmt.Sprintf("%s:%s", config.Listen.BindIP, config.Listen.Port)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	addr := fmt.Sprintf("%s:%s", cfg.Listen.BindIP, cfg.Listen.Port)
 
 	server := http.Server{
 		Addr:              addr,
@@ -108,10 +150,24 @@ func Run() error {
 		ReadHeaderTimeout: ReadHeaderTimeout,
 	}
 
-	log.Println("start listening on - ", addr)
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen and server: %v", err)
+		}
+	}()
+	logger.Infoln("start listening on", addr)
 
-	if err := server.ListenAndServe(); err != nil {
-		return err
+	<-ctx.Done()
+
+	logger.Infoln("server shutdown")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	err = server.Shutdown(shutdownCtx)
+	if err != nil {
+		return fmt.Errorf("shutdown : %w", err)
 	}
 	return nil
 }

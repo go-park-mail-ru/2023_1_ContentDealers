@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 // TODO: может, имеет смысл для констант ввести префикс ("kNameFormFile", "cNameFormFile")
@@ -23,16 +25,19 @@ const (
 type Handler struct {
 	userUseCase    UserUseCase
 	sessionUseCase SessionUseCase
+	logger         logging.Logger
 }
 
-func NewHandler(user UserUseCase, session SessionUseCase) Handler {
+func NewHandler(user UserUseCase, session SessionUseCase, logger logging.Logger) Handler {
 	return Handler{
 		userUseCase:    user,
 		sessionUseCase: session,
+		logger:         logger,
 	}
 }
 
 func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
+	log.Println("DeleteAvatar")
 	defer r.Body.Close()
 
 	ctx := r.Context()
@@ -59,19 +64,22 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
+	log.Println("UpdateAvatar")
 	defer r.Body.Close()
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
+		log.Println("1")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	user, err := h.userUseCase.GetByID(ctx, session.UserID)
 	if err != nil {
+		log.Println("2")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -79,10 +87,10 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxSizeBody)
 	file, header, err := r.FormFile(nameFormFile)
 	if err != nil {
-		log.Println(err)
 		if errors.As(err, new(*http.MaxBytesError)) {
 			io.WriteString(w, fmt.Sprintf(`{"message":"the size exceeded the maximum size equal to %d mb"}`, maxSizeBody))
 		} else {
+			log.Println(err)
 			io.WriteString(w, `{"message":"failed to parse avatar file from the body"}`)
 		}
 		w.WriteHeader(http.StatusBadRequest)
@@ -109,6 +117,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.userUseCase.UpdateAvatar(ctx, user, file)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -116,6 +125,16 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// @Summary Profile
+// @Tags user
+// @Description Обновить аватар
+// @Description Необходимы куки
+// @Description Необходим CSRF токен
+// @Produce  json
+// @Success 200 {object} profileDTO
+// @Failure 400
+// @Failure 500
+// @Router /user/profile [get]
 func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
@@ -123,6 +142,7 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
+		h.logger.Error("can't get info without session")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -132,6 +152,8 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	user.Email = html.EscapeString(user.Email)
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
@@ -144,7 +166,6 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -181,7 +202,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	birthdayTime, err := time.Parse(shortFormDate, userUpdate.Birthday)
+	birthdayTime, err := time.Parse(shortFormDate, userUpdate.DateBirth)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse birthday from string to birthdayTime"}`)
