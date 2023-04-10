@@ -10,10 +10,10 @@ import (
 const SessionTimeout = time.Hour * 12
 
 type Session struct {
-	repo SessionRepository
+	repo Repository
 }
 
-func NewSession(repo SessionRepository) *Session {
+func NewSession(repo Repository) *Session {
 	return &Session{repo: repo}
 }
 

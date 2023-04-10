@@ -1,4 +1,4 @@
-package selection
+package person
 
 import (
 	"encoding/json"
@@ -8,41 +8,17 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
-	useCase MovieSelectionUseCase
+	useCase UseCase
 }
 
-func NewHandler(useCase MovieSelectionUseCase) Handler {
+func NewHandler(useCase UseCase) Handler {
 	return Handler{useCase: useCase}
-}
-
-func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	selections, err := h.useCase.GetAll()
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	response, err := json.Marshal(map[string]interface{}{
-		"body": map[string]interface{}{
-			"movie_selections": selections,
-		},
-	})
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
 }
 
 func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -54,16 +30,16 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	_, err := fmt.Sscanf(idRaw, "%d", &id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"message":"movie selection id is not numeric"}`)
+		io.WriteString(w, `{"message":"person id is not numeric"}`)
 		return
 	}
 
-	movieSelection, err := h.useCase.GetByID(id)
+	person, err := h.useCase.GetByID(r.Context(), id)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrMovieSelectionNotFound):
+		case errors.Is(err, domain.ErrRepoNotFound):
 			w.WriteHeader(http.StatusNotFound)
-			io.WriteString(w, `{"message":"movie selection not found"}`)
+			io.WriteString(w, `{"message":"person not found"}`)
 		default:
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -71,9 +47,16 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	personResponse := personDTO{}
+	err = dto.Map(&personResponse, person)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"selection": movieSelection,
+			"person": personResponse,
 		},
 	})
 

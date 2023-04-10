@@ -4,8 +4,8 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movie"
-	movieSelectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movieselection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/film"
+	movieSelectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
 
@@ -51,7 +51,7 @@ type TestEnv struct {
 func NewTestEnv() *TestEnv {
 	userRepository := userRepo.NewInMemoryRepository()
 	sessionRepository := session.NewInMemoryRepository()
-	movieRepository := movie.NewInMemoryRepository()
+	movieRepository := film.NewInMemoryRepository()
 	movieSelectionRepository := movieSelectionRepo.NewInMemoryRepository()
 
 	setup.Content(&movieRepository, &movieSelectionRepository)
@@ -64,10 +64,10 @@ func NewTestEnv() *TestEnv {
 	movieSelectionHandler := selection.NewHandler(movieSelectionUseCase)
 
 	router := setup.Routes(&setup.SettingsRouter{
-		UserHandler:           userHandler,
-		MovieSelectionHandler: movieSelectionHandler,
-		SessionUseCase:        sessionUseCase,
-		AllowedOrigins:        []string{TestOrigin},
+		UserHandler:      userHandler,
+		SelectionHandler: movieSelectionHandler,
+		SessionUseCase:   sessionUseCase,
+		AllowedOrigins:   []string{TestOrigin},
 	})
 
 	return &TestEnv{

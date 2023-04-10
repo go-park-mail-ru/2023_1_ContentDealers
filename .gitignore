@@ -5,6 +5,8 @@ tmp_persist/redis_data/*
 .idea
 
 # .env 
+log
+media/avatars/2023
 
 # Binaries for programs and plugins
 *.exe

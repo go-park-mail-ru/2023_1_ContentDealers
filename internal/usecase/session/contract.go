@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type SessionRepository interface {
+type Repository interface {
 	Add(session domain.Session) error
 	Get(id uuid.UUID) (domain.Session, error)
 	Delete(id uuid.UUID) error

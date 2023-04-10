@@ -22,7 +22,7 @@ drop domain if exists gender cascade;
 create domain gender char(1)
     check (value IN ('F', 'M'));
 
-drop type filmium.content_type cascade;
+drop type if exists filmium.content_type cascade;
 create type content_type as enum (
     'film',
     'series'
@@ -59,7 +59,7 @@ create table persons (
     gender filmium.gender not null,
     growth integer,
     birthplace text,
-    avatar_url text not null default 'media/default_avatar.jpg',
+    avatar_url text not null default 'media/avatars/default_avatar.jpg',
     age integer
 );
 

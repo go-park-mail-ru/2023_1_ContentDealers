@@ -1,19 +1,14 @@
 package domain
 
-type PersonContent struct {
-	ContentID uint64
-	Title     string
-}
-
 type Person struct {
 	ID             uint64
 	Name           string
-	Gender         rune
+	Gender         string
 	Growth         *int
 	Birthplace     *string
 	AvatarURL      string
 	Age            int
-	ParticipatedIn []PersonContent
+	ParticipatedIn []Content
 	Roles          []Role
 	Genres         []Genre
 }

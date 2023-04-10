@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -15,7 +16,7 @@ import (
 
 const (
 	shortFormDate             = "2006-01-02"
-	dirAvatars                = "./media/avatars"
+	dirAvatars                = "media/avatars"
 	allPerms      os.FileMode = 0777
 )
 
@@ -27,22 +28,20 @@ func NewRepository(db *sql.DB) Repository {
 	return Repository{DB: db}
 }
 
-func (repo *Repository) Add(user domain.User) (domain.User, error) {
+func (repo *Repository) Add(ctx context.Context, user domain.User) (domain.User, error) {
 	var lastInsertedID uint64
-	log.Println(user.Birthday)
+	log.Println(user.DateBirth)
 
-	err := repo.DB.QueryRow(
-		`insert into users (email, password_hash, birthday, avatar_url) 
+	err := repo.DB.QueryRowContext(ctx,
+		`insert into users (email, password_hash, date_birth, avatar_url) 
         values ($1, $2, $3, $4) 
         returning id`,
 		user.Email,
 		user.PasswordHash,
-		user.Birthday,
+		user.DateBirth,
 		user.AvatarURL,
 	).Scan(&lastInsertedID)
 	if err != nil {
-		// FIXME:
-		log.Println("sdfgsdfgdg ", err)
 		// TODO: можно ли проверить конкртеную ошибку postgresql (нарушение unique)?
 		// https://www.manniwood.com/2016_08_14/pgxfiles_04.html
 		// https://stackoverflow.com/questions/70515729/how-to-handle-postgres-query-error-with-pgx-driver-in-golang
@@ -55,11 +54,12 @@ func (repo *Repository) Add(user domain.User) (domain.User, error) {
 	return user, nil
 }
 
-func (repo *Repository) GetByEmail(email string) (domain.User, error) {
+func (repo *Repository) GetByEmail(ctx context.Context, email string) (domain.User, error) {
 	user := domain.User{}
 	err := repo.DB.
-		QueryRow(`select id, email, password_hash, birthday, avatar_url FROM users WHERE email = $1`, email).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Birthday, &user.AvatarURL)
+		QueryRowContext(ctx,
+			`select id, email, password_hash, date_birth, avatar_url FROM users WHERE email = $1`, email).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DateBirth, &user.AvatarURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.User{}, domain.ErrUserNotFound
@@ -69,12 +69,13 @@ func (repo *Repository) GetByEmail(email string) (domain.User, error) {
 	return user, nil
 }
 
-func (repo *Repository) GetByID(id uint64) (domain.User, error) {
+func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.User, error) {
 	// TODO: копипаст метода GetByEmail (нужен общий метод для запроса)
 	user := domain.User{}
 	err := repo.DB.
-		QueryRow(`select id, email, password_hash, birthday, avatar_url FROM users WHERE id = $1`, id).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.Birthday, &user.AvatarURL)
+		QueryRowContext(ctx,
+			`select id, email, password_hash, date_birth, avatar_url FROM users WHERE id = $1`, id).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DateBirth, &user.AvatarURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.User{}, domain.ErrUserNotFound
@@ -93,15 +94,14 @@ func getDirByDate(date time.Time) string {
 	return fmt.Sprintf("%s/%s/%s", year, month, day)
 }
 
-func (repo *Repository) deleteAvatar(user domain.User) error {
+func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) error {
 	var updateDate time.Time
-
 	// 1. удаление из локальной директории
 	if user.AvatarURL == "" {
 		return nil
 	}
 	err := repo.DB.
-		QueryRow(`select updated_at FROM users WHERE id = $1`, user.ID).
+		QueryRowContext(ctx, `select updated_at FROM users WHERE id = $1`, user.ID).
 		Scan(&updateDate)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -119,9 +119,9 @@ func (repo *Repository) deleteAvatar(user domain.User) error {
 	}
 
 	// 2. удаление урла из БД
-	_, err = repo.DB.Exec(
+	_, err = repo.DB.ExecContext(ctx,
 		`update users 
-		set avatar_url = null
+		set avatar_url = 'media/avatars/default_avatar.jpg'
 		where id = $1;`,
 		user.ID,
 	)
@@ -131,8 +131,9 @@ func (repo *Repository) deleteAvatar(user domain.User) error {
 	return nil
 }
 
-func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.User, error) {
-	err := repo.deleteAvatar(user)
+func (repo *Repository) UpdateAvatar(ctx context.Context, user domain.User, file io.Reader) (domain.User, error) {
+	err := repo.DeleteAvatar(ctx, user)
+
 	if err != nil {
 		return domain.User{}, err
 	}
@@ -159,7 +160,7 @@ func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.U
 		return domain.User{}, fmt.Errorf("failed to copy avatar file to local directory")
 	}
 
-	_, err = repo.DB.Exec(
+	_, err = repo.DB.ExecContext(ctx,
 		`update users 
 		set avatar_url = $1
 		where id = $2;`,
@@ -171,4 +172,23 @@ func (repo *Repository) UpdateAvatar(user domain.User, file io.Reader) (domain.U
 	}
 	user.AvatarURL = filepath
 	return user, nil
+}
+
+func (repo *Repository) Update(ctx context.Context, user domain.User) error {
+	// TODO: может поменять почту на уже существующую у др пользователя в системе, тогда возвращаем ошибку
+	_, err := repo.DB.ExecContext(ctx,
+		`update users 
+		set email = $1,
+			password_hash = $2,
+			date_birth = $3
+		where id = $4;`,
+		user.Email,
+		user.PasswordHash,
+		user.DateBirth,
+		user.ID,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }

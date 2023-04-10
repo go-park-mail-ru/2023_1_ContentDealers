@@ -6,16 +6,28 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
-	movieSelectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/movieselection"
+	contentRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/content"
+	countryRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/country"
+	filmRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/film"
+	genreRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/genre"
+	personRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/person"
+	roleRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/role"
+	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
-
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	movieSelectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
+	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
+	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
+	personRoleUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/personRole"
 	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
 	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
+
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
+	contentUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
+	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
 )
 
 const ReadHeaderTimeout = 5 * time.Second
@@ -47,20 +59,45 @@ func Run() error {
 
 	userRepository := userRepo.NewRepository(db)
 	sessionRepository := session.NewRepository(redisClient)
-	movieSelectionRepository := movieSelectionRepo.NewRepository(db)
+	selectionRepository := selectionRepo.NewRepository(db)
+	contentRepository := contentRepo.NewRepository(db)
+	filmRepository := filmRepo.NewRepository(db)
+	genreRepository := genreRepo.NewRepository(db)
+	roleRepository := roleRepo.NewRepository(db)
+	countryRepository := countryRepo.NewRepository(db)
+	personRepository := personRepo.NewRepository(db)
 
 	userUseCase := userUseCase.NewUser(&userRepository)
 	sessionUseCase := sessionUseCase.NewSession(&sessionRepository)
-	movieSelectionUseCase := movieSelectionUseCase.NewMovieSelection(&movieSelectionRepository)
+	selectionUseCase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository)
+	personRolesUseCase := personRoleUseCase.NewPersonRole(&personRepository, &roleRepository)
+	contentUseCase := contentUseCase.NewContent(contentUseCase.Options{
+		ContentRepo:        &contentRepository,
+		GenreRepo:          &genreRepository,
+		SelectionRepo:      &selectionRepository,
+		CountryRepo:        &countryRepository,
+		PersonRolesUseCase: personRolesUseCase,
+	})
+	filmUseCase := filmUseCase.NewFilm(&filmRepository, contentUseCase)
+	personUseCase := personUseCase.NewPerson(personUseCase.Options{
+		Repo:    &personRepository,
+		Content: &contentRepository,
+		Role:    &roleRepository,
+		Genre:   &genreRepository,
+	})
 
 	userHandler := user.NewHandler(userUseCase, sessionUseCase)
-	movieSelectionHandler := selection.NewHandler(movieSelectionUseCase)
+	selectionHandler := selection.NewHandler(selectionUseCase)
+	filmHandler := film.NewHandler(filmUseCase)
+	personHandler := person.NewHandler(personUseCase)
 
 	router := setup.Routes(&setup.SettingsRouter{
-		UserHandler:           userHandler,
-		MovieSelectionHandler: movieSelectionHandler,
-		SessionUseCase:        sessionUseCase,
-		AllowedOrigins:        []string{config.CORS.AllowedOrigins},
+		UserHandler:      userHandler,
+		SelectionHandler: selectionHandler,
+		SessionUseCase:   sessionUseCase,
+		FilmHandler:      filmHandler,
+		PersonHandler:    personHandler,
+		AllowedOrigins:   []string{config.CORS.AllowedOrigins},
 	})
 
 	addr := fmt.Sprintf("%s:%s", config.Listen.BindIP, config.Listen.Port)
@@ -71,7 +108,7 @@ func Run() error {
 		ReadHeaderTimeout: ReadHeaderTimeout,
 	}
 
-	log.Println("start listening on", addr)
+	log.Println("start listening on - ", addr)
 
 	if err := server.ListenAndServe(); err != nil {
 		return err

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -18,23 +19,23 @@ var (
 )
 
 type User struct {
-	repo UserRepository
+	repo Repository
 }
 
-func NewUser(repo UserRepository) *User {
+func NewUser(repo Repository) *User {
 	return &User{repo: repo}
 }
 
-func (uc *User) Register(user domain.User) (domain.User, error) {
+func (uc *User) Register(ctx context.Context, user domain.User) (domain.User, error) {
 	if err := validateCredentials(user); err != nil {
 		return domain.User{}, err
 	}
 	user.PasswordHash = generatePasswordHash(user.PasswordHash)
-	return uc.repo.Add(user)
+	return uc.repo.Add(ctx, user)
 }
 
-func (uc *User) Auth(user domain.User) (domain.User, error) {
-	realUser, err := uc.repo.GetByEmail(user.Email)
+func (uc *User) Auth(ctx context.Context, user domain.User) (domain.User, error) {
+	realUser, err := uc.repo.GetByEmail(ctx, user.Email)
 	if err != nil {
 		return domain.User{}, err
 	}
@@ -46,12 +47,30 @@ func (uc *User) Auth(user domain.User) (domain.User, error) {
 	return realUser, nil
 }
 
-func (uc *User) GetByID(id uint64) (domain.User, error) {
-	return uc.repo.GetByID(id)
+func (uc *User) GetByID(ctx context.Context, id uint64) (domain.User, error) {
+	return uc.repo.GetByID(ctx, id)
 }
 
-func (uc *User) UpdateAvatar(user domain.User, file io.Reader) (domain.User, error) {
-	return uc.repo.UpdateAvatar(user, file)
+func (uc *User) UpdateAvatar(ctx context.Context, user domain.User, file io.Reader) (domain.User, error) {
+	return uc.repo.UpdateAvatar(ctx, user, file)
+}
+
+func (uc *User) DeleteAvatar(ctx context.Context, user domain.User) error {
+	return uc.repo.DeleteAvatar(ctx, user)
+}
+
+func (uc *User) Update(ctx context.Context, user domain.User) error {
+	if user.PasswordHash == "" {
+		userTmp, err := uc.repo.GetByID(ctx, user.ID)
+		if err != nil {
+			return err
+		}
+		// оставляем тот же пароль
+		user.PasswordHash = userTmp.PasswordHash
+	} else {
+		user.PasswordHash = generatePasswordHash(user.PasswordHash)
+	}
+	return uc.repo.Update(ctx, user)
 }
 
 func generatePasswordHash(password string) string {
