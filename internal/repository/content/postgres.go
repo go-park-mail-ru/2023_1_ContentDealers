@@ -56,7 +56,7 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Content,
 
 func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (map[uint64][]domain.Content, error) {
 	rows, err := repo.DB.QueryContext(ctx,
-		`select cs.content_id, c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
+		`select cs.selection_id, c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
        		   c.trailer_url, c.preview_url, c.type from content c 
        		   join content_selections cs on c.id = cs.content_id
        		   where cs.selection_id = any($1)`, pq.Array(IDs))
