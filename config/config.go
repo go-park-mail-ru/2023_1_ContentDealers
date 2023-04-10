@@ -23,13 +23,13 @@ type Config struct {
 
 var instance *Config
 
-func GetConfig() (*Config, error) {
+func GetCfg(configFile string) (*Config, error) {
 	err := godotenv.Load()
 	if err != nil {
 		return nil, err
 	}
 	instance = &Config{}
-	err = cleanenv.ReadConfig("config_prod.yml", instance)
+	err = cleanenv.ReadConfig(configFile, instance)
 	if err != nil {
 		return nil, err
 	}

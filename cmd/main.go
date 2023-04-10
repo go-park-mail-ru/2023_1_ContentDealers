@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -60,10 +61,19 @@ func main() {
 }
 
 func Run() error {
-	fmt.Println("run")
 	logger, err := logging.NewLogger()
 
-	cfg, err := config.GetConfig()
+	// go run cmd/main.go --config [-c] config.yml
+	configPtr := flag.String("config", "", "Config file")
+	flag.StringVar(configPtr, "c", "", "Config file (short)")
+
+	flag.Parse()
+
+	if *configPtr == "" {
+		return fmt.Errorf("Needed to pass config file")
+	}
+
+	cfg, err := config.GetCfg(*configPtr)
 	if err != nil {
 		logger.Error(err)
 		return err
