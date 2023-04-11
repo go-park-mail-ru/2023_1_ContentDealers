@@ -87,6 +87,9 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		if errors.As(err, new(*http.MaxBytesError)) {
 			h.logger.Tracef("the size exceeded the maximum size equal to %d mb: %w", maxSizeBody, err)
 			io.WriteString(w, fmt.Sprintf(`{"status": 5, "message":"the size exceeded the maximum size equal to %d mb"}`, maxSizeBody))
+			// для совместимости с nginx
+			w.WriteHeader(http.StatusRequestEntityTooLarge)
+			return
 		} else {
 			h.logger.Tracef("failed to parse avatar file from the body: %w", err)
 			io.WriteString(w, `{"message":"failed to parse avatar file from the body"}`)
