@@ -64,11 +64,14 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, domain.ErrUserAlreadyExists):
 			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, `{"message":"user already exists"}`)
-		case errors.Is(err, domain.ErrNotValidEmail) ||
-			errors.Is(err, domain.ErrNotValidPassword):
+			io.WriteString(w, `{"status": 1, "message":"user already exists"}`)
+		case errors.Is(err, domain.ErrNotValidEmail):
 			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, `{"message":"email or password not validated"}`)
+			io.WriteString(w, `{"status": 2, "message":"email not validated"}`)
+		case errors.Is(err, domain.ErrNotValidPassword):
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, `{"status": 3, "message":"password not validated"}`)
+
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -109,8 +112,10 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	// TODO: перезаписывание user, стоит ли так делать?
 	user, err = h.userUseCase.Auth(r.Context(), user)
 	if err != nil {
+		// не важно, не валиден пароль или не найден пользователь с почтой
+		// ответ: пользователь не найден
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"message":"user not found"}`)
+		io.WriteString(w, `{"status": 4, "message":"auth wrong credentials"}`)
 		return
 	}
 

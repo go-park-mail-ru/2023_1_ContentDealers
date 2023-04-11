@@ -40,7 +40,6 @@ func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
 
 	film, err := h.useCase.GetByContentID(r.Context(), id)
 	if err != nil {
-		h.logger.Trace(err)
 		switch {
 		case errors.Is(err, domain.ErrRepoNotFound):
 			w.WriteHeader(http.StatusNotFound)

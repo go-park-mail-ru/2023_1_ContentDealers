@@ -21,7 +21,7 @@ func pingDB(db *sql.DB, delay time.Duration, attempts int) error {
 		if err == nil {
 			return nil
 		}
-		log.Println("db is not connected, wait...")
+		log.Println("Ping db failed, waiting for next try")
 		time.Sleep(delay)
 	}
 	return fmt.Errorf("failed to ping db after %d attempt with %s delay: %w", attempts, delay.String(), err)
@@ -39,7 +39,7 @@ func NewClientPostgres(cfg StorageConfig) (*sql.DB, error) {
 
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("cant parse config: %w", err)
+		return nil, err
 	}
 	err = pingDB(db, delayPing, attemptsPing)
 	if err != nil {

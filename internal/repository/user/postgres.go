@@ -204,6 +204,9 @@ func (repo *Repository) Update(ctx context.Context, user domain.User) error {
 		user.DateBirth,
 		user.ID,
 	)
+	if strings.Contains(err.Error(), "duplicate key value") {
+		return domain.ErrUserAlreadyExists
+	}
 	if err != nil {
 		repo.logger.Trace(err)
 		return err

@@ -86,7 +86,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
 			h.logger.Tracef("the size exceeded the maximum size equal to %d mb: %w", maxSizeBody, err)
-			io.WriteString(w, fmt.Sprintf(`{"message":"the size exceeded the maximum size equal to %d mb"}`, maxSizeBody))
+			io.WriteString(w, fmt.Sprintf(`{"status": 5, "message":"the size exceeded the maximum size equal to %d mb"}`, maxSizeBody))
 		} else {
 			h.logger.Tracef("failed to parse avatar file from the body: %w", err)
 			io.WriteString(w, `{"message":"failed to parse avatar file from the body"}`)
@@ -95,7 +95,6 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
-	// TODO: здесь ведь нужно закрывать? это не ответственность репозитория? его зона ответственности - просто сохранить?
 
 	buff := make([]byte, buffSize)
 	_, err = file.Read(buff)
@@ -110,7 +109,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	if header.Header["Content-Type"][0] != "image/jpeg" || filetype != "image/jpeg" {
 		h.logger.Trace("avatar does not have type: image/jpeg")
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"message":"avatar does not have type: image/jpeg"}`)
+		io.WriteString(w, `{"status": 6, "message":"avatar does not have type: image/jpeg"}`)
 	}
 
 	file.Seek(0, io.SeekStart)
@@ -216,7 +215,10 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = h.userUseCase.Update(ctx, user)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
+		if errors.Is(err, domain.ErrUserAlreadyExists) {
+			io.WriteString(w, `{"status": 7, "message":"user with this email already exists"}`)
+		}
 		return
 	}
 

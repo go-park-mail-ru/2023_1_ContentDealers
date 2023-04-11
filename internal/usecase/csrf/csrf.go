@@ -38,21 +38,28 @@ type tokenData struct {
 func (c *CSRF) Create(s domain.Session, tokenExpTime int64) (string, error) {
 	block, err := aes.NewCipher(c.Secret)
 	if err != nil {
+		c.logger.Trace(err)
 		return "", err
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
+		c.logger.Trace(err)
 		return "", err
 	}
 
 	nonce := make([]byte, aesgcm.NonceSize())
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		c.logger.Trace(err)
 		return "", err
 	}
 
 	td := &tokenData{SessionID: s.ID.String(), UserID: s.UserID, Exp: tokenExpTime}
-	data, _ := json.Marshal(td)
+	data, err := json.Marshal(td)
+	if err != nil {
+		c.logger.Trace(err)
+		return "", err
+	}
 	ciphertext := aesgcm.Seal(nil, nonce, data, nil)
 
 	res := append([]byte(nil), nonce...)
@@ -66,39 +73,48 @@ func (c *CSRF) Check(s domain.Session, inputToken string) (bool, error) {
 	// объект блочного шифра AES
 	block, err := aes.NewCipher(c.Secret)
 	if err != nil {
+		c.logger.Trace(err)
 		return false, err
 	}
 	// GCM - режим аутентифицированного шифрования
 	// на основе tk.Secret генерируется ключ аутентификации
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
+		c.logger.Trace(err)
 		return false, err
 	}
 	ciphertext, err := base64.StdEncoding.DecodeString(inputToken)
 	if err != nil {
+		c.logger.Trace(err)
 		return false, err
 	}
 	// nonce - случайное число для защиты от повторных атак
 	// длина aes nonce равна 12 байтам
 	nonceSize := aesgcm.NonceSize()
 	if len(ciphertext) < nonceSize {
-		return false, fmt.Errorf("ciphertext too short")
+		err := fmt.Errorf("ciphertext too short")
+		c.logger.Trace(err)
+		return false, err
 	}
 
 	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
 	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return false, fmt.Errorf("decrypt fail: %v", err)
+		c.logger.Trace(err)
+		return false, err
 	}
 
 	td := tokenData{}
 	err = json.Unmarshal(plaintext, &td)
 	if err != nil {
-		return false, fmt.Errorf("bad json: %v", err)
+		c.logger.Trace(err)
+		return false, err
 	}
 
 	if td.Exp < time.Now().Unix() {
-		return false, fmt.Errorf("token expired")
+		err := fmt.Errorf("token expired")
+		c.logger.Trace(err)
+		return false, err
 	}
 
 	expected := tokenData{SessionID: s.ID.String(), UserID: s.UserID}

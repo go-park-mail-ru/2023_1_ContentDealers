@@ -40,6 +40,12 @@ type SettingsRouter struct {
 	Logger           logging.Logger
 }
 
+type FakeLogger struct {
+}
+
+func (f FakeLogger) Printf(string, ...interface{}) {
+}
+
 func Routes(s *SettingsRouter) *mux.Router {
 	corsMiddleware := cors.New(cors.Options{
 		AllowedOrigins:   s.AllowedOrigins,
@@ -47,7 +53,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 		AllowCredentials: true,
 		Debug:            true,
 	})
-	// corsMiddleware.Log = s.Logger
+	corsMiddleware.Log = FakeLogger{}
 	authMiddleware := middlewareUser.NewAuth(s.SessionUseCase, s.Logger)
 	CSRFMiddleware := middlewareCSRF.NewCSRF(s.CSRFUseCase, s.Logger)
 	generalMiddleware := middleware.NewGeneral(s.Logger)

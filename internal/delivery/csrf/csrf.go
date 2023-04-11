@@ -42,8 +42,6 @@ func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 	}
 	token, err := h.csrfUseCase.Create(session, time.Now().Add(ExpirationTimeCSRF).Unix())
 	if err != nil {
-		// log "csrf token creation error"
-		h.logger.Tracef("csrf token creation error: %w", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

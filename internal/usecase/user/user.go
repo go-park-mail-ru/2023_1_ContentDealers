@@ -26,9 +26,10 @@ func NewUser(repo Repository, logger logging.Logger) *User {
 
 func (uc *User) Register(ctx context.Context, user domain.User) (domain.User, error) {
 	if err := validateCredentials(user); err != nil {
+		uc.logger.Trace(err)
 		return domain.User{}, err
 	}
-	passwordHash, err := hashPassword(user.PasswordHash)
+	passwordHash, err := uc.hashPassword(user.PasswordHash)
 	if err != nil {
 		return domain.User{}, err
 	}
@@ -39,11 +40,12 @@ func (uc *User) Register(ctx context.Context, user domain.User) (domain.User, er
 func (uc *User) Auth(ctx context.Context, user domain.User) (domain.User, error) {
 	realUser, err := uc.repo.GetByEmail(ctx, user.Email)
 	if err != nil {
+		// может быть domain.ErrUserNotFound
 		return domain.User{}, err
 	}
-	isVaild, err := verifyPassword(user.PasswordHash, realUser.PasswordHash)
+	isVaild, err := uc.verifyPassword(user.PasswordHash, realUser.PasswordHash)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, domain.ErrWrongCredentials
 	}
 	if !isVaild {
 		return domain.User{}, domain.ErrWrongCredentials
@@ -72,7 +74,7 @@ func (uc *User) Update(ctx context.Context, user domain.User) error {
 		// оставляем тот же пароль
 		user.PasswordHash = userTmp.PasswordHash
 	} else {
-		passwordHashTmp, err := hashPassword(user.PasswordHash)
+		passwordHashTmp, err := uc.hashPassword(user.PasswordHash)
 		if err != nil {
 			return err
 		}

@@ -39,7 +39,6 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	person, err := h.useCase.GetByID(r.Context(), id)
 	if err != nil {
-		h.logger.Trace(err)
 		switch {
 		case errors.Is(err, domain.ErrRepoNotFound):
 			w.WriteHeader(http.StatusNotFound)

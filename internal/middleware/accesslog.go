@@ -26,11 +26,12 @@ func (mv *GeneralMiddleware) AccessLog(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 		mv.logger.WithFields(logrus.Fields{
 			"method": r.Method,
+			"origin": r.Header.Get("Origin"),
 			// код ответа...
 			"remote_addr": r.RemoteAddr,
 			"url":         r.URL.Path,
 			"time":        fmt.Sprintf("%d mcs", time.Since(start).Microseconds()),
 			"user_agent":  r.UserAgent(),
-		}).Info("New request")
+		}).Debug("New request")
 	})
 }
