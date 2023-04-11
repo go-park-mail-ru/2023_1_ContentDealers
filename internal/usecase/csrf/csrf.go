@@ -11,20 +11,22 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 type CSRF struct {
 	Secret []byte
+	logger logging.Logger
 }
 
-func NewCSRF(secret string) (CSRF, error) {
+func NewCSRF(secret string, logger logging.Logger) (*CSRF, error) {
 	tmp := []byte(secret)
 	// проверка секрета на валидность (длина секрета 16, 24, 32 байта)
 	_, err := aes.NewCipher(tmp)
 	if err != nil {
-		return CSRF{}, fmt.Errorf("cypher problem %v", err)
+		return &CSRF{}, fmt.Errorf("cypher problem %v", err)
 	}
-	return CSRF{Secret: tmp}, nil
+	return &CSRF{Secret: tmp, logger: logger}, nil
 }
 
 type tokenData struct {

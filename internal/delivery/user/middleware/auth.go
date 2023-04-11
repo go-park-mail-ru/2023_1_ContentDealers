@@ -7,15 +7,17 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/google/uuid"
 )
 
-func NewAuth(sessionUseCase user.SessionUseCase) Auth {
-	return Auth{sessionUseCase: sessionUseCase}
+func NewAuth(sessionUseCase user.SessionUseCase, logger logging.Logger) Auth {
+	return Auth{sessionUseCase: sessionUseCase, logger: logger}
 }
 
 type Auth struct {
 	sessionUseCase user.SessionUseCase
+	logger         logging.Logger
 }
 
 func (mw *Auth) RequireUnAuth(handler http.Handler) http.Handler {

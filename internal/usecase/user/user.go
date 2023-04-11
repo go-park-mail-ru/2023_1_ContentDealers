@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 // TODO: нужно изменить регулярки
@@ -15,11 +16,12 @@ var (
 )
 
 type User struct {
-	repo Repository
+	repo   Repository
+	logger logging.Logger
 }
 
-func NewUser(repo Repository) *User {
-	return &User{repo: repo}
+func NewUser(repo Repository, logger logging.Logger) *User {
+	return &User{repo: repo, logger: logger}
 }
 
 func (uc *User) Register(ctx context.Context, user domain.User) (domain.User, error) {

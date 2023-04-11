@@ -2,18 +2,19 @@ package selection
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 type Selection struct {
 	repo    Repository
 	content ContentRepository
+	logger  logging.Logger
 }
 
-func NewSelection(repo Repository, content ContentRepository) *Selection {
-	return &Selection{repo: repo, content: content}
+func NewSelection(repo Repository, content ContentRepository, logger logging.Logger) *Selection {
+	return &Selection{repo: repo, content: content, logger: logger}
 }
 
 func (uc *Selection) joinContent(ctx context.Context, selections *[]domain.Selection) error {
@@ -26,9 +27,7 @@ func (uc *Selection) joinContent(ctx context.Context, selections *[]domain.Selec
 		IDToIdx[selection.ID] = idx
 	}
 
-	fmt.Println("IDs = ", IDs)
 	SelectionIDContent, err := uc.content.GetBySelectionIDs(ctx, IDs)
-	fmt.Println("SelectionIDContent = ", SelectionIDContent)
 	if err != nil {
 		return err
 	}

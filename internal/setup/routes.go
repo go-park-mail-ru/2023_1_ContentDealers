@@ -10,7 +10,8 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/middleware"
+	middlewareUser "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/middleware"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/middleware"
 	csrfUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 
@@ -46,9 +47,10 @@ func Routes(s *SettingsRouter) *mux.Router {
 		AllowCredentials: true,
 		Debug:            true,
 	})
-	corsMiddleware.Log = s.Logger
-	authMiddleware := middleware.NewAuth(s.SessionUseCase)
-	CSRFMiddleware := middlewareCSRF.NewCSRF(s.CSRFUseCase)
+	// corsMiddleware.Log = s.Logger
+	authMiddleware := middlewareUser.NewAuth(s.SessionUseCase, s.Logger)
+	CSRFMiddleware := middlewareCSRF.NewCSRF(s.CSRFUseCase, s.Logger)
+	generalMiddleware := middleware.NewGeneral(s.Logger)
 
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(NotFound)
@@ -56,8 +58,11 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter := router.Methods("GET", "POST").Subrouter()
 	unAuthRouter := router.Methods("GET", "POST").Subrouter()
 
+	router.Use(generalMiddleware.AccessLog)
+	router.Use(generalMiddleware.Panic)
 	router.Use(corsMiddleware.Handler)
-	router.Use(middleware.SetContentTypeJSON)
+	router.Use(generalMiddleware.SetContentTypeJSON)
+
 	authRouter.Use(authMiddleware.RequireAuth)
 	authRouter.Use(CSRFMiddleware.RequireCSRF)
 	unAuthRouter.Use(authMiddleware.RequireUnAuth)

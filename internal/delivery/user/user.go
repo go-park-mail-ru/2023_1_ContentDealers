@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -37,13 +36,13 @@ func NewHandler(user UserUseCase, session SessionUseCase, logger logging.Logger)
 }
 
 func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
-	log.Println("DeleteAvatar")
 	defer r.Body.Close()
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -65,21 +64,19 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
-	log.Println("UpdateAvatar")
 	defer r.Body.Close()
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		log.Println("1")
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	user, err := h.userUseCase.GetByID(ctx, session.UserID)
 	if err != nil {
-		log.Println("2")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -88,9 +85,10 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile(nameFormFile)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
+			h.logger.Tracef("the size exceeded the maximum size equal to %d mb: %w", maxSizeBody, err)
 			io.WriteString(w, fmt.Sprintf(`{"message":"the size exceeded the maximum size equal to %d mb"}`, maxSizeBody))
 		} else {
-			log.Println(err)
+			h.logger.Tracef("failed to parse avatar file from the body: %w", err)
 			io.WriteString(w, `{"message":"failed to parse avatar file from the body"}`)
 		}
 		w.WriteHeader(http.StatusBadRequest)
@@ -102,6 +100,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	buff := make([]byte, buffSize)
 	_, err = file.Read(buff)
 	if err != nil {
+		h.logger.Tracef("avatar file can't be read: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"avatar file can't be read"}`)
 	}
@@ -109,6 +108,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: можно еще проверить расширение header.filename
 	if header.Header["Content-Type"][0] != "image/jpeg" || filetype != "image/jpeg" {
+		h.logger.Trace("avatar does not have type: image/jpeg")
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"avatar does not have type: image/jpeg"}`)
 	}
@@ -117,7 +117,6 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.userUseCase.UpdateAvatar(ctx, user, file)
 	if err != nil {
-		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -142,7 +141,7 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.Error("can't get info without session")
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -166,6 +165,7 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
+		h.logger.Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -182,13 +182,13 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	user, err := h.userUseCase.GetByID(ctx, session.UserID)
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -197,6 +197,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	userUpdate := userUpdateDTO{}
 	err = decoder.Decode(&userUpdate)
 	if err != nil {
+		h.logger.Tracef("failed to parse json string from the body: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
@@ -204,8 +205,8 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 
 	birthdayTime, err := time.Parse(shortFormDate, userUpdate.DateBirth)
 	if err != nil {
+		h.logger.Tracef("failed to parse birthday from string to time: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"message":"failed to parse birthday from string to birthdayTime"}`)
 		return
 	}
 
@@ -215,7 +216,6 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = h.userUseCase.Update(ctx, user)
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

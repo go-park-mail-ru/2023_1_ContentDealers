@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -36,6 +35,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	userCreate := userCreateDTO{}
 	err := decoder.Decode(&userCreate)
 	if err != nil {
+		h.logger.Tracef("failed to parse json string from the body: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
@@ -43,6 +43,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	birthdayTime, err := time.Parse(shortFormDate, userCreate.DateBirth)
 	if err != nil {
+		h.logger.Tracef("failed to parse birthday from string to birthdayTime: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse birthday from string to birthdayTime"}`)
 		return
@@ -94,6 +95,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	credentials := userCredentialsDTO{}
 	err := decoder.Decode(&credentials)
 	if err != nil {
+		h.logger.Tracef("failed to parse json string from the body: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
@@ -114,7 +116,6 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.sessionUseCase.Create(user)
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -149,6 +150,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

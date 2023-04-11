@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 type Content struct {
@@ -12,6 +13,7 @@ type Content struct {
 	genre       GenreRepository
 	selection   SelectionRepository
 	country     CountryRepository
+	logger      logging.Logger
 }
 
 type Options struct {
@@ -22,13 +24,14 @@ type Options struct {
 	PersonRolesUseCase PersonRolesUseCase
 }
 
-func NewContent(options Options) *Content {
+func NewContent(options Options, logger logging.Logger) *Content {
 	return &Content{
 		repo:        options.ContentRepo,
 		personRoles: options.PersonRolesUseCase,
 		genre:       options.GenreRepo,
 		selection:   options.SelectionRepo,
 		country:     options.CountryRepo,
+		logger:      logger,
 	}
 }
 

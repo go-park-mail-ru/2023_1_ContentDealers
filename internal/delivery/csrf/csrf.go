@@ -6,18 +6,20 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 const ExpirationTimeCSRF = 2 * time.Hour
 
 type Handler struct {
-	csrfUseCase csrf.CSRF
+	csrfUseCase CSRFUseCase
+	logger      logging.Logger
 }
 
-func NewHandler(csrfUseCase csrf.CSRF) Handler {
+func NewHandler(csrfUseCase CSRFUseCase, logger logging.Logger) Handler {
 	return Handler{
 		csrfUseCase: csrfUseCase,
+		logger:      logger,
 	}
 }
 
@@ -34,12 +36,14 @@ func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := r.Context().Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	token, err := h.csrfUseCase.Create(session, time.Now().Add(ExpirationTimeCSRF).Unix())
 	if err != nil {
 		// log "csrf token creation error"
+		h.logger.Tracef("csrf token creation error: %w", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -50,6 +54,7 @@ func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
+		h.logger.Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

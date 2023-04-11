@@ -3,6 +3,7 @@ package setup
 import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 )
@@ -19,6 +20,7 @@ type Config struct {
 	} `yaml:"listen"`
 	Storage postgresql.StorageConfig `yaml:"storage"`
 	Redis   redis.RedisConfig        `yaml:"redis"`
+	Logging logging.LoggingConfig    `yaml:"logging"`
 }
 
 var instance *Config
