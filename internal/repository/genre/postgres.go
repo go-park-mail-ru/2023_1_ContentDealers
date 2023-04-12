@@ -67,7 +67,7 @@ func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]d
 	}
 	defer rows.Close()
 
-	result := []domain.Genre{}
+	var result []domain.Genre
 	for rows.Next() {
 		g := domain.Genre{}
 		err = rows.Scan(&g.ID, &g.Name)
