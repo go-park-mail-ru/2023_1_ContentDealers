@@ -1,12 +1,8 @@
 
-MOCKS_DESTINATION := internal/mocks
-FILES_IN_REPO := $(wildcard, internal/repository/*)
-TEST_FILES_IN_REPO := $(wildcard, internal/repository/*_test.go)
-FILES_TO_MOCK := $(filter-out $FILES_IN_REPO, $(TEST_FILES_IN_REPO))
+MOCKS := $(shell find . -type f -wholename '*mock.go')
+FILES_TO_MOCK := $(shell find . -type f -wholename '*contract.go')
+
 .PHONY: mocks
-
-
 mocks: $(FILES_TO_MOCK)
-	echo "Generating mocks..."
-	rm -rf $(MOCKS_DESTINATION)
-	for file in $^; do mockgen -source=$$file -destination=$(MOCKS_DESTINATION)/$$file; done
+	@rm -rf $(MOCKS)
+	@for file in $^; do mockgen -source=$$file -destination=$${file//contract.go/mock.go}; done
