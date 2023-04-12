@@ -4,17 +4,19 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/google/uuid"
 )
 
 const SessionTimeout = time.Hour * 12
 
 type Session struct {
-	repo Repository
+	repo   Repository
+	logger logging.Logger
 }
 
-func NewSession(repo Repository) *Session {
-	return &Session{repo: repo}
+func NewSession(repo Repository, logger logging.Logger) *Session {
+	return &Session{repo: repo, logger: logger}
 }
 
 func (uc *Session) Create(user domain.User) (domain.Session, error) {

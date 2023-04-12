@@ -2,31 +2,39 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"io"
-	"regexp"
+	"log"
 
+	"github.com/dlclark/regexp2"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
-// TODO: нужно изменить регулярки
 var (
-	emailRegex             = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	incorrentPasswordRegex = regexp.MustCompile(`(^(.{0,7}|[^0-9]*|[^A-Z]*|[^a-z]*|[a-zA-Z0-9]*)$)`)
+	passwordRegexp = regexp2.MustCompile(`^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{8,}$`, 0)
+	emailRegexp    = regexp2.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, 0)
 )
 
 type User struct {
-	repo Repository
+	repo   Repository
+	logger logging.Logger
 }
 
-func NewUser(repo Repository) *User {
-	return &User{repo: repo}
+func NewUser(repo Repository, logger logging.Logger) *User {
+	return &User{repo: repo, logger: logger}
 }
 
 func (uc *User) Register(ctx context.Context, user domain.User) (domain.User, error) {
-	if err := validateCredentials(user); err != nil {
+	log.Println("register")
+	err := validateCredentials(user)
+	if err != nil {
+		log.Println("1")
+		uc.logger.Trace(err)
 		return domain.User{}, err
 	}
-	passwordHash, err := hashPassword(user.PasswordHash)
+	log.Println("3")
+	passwordHash, err := uc.hashPassword(user.PasswordHash)
 	if err != nil {
 		return domain.User{}, err
 	}
@@ -37,11 +45,12 @@ func (uc *User) Register(ctx context.Context, user domain.User) (domain.User, er
 func (uc *User) Auth(ctx context.Context, user domain.User) (domain.User, error) {
 	realUser, err := uc.repo.GetByEmail(ctx, user.Email)
 	if err != nil {
+		// может быть domain.ErrUserNotFound
 		return domain.User{}, err
 	}
-	isVaild, err := verifyPassword(user.PasswordHash, realUser.PasswordHash)
+	isVaild, err := uc.verifyPassword(user.PasswordHash, realUser.PasswordHash)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, domain.ErrWrongCredentials
 	}
 	if !isVaild {
 		return domain.User{}, domain.ErrWrongCredentials
@@ -70,7 +79,7 @@ func (uc *User) Update(ctx context.Context, user domain.User) error {
 		// оставляем тот же пароль
 		user.PasswordHash = userTmp.PasswordHash
 	} else {
-		passwordHashTmp, err := hashPassword(user.PasswordHash)
+		passwordHashTmp, err := uc.hashPassword(user.PasswordHash)
 		if err != nil {
 			return err
 		}
@@ -80,13 +89,21 @@ func (uc *User) Update(ctx context.Context, user domain.User) error {
 }
 
 func validateCredentials(credentials domain.User) error {
-	// TODO: регулярки нужно изменить (снизить строгость пароля)
+	validPass, err := passwordRegexp.MatchString(credentials.PasswordHash)
+	fmt.Println(validPass)
+	if err != nil {
+		return err
+	}
+	if !validPass {
+		return domain.ErrNotValidPassword
+	}
+	validEmail, err := emailRegexp.MatchString(credentials.Email)
+	fmt.Println(validEmail)
+	if err != nil {
+		return err
+	}
+	if !validEmail {
+		return domain.ErrNotValidEmail
+	}
 	return nil
-	// if incorrentPasswordRegex.MatchString(credentials.Password) {
-	// 	return domain.ErrNotValidPassword
-	// }
-	// if !emailRegex.MatchString(credentials.Email) {
-	// 	return domain.ErrNotValidEmail
-	// }
-	// return nil
 }

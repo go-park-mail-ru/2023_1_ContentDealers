@@ -11,15 +11,18 @@ import (
 
 	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
 	useCase UseCase
+	logger  logging.Logger
 }
 
-func NewHandler(useCase UseCase) Handler {
-	return Handler{useCase: useCase}
+func NewHandler(useCase UseCase, logger logging.Logger) Handler {
+	return Handler{useCase: useCase, logger: logger}
 }
 
 const (
@@ -50,7 +53,6 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	selections, err := h.useCase.GetAll(r.Context(), uint(limit), uint(offset))
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -58,7 +60,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	var selectionsResponse []selectionDTO
 	err = dto.Map(&selectionsResponse, selections)
 	if err != nil {
-		log.Println(err)
+		h.logger.Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -69,6 +71,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
+		h.logger.Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -85,6 +88,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	_, err := fmt.Sscanf(idRaw, "%d", &id)
 	if err != nil {
+		h.logger.Trace(err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"film selection id is not numeric"}`)
 		return
@@ -106,7 +110,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	selectionResponse := selectionDTO{}
 	err = dto.Map(&selectionResponse, selection)
 	if err != nil {
-		log.Println(err)
+		h.logger.Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -117,7 +121,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		log.Println(err)
+		h.logger.Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

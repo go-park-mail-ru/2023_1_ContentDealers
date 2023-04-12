@@ -7,16 +7,18 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/gomodule/redigo/redis"
 	"github.com/google/uuid"
 )
 
 type Repository struct {
 	redisPool *redis.Pool
+	logger    logging.Logger
 }
 
-func NewRepository(redisPool *redis.Pool) Repository {
-	return Repository{redisPool: redisPool}
+func NewRepository(redisPool *redis.Pool, logger logging.Logger) Repository {
+	return Repository{redisPool: redisPool, logger: logger}
 }
 
 func (repo *Repository) Add(session domain.Session) error {
@@ -37,6 +39,7 @@ func (repo *Repository) Add(session domain.Session) error {
 		"expires_at": sessRow.ExpiresAtString,
 	})
 	if err != nil {
+		repo.logger.Trace(err)
 		return err
 	}
 
@@ -48,10 +51,13 @@ func (repo *Repository) Add(session domain.Session) error {
 	result, err := redis.String(conn.Do("SET", session.ID,
 		dataSerialized, "EX", uint(timeToLive.Seconds())))
 	if err != nil {
-		return fmt.Errorf("cant set data in redis: %w", err)
+		repo.logger.Tracef("cant set data in redis: %w", err)
+		return err
 	}
 	if result != "OK" {
-		return fmt.Errorf("'set' in redis replies 'not OK'")
+		err := fmt.Errorf("'set' in redis replies 'not OK'")
+		repo.logger.Trace(err)
+		return err
 	}
 	return nil
 }
@@ -64,6 +70,7 @@ func (repo *Repository) Get(sessionID uuid.UUID) (domain.Session, error) {
 
 	data, err := redis.Bytes(conn.Do("GET", sessionID))
 	if err != nil {
+		repo.logger.Trace(err)
 		if errors.Is(err, redis.ErrNil) {
 			return domain.Session{}, domain.ErrSessionNotFound
 		}
@@ -71,10 +78,12 @@ func (repo *Repository) Get(sessionID uuid.UUID) (domain.Session, error) {
 	}
 	err = json.Unmarshal(data, &sessRow)
 	if err != nil {
+		repo.logger.Trace(err)
 		return domain.Session{}, fmt.Errorf("cant unpack session data from redis: %w", err)
 	}
 	expireTime, err := time.Parse(time.RFC3339, sessRow.ExpiresAtString)
 	if err != nil {
+		repo.logger.Trace(err)
 		return domain.Session{}, nil
 	}
 	session := domain.Session{
@@ -92,6 +101,7 @@ func (repo *Repository) Delete(sessionID uuid.UUID) error {
 
 	_, err := redis.Int(conn.Do("DEL", sessionID))
 	if err != nil {
+		repo.logger.Trace(err)
 		return fmt.Errorf("cant delete by redis: %w", err)
 	}
 	return nil

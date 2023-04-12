@@ -6,14 +6,16 @@ import (
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 type Repository struct {
-	DB *sql.DB
+	DB     *sql.DB
+	logger logging.Logger
 }
 
-func NewRepository(db *sql.DB) Repository {
-	return Repository{DB: db}
+func NewRepository(db *sql.DB, logger logging.Logger) Repository {
+	return Repository{DB: db, logger: logger}
 }
 
 const fetchQueryTemplate = `select p.id, p.name, p.gender, p.growth, p.birthplace, p.avatar_url, p.age from persons p`
@@ -21,6 +23,7 @@ const fetchQueryTemplate = `select p.id, p.name, p.gender, p.growth, p.birthplac
 func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([]domain.Person, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
+		repo.logger.Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -30,6 +33,7 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 		p := domain.Person{}
 		err = rows.Scan(&p.ID, &p.Name, &p.Gender, &p.Growth, &p.Birthplace, &p.AvatarURL, &p.Age)
 		if err != nil {
+			repo.logger.Trace(err)
 			return nil, err
 		}
 		result = append(result, p)
@@ -43,6 +47,7 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Person, 
 	fullQuery := strings.Join([]string{fetchQueryTemplate, filterByIDQueryPart, orderByID}, " ")
 	persons, err := repo.fetch(ctx, fullQuery, id)
 	if err != nil {
+		repo.logger.Trace(err)
 		return domain.Person{}, err
 	}
 	return persons[0], nil

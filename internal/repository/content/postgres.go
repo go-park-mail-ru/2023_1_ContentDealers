@@ -6,15 +6,17 @@ import (
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/lib/pq"
 )
 
 type Repository struct {
-	DB *sql.DB
+	DB     *sql.DB
+	logger logging.Logger
 }
 
-func NewRepository(db *sql.DB) Repository {
-	return Repository{DB: db}
+func NewRepository(db *sql.DB, logger logging.Logger) Repository {
+	return Repository{DB: db, logger: logger}
 }
 
 const fetchQueryTemplate = `select c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
@@ -23,6 +25,7 @@ const fetchQueryTemplate = `select c.id, c.title, c.description, c.rating, c.yea
 func (repo *Repository) fetchByIDs(ctx context.Context, query string, IDs []uint64) ([]domain.Content, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, pq.Array(IDs))
 	if err != nil {
+		repo.logger.Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -33,6 +36,7 @@ func (repo *Repository) fetchByIDs(ctx context.Context, query string, IDs []uint
 		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit, &c.TrailerURL,
 			&c.PreviewURL, &c.Type)
 		if err != nil {
+			repo.logger.Trace(err)
 			return nil, err
 		}
 		result = append(result, c)
@@ -49,6 +53,7 @@ func (repo *Repository) GetByIDs(ctx context.Context, ids []uint64) ([]domain.Co
 func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Content, error) {
 	content, err := repo.GetByIDs(ctx, []uint64{id})
 	if err != nil {
+		repo.logger.Trace(err)
 		return domain.Content{}, err
 	}
 	return content[0], nil
@@ -62,6 +67,7 @@ func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (ma
        		   where cs.selection_id = any($1)
 			   order by c.rating desc`, pq.Array(IDs))
 	if err != nil {
+		repo.logger.Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -73,6 +79,7 @@ func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (ma
 		err = rows.Scan(&selectionID, &c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
 			&c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
+			repo.logger.Trace(err)
 			return nil, err
 		}
 		result[selectionID] = append(result[selectionID], c)
@@ -88,6 +95,7 @@ func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.
        		   where crp.person_id = $1
 			   order by c.rating desc`, id)
 	if err != nil {
+		repo.logger.Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -98,6 +106,7 @@ func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.
 		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
 			&c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
+			repo.logger.Trace(err)
 			return nil, err
 		}
 		result = append(result, c)

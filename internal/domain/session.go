@@ -8,6 +8,7 @@ import (
 )
 
 var ErrSessionNotFound = errors.New("session not found")
+var ErrSessionInvalid = errors.New("fail to cast session")
 
 type Session struct {
 	ID        uuid.UUID
