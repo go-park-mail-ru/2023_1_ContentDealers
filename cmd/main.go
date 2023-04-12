@@ -61,8 +61,6 @@ func main() {
 }
 
 func Run() error {
-	logger, err := logging.NewLogger()
-
 	// go run cmd/main.go --config [-c] config.yml
 	configPtr := flag.String("config", "", "Config file")
 	flag.StringVar(configPtr, "c", "", "Config file (short)")
@@ -75,8 +73,12 @@ func Run() error {
 
 	cfg, err := config.GetCfg(*configPtr)
 	if err != nil {
-		logger.Error(err)
-		return err
+		return fmt.Errorf("Fail to parse config yml file: %w", err)
+	}
+
+	logger, err := logging.NewLogger(cfg.Logging)
+	if err != nil {
+		return fmt.Errorf("Fail to initialization logger: %w", err)
 	}
 
 	db, err := postgresql.NewClientPostgres(cfg.Storage)
@@ -91,51 +93,52 @@ func Run() error {
 		return err
 	}
 
-	userRepository := userRepo.NewRepository(db)
-	sessionRepository := session.NewRepository(redisClient)
-	selectionRepository := selectionRepo.NewRepository(db)
-	contentRepository := contentRepo.NewRepository(db)
-	filmRepository := filmRepo.NewRepository(db)
-	genreRepository := genreRepo.NewRepository(db)
-	roleRepository := roleRepo.NewRepository(db)
-	countryRepository := countryRepo.NewRepository(db)
-	personRepository := personRepo.NewRepository(db)
+	userRepository := userRepo.NewRepository(db, logger)
+	sessionRepository := session.NewRepository(redisClient, logger)
+	selectionRepository := selectionRepo.NewRepository(db, logger)
+	contentRepository := contentRepo.NewRepository(db, logger)
+	filmRepository := filmRepo.NewRepository(db, logger)
+	genreRepository := genreRepo.NewRepository(db, logger)
+	roleRepository := roleRepo.NewRepository(db, logger)
+	countryRepository := countryRepo.NewRepository(db, logger)
+	personRepository := personRepo.NewRepository(db, logger)
 
-	userUseCase := userUseCase.NewUser(&userRepository)
-	sessionUseCase := sessionUseCase.NewSession(&sessionRepository)
-	selectionUseCase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository)
-	personRolesUseCase := personRoleUseCase.NewPersonRole(&personRepository, &roleRepository)
+	userUseCase := userUseCase.NewUser(&userRepository, logger)
+	sessionUseCase := sessionUseCase.NewSession(&sessionRepository, logger)
+	selectionUseCase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository, logger)
+	personRolesUseCase := personRoleUseCase.NewPersonRole(&personRepository, &roleRepository, logger)
+
 	contentUseCase := contentUseCase.NewContent(contentUseCase.Options{
 		ContentRepo:        &contentRepository,
 		GenreRepo:          &genreRepository,
 		SelectionRepo:      &selectionRepository,
 		CountryRepo:        &countryRepository,
 		PersonRolesUseCase: personRolesUseCase,
-	})
-	filmUseCase := filmUseCase.NewFilm(&filmRepository, contentUseCase)
+	}, logger)
+	filmUseCase := filmUseCase.NewFilm(&filmRepository, contentUseCase, logger)
 	personUseCase := personUseCase.NewPerson(personUseCase.Options{
 		Repo:    &personRepository,
 		Content: &contentRepository,
 		Role:    &roleRepository,
 		Genre:   &genreRepository,
-	})
+	}, logger)
 
 	err = godotenv.Load()
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
-	csrfUseCase, err := csrfUseCase.NewCSRF(os.Getenv("CSRF_TOKEN"))
+	csrfUseCase, err := csrfUseCase.NewCSRF(os.Getenv("CSRF_TOKEN"), logger)
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
 
-	selectionHandler := selection.NewHandler(selectionUseCase)
-	filmHandler := film.NewHandler(filmUseCase)
-	personHandler := person.NewHandler(personUseCase)
+	selectionHandler := selection.NewHandler(selectionUseCase, logger)
+	filmHandler := film.NewHandler(filmUseCase, logger)
+	personHandler := person.NewHandler(personUseCase, logger)
 	userHandler := user.NewHandler(userUseCase, sessionUseCase, logger)
-	csrfHandler := csrf.NewHandler(csrfUseCase)
+	csrfHandler := csrf.NewHandler(csrfUseCase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:      userHandler,
@@ -145,7 +148,7 @@ func Run() error {
 		PersonHandler:    personHandler,
 		SessionUseCase:   sessionUseCase,
 		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
-		CSRFUseCase:      csrfUseCase,
+		CSRFUseCase:      *csrfUseCase,
 		Logger:           logger,
 	})
 
@@ -163,7 +166,7 @@ func Run() error {
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen and server: %v", err)
+			logger.Error("listen and server", err)
 		}
 	}()
 	logger.Infoln("start listening on", addr)
@@ -177,7 +180,8 @@ func Run() error {
 
 	err = server.Shutdown(shutdownCtx)
 	if err != nil {
-		return fmt.Errorf("shutdown : %w", err)
+		logger.Error(err)
+		return fmt.Errorf("shutdown: %w", err)
 	}
 	return nil
 }

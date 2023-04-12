@@ -18,9 +18,10 @@ const (
 	parallelism = 4
 )
 
-func hashPassword(password string) (string, error) {
+func (uc *User) hashPassword(password string) (string, error) {
 	salt := make([]byte, saltSize)
 	if _, err := rand.Read(salt); err != nil {
+		uc.logger.Trace(err)
 		return "", err
 	}
 
@@ -32,18 +33,22 @@ func hashPassword(password string) (string, error) {
 	return fmt.Sprintf("%s.%s", encodedSalt, encodedHash), nil
 }
 
-func verifyPassword(password, encodedPassword string) (bool, error) {
+func (uc *User) verifyPassword(password, encodedPassword string) (bool, error) {
 	if len(encodedPassword) <= saltSize {
-		return false, fmt.Errorf("Invalid encoded password format")
+		err := fmt.Errorf("Invalid encoded password format")
+		uc.logger.Trace(err)
+		return false, err
 	}
 	tmp := strings.Split(encodedPassword, ".")
 	saltString, hashString := tmp[0], tmp[1]
 	salt, err := base64.StdEncoding.DecodeString(saltString)
 	if err != nil {
+		uc.logger.Trace(err)
 		return false, err
 	}
 	hash, err := base64.StdEncoding.DecodeString(hashString)
 	if err != nil {
+		uc.logger.Trace(err)
 		return false, err
 	}
 

@@ -11,11 +11,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	logDir  = "log"
-	logFile = "all.log"
-)
-
 type writerHook struct {
 	Writer    []io.Writer
 	LogLevels []logrus.Level
@@ -40,33 +35,39 @@ type Logger struct {
 	*logrus.Logger
 }
 
-func NewLogger() (Logger, error) {
+func NewLogger(cfg LoggingConfig) (Logger, error) {
 	logger := logrus.New()
 	logger.SetReportCaller(true)
 	logger.Formatter = &logrus.JSONFormatter{
 		CallerPrettyfier: func(frame *runtime.Frame) (function string, file string) {
 			var filename string
-			projectDir := "2023_1_ContentDealers"
+			projectDir := cfg.ProjectDir
 			index := strings.Index(frame.File, projectDir)
 			if index == -1 {
-				filename = path.Base(frame.File)
+				// попадает случай, если cfg.ProjectDir пустой
+				filename = frame.File
 			} else {
 				// вывод пути от директории проекта
-				filename = path.Clean(frame.File[index+len(projectDir):])
+				filename = path.Clean(frame.File[index+len(projectDir):])[1:]
 			}
 
 			return fmt.Sprintf("%s()", frame.Function), fmt.Sprintf("%s:%d", filename, frame.Line)
 		},
-		PrettyPrint: true,
-		DataKey:     "extra",
+		DataKey:         "extra",
+		TimestampFormat: "2006-01-02 15:04:05",
+		FieldMap: logrus.FieldMap{
+			// поля выводятся в алфавитном порядке
+			logrus.FieldKeyTime: "__time",
+			logrus.FieldKeyMsg:  "_msg",
+		},
 	}
 
-	err := os.MkdirAll(logDir, 0644)
+	err := os.MkdirAll(cfg.Dir, 0777)
 	if err != nil {
 		panic(err)
 	}
 
-	logPath := fmt.Sprintf("%s/%s", logDir, logFile)
+	logPath := fmt.Sprintf("%s/%s", cfg.Dir, cfg.Filename)
 	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0640)
 	if err != nil {
 		return Logger{}, err

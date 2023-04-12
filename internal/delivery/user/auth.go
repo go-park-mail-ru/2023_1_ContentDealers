@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -36,6 +35,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	userCreate := userCreateDTO{}
 	err := decoder.Decode(&userCreate)
 	if err != nil {
+		h.logger.Tracef("failed to parse json string from the body: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
@@ -43,6 +43,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	birthdayTime, err := time.Parse(shortFormDate, userCreate.DateBirth)
 	if err != nil {
+		h.logger.Tracef("failed to parse birthday from string to birthdayTime: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse birthday from string to birthdayTime"}`)
 		return
@@ -63,11 +64,14 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, domain.ErrUserAlreadyExists):
 			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, `{"message":"user already exists"}`)
-		case errors.Is(err, domain.ErrNotValidEmail) ||
-			errors.Is(err, domain.ErrNotValidPassword):
+			io.WriteString(w, `{"status": 1, "message":"user already exists"}`)
+		case errors.Is(err, domain.ErrNotValidEmail):
 			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, `{"message":"email or password not validated"}`)
+			io.WriteString(w, `{"status": 2, "message":"email not validated"}`)
+		case errors.Is(err, domain.ErrNotValidPassword):
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, `{"status": 3, "message":"password not validated"}`)
+
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -94,6 +98,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	credentials := userCredentialsDTO{}
 	err := decoder.Decode(&credentials)
 	if err != nil {
+		h.logger.Tracef("failed to parse json string from the body: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
@@ -107,14 +112,15 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	// TODO: перезаписывание user, стоит ли так делать?
 	user, err = h.userUseCase.Auth(r.Context(), user)
 	if err != nil {
+		// не важно, не валиден пароль или не найден пользователь с почтой
+		// ответ: пользователь не найден
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"message":"user not found"}`)
+		io.WriteString(w, `{"status": 4, "message":"auth wrong credentials"}`)
 		return
 	}
 
 	session, err := h.sessionUseCase.Create(user)
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -149,6 +155,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
