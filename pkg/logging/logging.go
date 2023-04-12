@@ -37,6 +37,9 @@ type Logger struct {
 
 func NewLogger(cfg LoggingConfig) (Logger, error) {
 	logger := logrus.New()
+	if cfg.Dir == "" && cfg.Filename == "" && cfg.ProjectDir == "" {
+		return Logger{Logger: logger}, nil
+	}
 	logger.SetReportCaller(true)
 	logger.Formatter = &logrus.JSONFormatter{
 		CallerPrettyfier: func(frame *runtime.Frame) (function string, file string) {

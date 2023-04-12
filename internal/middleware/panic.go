@@ -13,7 +13,7 @@ func (mv *GeneralMiddleware) Panic(next http.Handler) http.Handler {
 				mv.logger.WithFields(logrus.Fields{
 					"method": r.Method,
 					"url":    r.URL.Path,
-				}).Panicf("recovered", err)
+				}).Panicf("recovered %s", err)
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()

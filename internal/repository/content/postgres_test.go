@@ -3,13 +3,16 @@ package content
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
+
+	sqlmock "github.com/DATA-DOG/go-sqlmock"
 )
-import sqlmock "github.com/DATA-DOG/go-sqlmock"
 
 func TestRepository_GetByID(t *testing.T) {
 	db, mock, err := sqlmock.New()
@@ -51,7 +54,13 @@ func TestRepository_GetByID(t *testing.T) {
 		WithArgs(pq.Array([]uint64{contentID})).
 		WillReturnRows(rows)
 
-	repo := NewRepository(db)
+	logger, err := logging.NewLogger(logging.LoggingConfig{})
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	logger.Out = ioutil.Discard
+	repo := NewRepository(db, logger)
 
 	content, err := repo.GetByID(context.Background(), contentID)
 	if err != nil {
@@ -135,7 +144,13 @@ func TestRepository_GetByPersonID(t *testing.T) {
 		WithArgs(personID).
 		WillReturnRows(rows)
 
-	repo := NewRepository(db)
+	logger, err := logging.NewLogger(logging.LoggingConfig{})
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	logger.Out = ioutil.Discard
+	repo := NewRepository(db, logger)
 	content, err := repo.GetByPersonID(context.Background(), personID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -259,7 +274,13 @@ func TestRepository_GetBySelectionIDs(t *testing.T) {
 		WithArgs(pq.Array(selectionsIDs)).
 		WillReturnRows(rows)
 
-	repo := NewRepository(db)
+	logger, err := logging.NewLogger(logging.LoggingConfig{})
+	if err != nil {
+		t.Errorf("unexpected err: %s", err)
+		return
+	}
+	logger.Out = ioutil.Discard
+	repo := NewRepository(db, logger)
 	content, err := repo.GetBySelectionIDs(context.Background(), selectionsIDs)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
