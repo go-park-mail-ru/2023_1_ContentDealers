@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/sirupsen/logrus"
 )
 
 type Repository struct {
@@ -23,7 +24,9 @@ const queryFetchTemplate = `select s.id, s.title from selections s`
 func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([]domain.Selection, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		repo.logger.Trace(err)
+		repo.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -33,7 +36,9 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 		s := domain.Selection{}
 		err = rows.Scan(&s.ID, &s.Title)
 		if err != nil {
-			repo.logger.Trace(err)
+			repo.logger.WithFields(logrus.Fields{
+				"request_id": ctx.Value("requestID").(string),
+			}).Trace(err)
 			return nil, err
 		}
 		result = append(result, s)
@@ -53,7 +58,9 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Selectio
 	query := strings.Join([]string{queryFetchTemplate, filterByID}, " ")
 	selections, err := repo.fetch(ctx, query, id)
 	if err != nil {
-		repo.logger.Trace(err)
+		repo.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return domain.Selection{}, err
 	}
 	return selections[0], nil

@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/sirupsen/logrus"
 )
 
 type Repository struct {
@@ -23,7 +24,9 @@ const fetchQueryTemplate = `select p.id, p.name, p.gender, p.growth, p.birthplac
 func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([]domain.Person, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		repo.logger.Trace(err)
+		repo.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -33,7 +36,9 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 		p := domain.Person{}
 		err = rows.Scan(&p.ID, &p.Name, &p.Gender, &p.Growth, &p.Birthplace, &p.AvatarURL, &p.Age)
 		if err != nil {
-			repo.logger.Trace(err)
+			repo.logger.WithFields(logrus.Fields{
+				"request_id": ctx.Value("requestID").(string),
+			}).Trace(err)
 			return nil, err
 		}
 		result = append(result, p)
@@ -47,7 +52,9 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Person, 
 	fullQuery := strings.Join([]string{fetchQueryTemplate, filterByIDQueryPart, orderByID}, " ")
 	persons, err := repo.fetch(ctx, fullQuery, id)
 	if err != nil {
-		repo.logger.Trace(err)
+		repo.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return domain.Person{}, err
 	}
 	return persons[0], nil

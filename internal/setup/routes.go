@@ -61,13 +61,13 @@ func Routes(s *SettingsRouter) *mux.Router {
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(NotFound)
 
-	authRouter := router.Methods("GET", "POST").Subrouter()
-	unAuthRouter := router.Methods("GET", "POST").Subrouter()
-
 	router.Use(generalMiddleware.AccessLog)
 	router.Use(generalMiddleware.Panic)
 	router.Use(corsMiddleware.Handler)
 	router.Use(generalMiddleware.SetContentTypeJSON)
+
+	authRouter := router.Methods("GET", "POST").Subrouter()
+	unAuthRouter := router.Methods("GET", "POST").Subrouter()
 
 	authRouter.Use(authMiddleware.RequireAuth)
 	authRouter.Use(CSRFMiddleware.RequireCSRF)

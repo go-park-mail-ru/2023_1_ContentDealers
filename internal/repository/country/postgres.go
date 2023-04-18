@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/sirupsen/logrus"
 )
 
 type Repository struct {
@@ -25,7 +26,9 @@ const fetchQueryTemplate = `select countries.id, countries.name from countries
 func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([]domain.Country, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		repo.logger.Trace(err)
+		repo.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -35,7 +38,9 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 		c := domain.Country{}
 		err = rows.Scan(&c.ID, &c.Name)
 		if err != nil {
-			repo.logger.Trace(err)
+			repo.logger.WithFields(logrus.Fields{
+				"request_id": ctx.Value("requestID").(string),
+			}).Trace(err)
 			return nil, err
 		}
 		result = append(result, c)

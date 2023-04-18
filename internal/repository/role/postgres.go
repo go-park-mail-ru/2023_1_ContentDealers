@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/sirupsen/logrus"
 )
 
 type Repository struct {
@@ -20,7 +21,9 @@ func NewRepository(db *sql.DB, logger logging.Logger) Repository {
 func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (map[uint64]domain.Role, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		repo.logger.Trace(err)
+		repo.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -31,7 +34,9 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (m
 		r := domain.Role{}
 		err = rows.Scan(&id, &r.ID, &r.Title)
 		if err != nil {
-			repo.logger.Trace(err)
+			repo.logger.WithFields(logrus.Fields{
+				"request_id": ctx.Value("requestID").(string),
+			}).Trace(err)
 			return nil, err
 		}
 		result[id] = r
@@ -54,7 +59,9 @@ func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]d
 			  order by r.id`
 	rows, err := repo.DB.QueryContext(ctx, query, PersonID)
 	if err != nil {
-		repo.logger.Trace(err)
+		repo.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -64,7 +71,9 @@ func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]d
 		r := domain.Role{}
 		err = rows.Scan(&r.ID, &r.Title)
 		if err != nil {
-			repo.logger.Trace(err)
+			repo.logger.WithFields(logrus.Fields{
+				"request_id": ctx.Value("requestID").(string),
+			}).Trace(err)
 			return nil, err
 		}
 		result = append(result, r)

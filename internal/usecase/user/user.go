@@ -9,6 +9,7 @@ import (
 	"github.com/dlclark/regexp2"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -30,11 +31,13 @@ func (uc *User) Register(ctx context.Context, user domain.User) (domain.User, er
 	err := validateCredentials(user)
 	if err != nil {
 		log.Println("1")
-		uc.logger.Trace(err)
+		uc.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return domain.User{}, err
 	}
 	log.Println("3")
-	passwordHash, err := uc.hashPassword(user.PasswordHash)
+	passwordHash, err := uc.hashPassword(ctx, user.PasswordHash)
 	if err != nil {
 		return domain.User{}, err
 	}
@@ -48,7 +51,7 @@ func (uc *User) Auth(ctx context.Context, user domain.User) (domain.User, error)
 		// может быть domain.ErrUserNotFound
 		return domain.User{}, err
 	}
-	isVaild, err := uc.verifyPassword(user.PasswordHash, realUser.PasswordHash)
+	isVaild, err := uc.verifyPassword(ctx, user.PasswordHash, realUser.PasswordHash)
 	if err != nil {
 		return domain.User{}, domain.ErrWrongCredentials
 	}
@@ -79,7 +82,7 @@ func (uc *User) Update(ctx context.Context, user domain.User) error {
 		// оставляем тот же пароль
 		user.PasswordHash = userTmp.PasswordHash
 	} else {
-		passwordHashTmp, err := uc.hashPassword(user.PasswordHash)
+		passwordHashTmp, err := uc.hashPassword(ctx, user.PasswordHash)
 		if err != nil {
 			return err
 		}

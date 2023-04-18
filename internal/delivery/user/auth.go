@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -35,7 +36,9 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	userCreate := userCreateDTO{}
 	err := decoder.Decode(&userCreate)
 	if err != nil {
-		h.logger.Tracef("failed to parse json string from the body: %w", err)
+		h.logger.WithFields(logrus.Fields{
+			"request_id": r.Context().Value("requestID").(string),
+		}).Tracef("failed to parse json string from the body: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
@@ -43,7 +46,9 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	birthdayTime, err := time.Parse(shortFormDate, userCreate.DateBirth)
 	if err != nil {
-		h.logger.Tracef("failed to parse birthday from string to birthdayTime: %w", err)
+		h.logger.WithFields(logrus.Fields{
+			"request_id": r.Context().Value("requestID").(string),
+		}).Tracef("failed to parse birthday from string to birthdayTime: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse birthday from string to birthdayTime"}`)
 		return
@@ -98,7 +103,9 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	credentials := userCredentialsDTO{}
 	err := decoder.Decode(&credentials)
 	if err != nil {
-		h.logger.Tracef("failed to parse json string from the body: %w", err)
+		h.logger.WithFields(logrus.Fields{
+			"request_id": r.Context().Value("requestID").(string),
+		}).Tracef("failed to parse json string from the body: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
@@ -119,7 +126,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.sessionUseCase.Create(user)
+	session, err := h.sessionUseCase.Create(r.Context(), user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -155,12 +162,14 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.Trace(domain.ErrSessionInvalid)
+		h.logger.WithFields(logrus.Fields{
+			"request_id": r.Context().Value("requestID").(string),
+		}).Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err := h.sessionUseCase.Delete(session.ID)
+	err := h.sessionUseCase.Delete(r.Context(), session.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

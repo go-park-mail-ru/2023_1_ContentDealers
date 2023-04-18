@@ -2,11 +2,13 @@ package user
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -18,10 +20,12 @@ const (
 	parallelism = 4
 )
 
-func (uc *User) hashPassword(password string) (string, error) {
+func (uc *User) hashPassword(ctx context.Context, password string) (string, error) {
 	salt := make([]byte, saltSize)
 	if _, err := rand.Read(salt); err != nil {
-		uc.logger.Trace(err)
+		uc.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return "", err
 	}
 
@@ -33,22 +37,28 @@ func (uc *User) hashPassword(password string) (string, error) {
 	return fmt.Sprintf("%s.%s", encodedSalt, encodedHash), nil
 }
 
-func (uc *User) verifyPassword(password, encodedPassword string) (bool, error) {
+func (uc *User) verifyPassword(ctx context.Context, password, encodedPassword string) (bool, error) {
 	if len(encodedPassword) <= saltSize {
 		err := fmt.Errorf("Invalid encoded password format")
-		uc.logger.Trace(err)
+		uc.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return false, err
 	}
 	tmp := strings.Split(encodedPassword, ".")
 	saltString, hashString := tmp[0], tmp[1]
 	salt, err := base64.StdEncoding.DecodeString(saltString)
 	if err != nil {
-		uc.logger.Trace(err)
+		uc.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return false, err
 	}
 	hash, err := base64.StdEncoding.DecodeString(hashString)
 	if err != nil {
-		uc.logger.Trace(err)
+		uc.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return false, err
 	}
 

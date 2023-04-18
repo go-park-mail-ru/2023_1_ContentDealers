@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/sirupsen/logrus"
 )
 
 const ExpirationTimeCSRF = 2 * time.Hour
@@ -36,11 +37,13 @@ func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := r.Context().Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.Trace(domain.ErrSessionInvalid)
+		h.logger.WithFields(logrus.Fields{
+			"request_id": r.Context().Value("requestID").(string),
+		}).Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	token, err := h.csrfUseCase.Create(session, time.Now().Add(ExpirationTimeCSRF).Unix())
+	token, err := h.csrfUseCase.Create(r.Context(), session, time.Now().Add(ExpirationTimeCSRF).Unix())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -52,7 +55,9 @@ func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithFields(logrus.Fields{
+			"request_id": r.Context().Value("requestID").(string),
+		}).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

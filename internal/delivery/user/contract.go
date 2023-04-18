@@ -18,7 +18,7 @@ type UserUseCase interface {
 }
 
 type SessionUseCase interface {
-	Create(user domain.User) (domain.Session, error)
-	Get(sessionID uuid.UUID) (domain.Session, error)
-	Delete(sessionID uuid.UUID) error
+	Create(ctx context.Context, user domain.User) (domain.Session, error)
+	Get(ctx context.Context, sessionID uuid.UUID) (domain.Session, error)
+	Delete(ctx context.Context, sessionID uuid.UUID) error
 }

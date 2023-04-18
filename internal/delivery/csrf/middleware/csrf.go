@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/sirupsen/logrus"
 )
 
 const headerCSRF = "csrf-token"
@@ -32,7 +33,9 @@ func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 		CSRFToken := r.Header.Get(headerCSRF)
 		if CSRFToken == "" {
 			msg := "csrf token was not given in header 'csrf-token'"
-			mc.logger.Trace(msg)
+			mc.logger.WithFields(logrus.Fields{
+				"request_id": r.Context().Value("requestID").(string),
+			}).Trace(msg)
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, fmt.Sprintf(`{"message": "%s"}`, msg))
 			return
@@ -40,11 +43,13 @@ func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 		sessionRaw := r.Context().Value("session")
 		session, ok := sessionRaw.(domain.Session)
 		if !ok {
-			mc.logger.Trace(domain.ErrSessionInvalid)
+			mc.logger.WithFields(logrus.Fields{
+				"request_id": r.Context().Value("requestID").(string),
+			}).Trace(domain.ErrSessionInvalid)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		isValid, err := mc.csrfUseCase.Check(session, CSRFToken)
+		isValid, err := mc.csrfUseCase.Check(r.Context(), session, CSRFToken)
 		if err != nil || !isValid {
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"message": "csrf token is invalid"}`)
