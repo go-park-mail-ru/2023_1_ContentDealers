@@ -23,6 +23,18 @@ func NewRepository(redisPool *redis.Pool, logger logging.Logger) Repository {
 	return Repository{redisPool: redisPool, logger: logger}
 }
 
+func (repo *Repository) GetConnWithContext(ctx context.Context) (redis.ConnWithContext, error) {
+	connTmp, err := repo.redisPool.GetContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn, ok := connTmp.(redis.ConnWithContext)
+	if !ok {
+		return nil, fmt.Errorf("got connection to radis without context")
+	}
+	return conn, nil
+}
+
 func (repo *Repository) Add(ctx context.Context, session domain.Session) error {
 	if session.ExpiresAt.Before(time.Now()) {
 		return nil
@@ -48,11 +60,14 @@ func (repo *Repository) Add(ctx context.Context, session domain.Session) error {
 	}
 
 	// TODO: session.ID или session.ID.String()
-	conn := repo.redisPool.Get()
+	conn, err := repo.GetConnWithContext(ctx)
+	if err != nil {
+		return err
+	}
 	defer conn.Close()
 
 	timeToLive := time.Until(session.ExpiresAt)
-	result, err := redis.String(conn.Do("SET", session.ID,
+	result, err := redis.String(conn.DoContext(ctx, "SET", session.ID,
 		dataSerialized, "EX", uint(timeToLive.Seconds())))
 	if err != nil {
 		repo.logger.WithFields(logrus.Fields{
@@ -73,10 +88,13 @@ func (repo *Repository) Add(ctx context.Context, session domain.Session) error {
 func (repo *Repository) Get(ctx context.Context, sessionID uuid.UUID) (domain.Session, error) {
 	sessRow := sessionRow{}
 
-	conn := repo.redisPool.Get()
+	conn, err := repo.GetConnWithContext(ctx)
+	if err != nil {
+		return domain.Session{}, err
+	}
 	defer conn.Close()
 
-	data, err := redis.Bytes(conn.Do("GET", sessionID))
+	data, err := redis.Bytes(conn.DoContext(ctx, "GET", sessionID))
 	if err != nil {
 		repo.logger.WithFields(logrus.Fields{
 			"request_id": ctx.Value("requestID").(string),
@@ -110,10 +128,13 @@ func (repo *Repository) Get(ctx context.Context, sessionID uuid.UUID) (domain.Se
 
 func (repo *Repository) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	// TODO: может можно лучше обработать ошибку, зачем приводить к Int? result != OK?
-	conn := repo.redisPool.Get()
+	conn, err := repo.GetConnWithContext(ctx)
+	if err != nil {
+		return err
+	}
 	defer conn.Close()
 
-	_, err := redis.Int(conn.Do("DEL", sessionID))
+	_, err = redis.Int(conn.DoContext(ctx, "DEL", sessionID))
 	if err != nil {
 		repo.logger.WithFields(logrus.Fields{
 			"request_id": ctx.Value("requestID").(string),
