@@ -10,29 +10,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const ExpirationTimeCSRF = 2 * time.Hour
-
 type Handler struct {
 	csrfUseCase CSRFUseCase
 	logger      logging.Logger
+	expiresAt   time.Duration
 }
 
-func NewHandler(csrfUseCase CSRFUseCase, logger logging.Logger) Handler {
+func NewHandler(csrfUseCase CSRFUseCase, logger logging.Logger, cfg CSRFConfig) Handler {
 	return Handler{
 		csrfUseCase: csrfUseCase,
 		logger:      logger,
+		expiresAt:   time.Second * time.Duration(cfg.ExpiresAt),
 	}
 }
 
-// @Summary CSRF
-// @Tags user
-// @Description Получить CSRF токен
-// @Description Необходимы куки
-// @Produce  json
-// @Success 200 {object} tokenDTO
-// @Failure 400
-// @Failure 500
-// @Router /user/csrf [get]
 func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := r.Context().Value("session")
 	session, ok := sessionRaw.(domain.Session)
@@ -43,7 +34,7 @@ func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	token, err := h.csrfUseCase.Create(r.Context(), session, time.Now().Add(ExpirationTimeCSRF).Unix())
+	token, err := h.csrfUseCase.Create(r.Context(), session, time.Now().Add(h.expiresAt).Unix())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

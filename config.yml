@@ -1,9 +1,22 @@
 is_debug: true
-listen:
+server:
   port: 8080
+  # seconds
+  read_timeout: 10
+  write_timeout: 10
+  read_header_timeout: 5
+  shutdown_timeout: 5
+csrf:
+  header: csrf-token
+  # seconds
+  expires_at: 7200
 cors:
   allowed_origins: filmium.ru
-storage:
+avatar:
+  name_form_file: avatarr
+  # mb
+  max_size_body: 10
+postgres:
   # password from env
   user: postgres
   dbname: postgres

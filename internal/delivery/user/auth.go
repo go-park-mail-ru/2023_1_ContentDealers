@@ -11,24 +11,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	shortFormDate = "2006-Jan-02"
-)
-
-// SignUp TODO: SignUp принимает только json данные для регистрации
-// аватар устанавливается или обновляется другой ручкой
-// если аватар нужно устанавливать при регистрации, фроненд вызовет отдельную ручку
-
-// @Summary SignUp
-// @Tags auth
-// @Description Создать аккаунт
-// @Accept  json
-// @Produce  json
-// @Param input body userCreateDTO true "Информация об аккаунте"
-// @Success 200
-// @Failure 400
-// @Failure 500
-// @Router /user/signup [post]
 func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
@@ -75,16 +57,6 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// @Summary SignIn
-// @Tags auth
-// @Description Войти в аккаунт
-// @Accept  json
-// @Produce  json
-// @Param input body userCredentialsDTO true "Данные для входа в аккаунт"
-// @Success 200
-// @Failure 400
-// @Failure 500
-// @Router /user/signin [post]
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
@@ -134,16 +106,6 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// @Summary Logout
-// @Tags auth
-// @Description Выйти из аккаунта
-// @Description Необходимы куки
-// @Description Необходим csrf токен
-// @Produce  json
-// @Success 200
-// @Failure 400
-// @Failure 500
-// @Router /user/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 

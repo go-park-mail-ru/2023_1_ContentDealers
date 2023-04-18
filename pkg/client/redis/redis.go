@@ -7,8 +7,6 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-// const redisAddr = "redis://user:@localhost:6379/0"
-
 func NewClientRedis(cfg RedisConfig) (*redis.Pool, error) {
 	dsn := fmt.Sprintf("redis://%s:@%s:%s/%s", cfg.User, cfg.Host, cfg.Port, cfg.DBNum)
 

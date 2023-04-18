@@ -14,24 +14,21 @@ import (
 )
 
 // TODO: может, имеет смысл для констант ввести префикс ("kNameFormFile", "cNameFormFile")
-const (
-	nameFormFile = "avatar"
-	// 10Mb (32Mb по умолчанию)
-	maxSizeBody = 10 << 20
-	buffSize    = 512
-)
+const buffSize = 512
 
 type Handler struct {
 	userUseCase    UserUseCase
 	sessionUseCase SessionUseCase
 	logger         logging.Logger
+	avatarCfg      AvatarConfig
 }
 
-func NewHandler(user UserUseCase, session SessionUseCase, logger logging.Logger) Handler {
+func NewHandler(user UserUseCase, session SessionUseCase, logger logging.Logger, avatarCfg AvatarConfig) Handler {
 	return Handler{
 		userUseCase:    user,
 		sessionUseCase: session,
 		logger:         logger,
+		avatarCfg:      avatarCfg,
 	}
 }
 
@@ -85,8 +82,9 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	maxSizeBody := int64(h.avatarCfg.MaxSizeBody) << 20
 	r.Body = http.MaxBytesReader(w, r.Body, maxSizeBody)
-	file, header, err := r.FormFile(nameFormFile)
+	file, header, err := r.FormFile(h.avatarCfg.NameFormFile)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
 			h.logger.WithFields(logrus.Fields{
@@ -138,16 +136,6 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// @Summary Profile
-// @Tags user
-// @Description Обновить аватар
-// @Description Необходимы куки
-// @Description Необходим CSRF токен
-// @Produce  json
-// @Success 200 {object} profileDTO
-// @Failure 400
-// @Failure 500
-// @Router /user/profile [get]
 func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 

@@ -5,21 +5,25 @@ import (
 	"io"
 	"net/http"
 
+	csrfDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/sirupsen/logrus"
 )
 
-const headerCSRF = "csrf-token"
-
 type CSRF struct {
 	csrfUseCase csrf.CSRF
 	logger      logging.Logger
+	header      string
 }
 
-func NewCSRF(csrfUseCase csrf.CSRF, logger logging.Logger) CSRF {
-	return CSRF{csrfUseCase: csrfUseCase, logger: logger}
+func NewCSRF(csrfUseCase csrf.CSRF, logger logging.Logger, cfg csrfDelivery.CSRFConfig) CSRF {
+	return CSRF{
+		csrfUseCase: csrfUseCase,
+		logger:      logger,
+		header:      cfg.Header,
+	}
 }
 
 // TODO: RequireCSRF должен обрабатывать запрос после RequireAuth
@@ -30,7 +34,7 @@ func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 			handler.ServeHTTP(w, r)
 			return
 		}
-		CSRFToken := r.Header.Get(headerCSRF)
+		CSRFToken := r.Header.Get(mc.header)
 		if CSRFToken == "" {
 			msg := "csrf token was not given in header 'csrf-token'"
 			mc.logger.WithFields(logrus.Fields{
@@ -51,6 +55,9 @@ func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 		}
 		isValid, err := mc.csrfUseCase.Check(r.Context(), session, CSRFToken)
 		if err != nil || !isValid {
+			mc.logger.WithFields(logrus.Fields{
+				"request_id": r.Context().Value("requestID").(string),
+			}).Tracef("csrf token is invalid: %w, isValid: %d", err, isValid)
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"message": "csrf token is invalid"}`)
 			return

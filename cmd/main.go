@@ -43,17 +43,6 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 )
 
-const (
-	ReadHeaderTimeout = 5 * time.Second
-	shutdownTimeout   = 5 * time.Second
-)
-
-// @title Filmium Backend API
-// @version 1.0
-// @description API Server for Filmium Application
-
-// @host localhost:8080
-// @BasePath /
 func main() {
 	if err := Run(); err != nil {
 		log.Fatal(err)
@@ -81,7 +70,7 @@ func Run() error {
 		return fmt.Errorf("Fail to initialization logger: %w", err)
 	}
 
-	db, err := postgresql.NewClientPostgres(cfg.Storage)
+	db, err := postgresql.NewClientPostgres(cfg.Postgres)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -137,8 +126,8 @@ func Run() error {
 	selectionHandler := selection.NewHandler(selectionUseCase, logger)
 	filmHandler := film.NewHandler(filmUseCase, logger)
 	personHandler := person.NewHandler(personUseCase, logger)
-	userHandler := user.NewHandler(userUseCase, sessionUseCase, logger)
-	csrfHandler := csrf.NewHandler(csrfUseCase, logger)
+	userHandler := user.NewHandler(userUseCase, sessionUseCase, logger, cfg.Avatar)
+	csrfHandler := csrf.NewHandler(csrfUseCase, logger, cfg.CSRF)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:      userHandler,
@@ -150,17 +139,20 @@ func Run() error {
 		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
 		CSRFUseCase:      *csrfUseCase,
 		Logger:           logger,
+		CSRFConfig:       cfg.CSRF,
 	})
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	addr := fmt.Sprintf("%s:%s", cfg.Listen.BindIP, cfg.Listen.Port)
+	addr := fmt.Sprintf("%s:%s", cfg.Server.BindIP, cfg.Server.Port)
 
 	server := http.Server{
 		Addr:              addr,
 		Handler:           router,
-		ReadHeaderTimeout: ReadHeaderTimeout,
+		ReadHeaderTimeout: time.Second * time.Duration(cfg.Server.ReadHeaderTimeout),
+		WriteTimeout:      time.Second * time.Duration(cfg.Server.WriteTimeout),
+		ReadTimeout:       time.Second * time.Duration(cfg.Server.ReadTimeout),
 	}
 
 	go func() {
@@ -175,7 +167,8 @@ func Run() error {
 
 	logger.Infoln("server shutdown")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(),
+		time.Second*time.Duration(cfg.Server.ShutdownTimeout))
 	defer cancel()
 
 	err = server.Shutdown(shutdownCtx)
