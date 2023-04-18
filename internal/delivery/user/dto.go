@@ -4,13 +4,11 @@ type userCreateDTO struct {
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 	AvatarURL string `json:"avatar_url"`
-	DateBirth string `json:"date_birth"`
 }
 
 type userUpdateDTO struct {
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	DateBirth string `json:"date_birth"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type userCredentialsDTO struct {

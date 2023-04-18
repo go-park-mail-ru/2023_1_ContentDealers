@@ -7,7 +7,6 @@ import (
 	"html"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
@@ -175,7 +174,6 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 		"body": map[string]interface{}{
 			"user": map[string]string{
 				"email":      user.Email,
-				"date_birth": user.DateBirth.Format("2006-Jan-02"),
 				"avatar_url": user.AvatarURL,
 			},
 		},
@@ -226,17 +224,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	birthdayTime, err := time.Parse(shortFormDate, userUpdate.DateBirth)
-	if err != nil {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Tracef("failed to parse birthday from string to time: %w", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
 	user.Email = userUpdate.Email
-	user.DateBirth = birthdayTime
 	user.PasswordHash = userUpdate.Password
 
 	err = h.userUseCase.Update(ctx, user)

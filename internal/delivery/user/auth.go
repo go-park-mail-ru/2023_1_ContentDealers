@@ -44,16 +44,6 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	birthdayTime, err := time.Parse(shortFormDate, userCreate.DateBirth)
-	if err != nil {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Tracef("failed to parse birthday from string to birthdayTime: %w", err)
-		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"message":"failed to parse birthday from string to birthdayTime"}`)
-		return
-	}
-
 	if userCreate.AvatarURL == "" {
 		userCreate.AvatarURL = "media/avatars/default_avatar.jpg"
 	}
@@ -61,7 +51,6 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 		Email:        userCreate.Email,
 		PasswordHash: userCreate.Password,
 		AvatarURL:    userCreate.AvatarURL,
-		DateBirth:    birthdayTime,
 	}
 
 	_, err = h.userUseCase.Register(r.Context(), user)

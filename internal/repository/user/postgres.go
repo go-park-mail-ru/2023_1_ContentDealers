@@ -16,9 +16,8 @@ import (
 )
 
 const (
-	shortFormDate             = "2006-01-02"
-	dirAvatars                = "media/avatars"
-	allPerms      os.FileMode = 0777
+	dirAvatars             = "media/avatars"
+	allPerms   os.FileMode = 0777
 )
 
 type Repository struct {
@@ -37,12 +36,11 @@ func (repo *Repository) Add(ctx context.Context, user domain.User) (domain.User,
 	var lastInsertedID uint64
 
 	err := repo.DB.QueryRowContext(ctx,
-		`insert into users (email, password_hash, date_birth, avatar_url) 
-        values ($1, $2, $3, $4) 
+		`insert into users (email, password_hash, avatar_url) 
+        values ($1, $2, $3) 
         returning id`,
 		user.Email,
 		user.PasswordHash,
-		user.DateBirth,
 		user.AvatarURL,
 	).Scan(&lastInsertedID)
 	if err != nil {
@@ -65,8 +63,8 @@ func (repo *Repository) GetByEmail(ctx context.Context, email string) (domain.Us
 	user := domain.User{}
 	err := repo.DB.
 		QueryRowContext(ctx,
-			`select id, email, password_hash, date_birth, avatar_url FROM users WHERE email = $1`, email).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DateBirth, &user.AvatarURL)
+			`select id, email, password_hash, avatar_url FROM users WHERE email = $1`, email).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.AvatarURL)
 	if err != nil {
 		repo.logger.WithFields(logrus.Fields{
 			"request_id": ctx.Value("requestID").(string),
@@ -87,8 +85,8 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.User, er
 	user := domain.User{}
 	err := repo.DB.
 		QueryRowContext(ctx,
-			`select id, email, password_hash, date_birth, avatar_url FROM users WHERE id = $1`, id).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DateBirth, &user.AvatarURL)
+			`select id, email, password_hash, avatar_url FROM users WHERE id = $1`, id).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.AvatarURL)
 	if err != nil {
 		repo.logger.WithFields(logrus.Fields{
 			"request_id": ctx.Value("requestID").(string),
@@ -235,12 +233,10 @@ func (repo *Repository) Update(ctx context.Context, user domain.User) error {
 	_, err := repo.DB.ExecContext(ctx,
 		`update users 
 		set email = $1,
-			password_hash = $2,
-			date_birth = $3
+			password_hash = $2
 		where id = $4;`,
 		user.Email,
 		user.PasswordHash,
-		user.DateBirth,
 		user.ID,
 	)
 	if err != nil {
