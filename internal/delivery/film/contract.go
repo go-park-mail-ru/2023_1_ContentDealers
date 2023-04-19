@@ -3,7 +3,7 @@ package film
 import (
 	"context"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/domain"
 )
 
 type UseCase interface {

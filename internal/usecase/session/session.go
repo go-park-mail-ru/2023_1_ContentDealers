@@ -3,7 +3,7 @@ package session
 import (
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	domain2 "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/google/uuid"
 )
@@ -19,13 +19,13 @@ func NewSession(repo Repository, logger logging.Logger) *Session {
 	return &Session{repo: repo, logger: logger}
 }
 
-func (uc *Session) Create(user domain.User) (domain.Session, error) {
-	newSession := domain.NewSession(user.ID, time.Now().Add(SessionTimeout))
+func (uc *Session) Create(user domain2.User) (domain2.Session, error) {
+	newSession := domain2.NewSession(user.ID, time.Now().Add(SessionTimeout))
 	err := uc.repo.Add(newSession)
 	return newSession, err
 }
 
-func (uc *Session) Get(sessionID uuid.UUID) (domain.Session, error) {
+func (uc *Session) Get(sessionID uuid.UUID) (domain2.Session, error) {
 	return uc.repo.Get(sessionID)
 }
 

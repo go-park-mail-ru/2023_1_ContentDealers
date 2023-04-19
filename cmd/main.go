@@ -11,26 +11,19 @@ import (
 	"syscall"
 	"time"
 
+	filmRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/film"
+	personRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/person"
+	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/selection"
+	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/film"
+	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/person"
+	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
-	contentRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/content"
-	countryRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/country"
-	filmRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/film"
-	genreRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/genre"
-	personRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/person"
-	roleRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/role"
-	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
-	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
-	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
-	personRoleUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/personRole"
-
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	contentUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
-	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/joho/godotenv"
 
@@ -96,19 +89,19 @@ func Run() error {
 	userRepository := userRepo.NewRepository(db, logger)
 	sessionRepository := session.NewRepository(redisClient, logger)
 	selectionRepository := selectionRepo.NewRepository(db, logger)
-	contentRepository := contentRepo.NewRepository(db, logger)
+	contentRepository := content.NewRepository(db, logger)
 	filmRepository := filmRepo.NewRepository(db, logger)
-	genreRepository := genreRepo.NewRepository(db, logger)
-	roleRepository := roleRepo.NewRepository(db, logger)
-	countryRepository := countryRepo.NewRepository(db, logger)
+	genreRepository := genre.NewRepository(db, logger)
+	roleRepository := role.NewRepository(db, logger)
+	countryRepository := country.NewRepository(db, logger)
 	personRepository := personRepo.NewRepository(db, logger)
 
 	userUseCase := userUseCase.NewUser(&userRepository, logger)
 	sessionUseCase := sessionUseCase.NewSession(&sessionRepository, logger)
 	selectionUseCase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository, logger)
-	personRolesUseCase := personRoleUseCase.NewPersonRole(&personRepository, &roleRepository, logger)
+	personRolesUseCase := personRole.NewPersonRole(&personRepository, &roleRepository, logger)
 
-	contentUseCase := contentUseCase.NewContent(contentUseCase.Options{
+	contentUseCase := content.NewContent(content.Options{
 		ContentRepo:        &contentRepository,
 		GenreRepo:          &genreRepository,
 		SelectionRepo:      &selectionRepository,

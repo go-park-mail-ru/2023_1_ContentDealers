@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	domain2 "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/domain"
 )
 
 const (
@@ -52,7 +52,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	if userCreate.AvatarURL == "" {
 		userCreate.AvatarURL = "media/avatars/default_avatar.jpg"
 	}
-	user := domain.User{
+	user := domain2.User{
 		Email:        userCreate.Email,
 		PasswordHash: userCreate.Password,
 		AvatarURL:    userCreate.AvatarURL,
@@ -62,13 +62,13 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	_, err = h.userUseCase.Register(r.Context(), user)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrUserAlreadyExists):
+		case errors.Is(err, domain2.ErrUserAlreadyExists):
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"status": 1, "message":"user already exists"}`)
-		case errors.Is(err, domain.ErrNotValidEmail):
+		case errors.Is(err, domain2.ErrNotValidEmail):
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"status": 2, "message":"email not validated"}`)
-		case errors.Is(err, domain.ErrNotValidPassword):
+		case errors.Is(err, domain2.ErrNotValidPassword):
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"status": 3, "message":"password not validated"}`)
 
@@ -104,7 +104,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := domain.User{
+	user := domain2.User{
 		Email:        credentials.Email,
 		PasswordHash: credentials.Password, // no hash
 	}
@@ -153,9 +153,9 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain.Session)
+	session, ok := sessionRaw.(domain2.Session)
 	if !ok {
-		h.logger.Trace(domain.ErrSessionInvalid)
+		h.logger.Trace(domain2.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
