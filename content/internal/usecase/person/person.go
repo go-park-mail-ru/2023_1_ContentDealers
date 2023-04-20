@@ -20,15 +20,16 @@ type Options struct {
 	Content ContentRepository
 	Role    RoleRepository
 	Genre   GenreRepository
+	Logger  logging.Logger
 }
 
-func NewPerson(options Options, logger logging.Logger) *Person {
+func NewPerson(options Options) *Person {
 	return &Person{
 		repo:    options.Repo,
 		content: options.Content,
 		role:    options.Role,
 		genre:   options.Genre,
-		logger:  logger,
+		logger:  options.Logger,
 	}
 }
 

@@ -22,16 +22,17 @@ type Options struct {
 	SelectionRepo      SelectionRepository
 	CountryRepo        CountryRepository
 	PersonRolesUseCase PersonRolesUseCase
+	Logger             logging.Logger
 }
 
-func NewContent(options Options, logger logging.Logger) *Content {
+func NewContent(options Options) *Content {
 	return &Content{
 		repo:        options.ContentRepo,
 		personRoles: options.PersonRolesUseCase,
 		genre:       options.GenreRepo,
 		selection:   options.SelectionRepo,
 		country:     options.CountryRepo,
-		logger:      logger,
+		logger:      options.Logger,
 	}
 }
 
