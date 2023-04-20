@@ -47,13 +47,13 @@ func (service *Grpc) GetAll(ctx context.Context, _ *selection.Nothing) (*selecti
 		return nil, err
 	}
 
-	var response *selection.Selections
+	var response selection.Selections
 	err = dto.Map(&response.Selections, all)
 	if err != nil {
 		return nil, err
 	}
 
-	return response, nil
+	return &response, nil
 }
 
 func (service *Grpc) GetByID(ctx context.Context, selectionID *selection.ID) (*selection.Selection, error) {
