@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,22 +24,11 @@ func (mw *Auth) RequireUnAuth(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionIDRaw, err := r.Cookie("session_id")
 		if err != nil {
-			mw.logger.WithFields(logrus.Fields{
-				"request_id": r.Context().Value("requestID").(string),
-			}).Trace(err)
 			handler.ServeHTTP(w, r)
 			return
 		}
 
-		sessionID, err := uuid.Parse(sessionIDRaw.Value)
-		if err != nil {
-			mw.logger.WithFields(logrus.Fields{
-				"request_id": r.Context().Value("requestID").(string),
-			}).Tracef("failed to parse uuid from the cookie: %w", err)
-			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, `{"message": "failed to parse uuid from the cookie"}`)
-			return
-		}
+		sessionID := sessionIDRaw.Value
 
 		session, err := mw.sessionUseCase.Get(r.Context(), sessionID)
 		if err == nil && session.ExpiresAt.After(time.Now()) {
@@ -68,15 +56,7 @@ func (mw *Auth) RequireAuth(handler http.Handler) http.Handler {
 			return
 		}
 
-		sessionID, err := uuid.Parse(sessionIDRaw.Value)
-		if err != nil {
-			mw.logger.WithFields(logrus.Fields{
-				"request_id": r.Context().Value("requestID").(string),
-			}).Trace(err)
-			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, `{"message": "failed to parse uuid from the cookie"}`)
-			return
-		}
+		sessionID := sessionIDRaw.Value
 
 		session, err := mw.sessionUseCase.Get(r.Context(), sessionID)
 		if err != nil || session.ExpiresAt.Before(time.Now()) {

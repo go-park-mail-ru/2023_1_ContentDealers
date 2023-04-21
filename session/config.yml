@@ -1,0 +1,12 @@
+server:
+  port: 8081
+redis:
+  user: user
+  host: localhost
+  port: 6379
+  dbnum: 0
+logging:
+  dir: log
+  filename: all.log.json
+  # если пусто, то в логируется директория от корня
+  project_dir: 2023_1_ContentDealers/session 

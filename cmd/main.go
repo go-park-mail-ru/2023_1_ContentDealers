@@ -15,15 +15,15 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
-	contentRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/content"
-	countryRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/country"
-	filmRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/film"
-	genreRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/genre"
-	personRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/person"
-	roleRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/role"
-	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/selection"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
-	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
+	contentRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
+	countryRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/country"
+	filmRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/film"
+	genreRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/genre"
+	personRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/person"
+	roleRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/role"
+	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/selection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
+	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
 	personRoleUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/personRole"
@@ -40,7 +40,6 @@ import (
 	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
 	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 )
 
 func main() {
@@ -76,14 +75,11 @@ func Run() error {
 		return err
 	}
 
-	redisClient, err := redis.NewClientRedis(cfg.Redis)
+	userRepository := userRepo.NewRepository(db, logger)
+	sessionGateway, err := session.NewGateway(logger)
 	if err != nil {
-		logger.Error(err)
 		return err
 	}
-
-	userRepository := userRepo.NewRepository(db, logger)
-	sessionRepository := session.NewRepository(redisClient, logger)
 	selectionRepository := selectionRepo.NewRepository(db, logger)
 	contentRepository := contentRepo.NewRepository(db, logger)
 	filmRepository := filmRepo.NewRepository(db, logger)
@@ -93,7 +89,7 @@ func Run() error {
 	personRepository := personRepo.NewRepository(db, logger)
 
 	userUseCase := userUseCase.NewUser(&userRepository, logger)
-	sessionUseCase := sessionUseCase.NewSession(&sessionRepository, logger)
+	sessionUseCase := sessionUseCase.NewSession(&sessionGateway, logger)
 	selectionUseCase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository, logger)
 	personRolesUseCase := personRoleUseCase.NewPersonRole(&personRepository, &roleRepository, logger)
 

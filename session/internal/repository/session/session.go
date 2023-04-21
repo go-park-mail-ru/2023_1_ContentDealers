@@ -7,16 +7,20 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/domain"
 	"github.com/gomodule/redigo/redis"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
 type Repository struct {
 	redisPool *redis.Pool
 	logger    logging.Logger
+}
+
+type sessionRow struct {
+	UserID          uint64 `json:"user_id"`
+	ExpiresAtString string `json:"expires_at"`
 }
 
 func NewRepository(redisPool *redis.Pool, logger logging.Logger) Repository {
@@ -59,7 +63,6 @@ func (repo *Repository) Add(ctx context.Context, session domain.Session) error {
 		return err
 	}
 
-	// TODO: session.ID или session.ID.String()
 	conn, err := repo.GetConnWithContext(ctx)
 	if err != nil {
 		return err
@@ -85,7 +88,7 @@ func (repo *Repository) Add(ctx context.Context, session domain.Session) error {
 	return nil
 }
 
-func (repo *Repository) Get(ctx context.Context, sessionID uuid.UUID) (domain.Session, error) {
+func (repo *Repository) Get(ctx context.Context, sessionID string) (domain.Session, error) {
 	sessRow := sessionRow{}
 
 	conn, err := repo.GetConnWithContext(ctx)
@@ -111,6 +114,7 @@ func (repo *Repository) Get(ctx context.Context, sessionID uuid.UUID) (domain.Se
 		}).Trace(err)
 		return domain.Session{}, fmt.Errorf("cant unpack session data from redis: %w", err)
 	}
+
 	expireTime, err := time.Parse(time.RFC3339, sessRow.ExpiresAtString)
 	if err != nil {
 		repo.logger.WithFields(logrus.Fields{
@@ -126,7 +130,7 @@ func (repo *Repository) Get(ctx context.Context, sessionID uuid.UUID) (domain.Se
 	return session, nil
 }
 
-func (repo *Repository) Delete(ctx context.Context, sessionID uuid.UUID) error {
+func (repo *Repository) Delete(ctx context.Context, sessionID string) error {
 	// TODO: может можно лучше обработать ошибку, зачем приводить к Int? result != OK?
 	conn, err := repo.GetConnWithContext(ctx)
 	if err != nil {

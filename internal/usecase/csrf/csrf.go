@@ -62,7 +62,7 @@ func (c *CSRF) Create(ctx context.Context, s domain.Session, tokenExpTime int64)
 		return "", err
 	}
 
-	td := &tokenData{SessionID: s.ID.String(), UserID: s.UserID, Exp: tokenExpTime}
+	td := &tokenData{SessionID: s.ID, UserID: s.UserID, Exp: tokenExpTime}
 	data, err := json.Marshal(td)
 	if err != nil {
 		c.logger.WithFields(logrus.Fields{
@@ -141,7 +141,7 @@ func (c *CSRF) Check(ctx context.Context, s domain.Session, inputToken string) (
 		return false, err
 	}
 
-	expected := tokenData{SessionID: s.ID.String(), UserID: s.UserID}
+	expected := tokenData{SessionID: s.ID, UserID: s.UserID}
 	td.Exp = 0
 	return td == expected, nil
 }

@@ -4,11 +4,10 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-	"github.com/google/uuid"
 )
 
-type Repository interface {
-	Add(ctx context.Context, session domain.Session) error
-	Get(ctx context.Context, id uuid.UUID) (domain.Session, error)
-	Delete(ctx context.Context, id uuid.UUID) error
+type Gateway interface {
+	Create(ctx context.Context, user domain.User) (domain.Session, error)
+	Get(ctx context.Context, id string) (domain.Session, error)
+	Delete(ctx context.Context, id string) error
 }

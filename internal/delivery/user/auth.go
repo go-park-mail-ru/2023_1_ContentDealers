@@ -77,11 +77,8 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: credentials.Password, // no hash
 	}
 
-	// TODO: перезаписывание user, стоит ли так делать?
 	user, err = h.userUseCase.Auth(r.Context(), user)
 	if err != nil {
-		// не важно, не валиден пароль или не найден пользователь с почтой
-		// ответ: пользователь не найден
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"status": 4, "message":"auth wrong credentials"}`)
 		return
@@ -95,7 +92,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	sessionCookie := http.Cookie{
 		Name:     "session_id",
-		Value:    session.ID.String(),
+		Value:    session.ID,
 		Expires:  session.ExpiresAt,
 		HttpOnly: true,
 		Path:     "/",

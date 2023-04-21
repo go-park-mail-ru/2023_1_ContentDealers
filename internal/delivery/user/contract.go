@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-	"github.com/google/uuid"
 )
 
 type UserUseCase interface {
@@ -19,6 +18,6 @@ type UserUseCase interface {
 
 type SessionUseCase interface {
 	Create(ctx context.Context, user domain.User) (domain.Session, error)
-	Get(ctx context.Context, sessionID uuid.UUID) (domain.Session, error)
-	Delete(ctx context.Context, sessionID uuid.UUID) error
+	Get(ctx context.Context, sessionID string) (domain.Session, error)
+	Delete(ctx context.Context, sessionID string) error
 }
