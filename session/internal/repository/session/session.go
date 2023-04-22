@@ -30,11 +30,14 @@ func NewRepository(redisPool *redis.Pool, logger logging.Logger) Repository {
 func (repo *Repository) GetConnWithContext(ctx context.Context) (redis.ConnWithContext, error) {
 	connTmp, err := repo.redisPool.GetContext(ctx)
 	if err != nil {
+		repo.logger.Trace(err)
 		return nil, err
 	}
 	conn, ok := connTmp.(redis.ConnWithContext)
 	if !ok {
-		return nil, fmt.Errorf("got connection to radis without context")
+		err := fmt.Errorf("got connection to radis without context")
+		repo.logger.Trace(err)
+		return nil, err
 	}
 	return conn, nil
 }
@@ -131,7 +134,6 @@ func (repo *Repository) Get(ctx context.Context, sessionID string) (domain.Sessi
 }
 
 func (repo *Repository) Delete(ctx context.Context, sessionID string) error {
-	// TODO: может можно лучше обработать ошибку, зачем приводить к Int? result != OK?
 	conn, err := repo.GetConnWithContext(ctx)
 	if err != nil {
 		return err

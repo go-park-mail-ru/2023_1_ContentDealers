@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/proto/session"
 )
 
@@ -12,10 +13,11 @@ const SessionTimeout = time.Hour * 12
 type Grpc struct {
 	session.UnimplementedSessionServiceServer
 	sessionUseCase SessionUseCase
+	logger         logging.Logger
 }
 
-func NewGrpc(sessionUseCase SessionUseCase) *Grpc {
-	return &Grpc{sessionUseCase: sessionUseCase}
+func NewGrpc(sessionUseCase SessionUseCase, logger logging.Logger) *Grpc {
+	return &Grpc{sessionUseCase: sessionUseCase, logger: logger}
 }
 
 func (service *Grpc) Create(ctx context.Context, userID *session.UserID) (*session.Session, error) {
@@ -54,5 +56,6 @@ func (service *Grpc) Delete(ctx context.Context, sessionID *session.SessionID) (
 }
 
 func (service *Grpc) Ping(ctx context.Context, req *session.PingRequest) (*session.PingResponse, error) {
+	service.logger.Info("Ping reached session microservice")
 	return &session.PingResponse{}, nil
 }

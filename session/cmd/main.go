@@ -40,7 +40,7 @@ func Run() error {
 		return fmt.Errorf("Fail to parse config yml file: %w", err)
 	}
 
-	logger, err := logging.NewLogger(cfg.Logging)
+	logger, err := logging.NewLogger(cfg.Logging, "session service")
 	if err != nil {
 		return fmt.Errorf("Fail to initialization logger: %w", err)
 	}
@@ -52,12 +52,12 @@ func Run() error {
 	}
 
 	sessionRepository := repository.NewRepository(redisClient, logger)
+	sessionUseCase := usecase.NewSession(&sessionRepository, logger, cfg.Session.ExpiresAt)
+	sessionService := delivery.NewGrpc(sessionUseCase, logger)
 
-	sessionUseCase := usecase.NewSession(&sessionRepository, logger)
-
-	sessionService := delivery.NewGrpc(sessionUseCase)
-
-	server := grpc.NewServer()
+	server := grpc.NewServer(
+		grpc.UnaryInterceptor(sessionService.LogInterceptor),
+	)
 
 	session.RegisterSessionServiceServer(server, sessionService)
 

@@ -12,11 +12,13 @@ import (
 )
 
 type writerHook struct {
-	Writer    []io.Writer
-	LogLevels []logrus.Level
+	Writer      []io.Writer
+	LogLevels   []logrus.Level
+	serviceName string
 }
 
 func (hook *writerHook) Fire(entry *logrus.Entry) error {
+	entry.Data["service"] = hook.serviceName
 	line, err := entry.String()
 	if err != nil {
 		return err
@@ -35,7 +37,7 @@ type Logger struct {
 	*logrus.Logger
 }
 
-func NewLogger(cfg LoggingConfig) (Logger, error) {
+func NewLogger(cfg LoggingConfig, serviceName string) (Logger, error) {
 	logger := logrus.New()
 	if cfg.Dir == "" && cfg.Filename == "" && cfg.ProjectDir == "" {
 		return Logger{Logger: logger}, nil
@@ -62,6 +64,7 @@ func NewLogger(cfg LoggingConfig) (Logger, error) {
 			// поля выводятся в алфавитном порядке
 			logrus.FieldKeyTime: "__time",
 			logrus.FieldKeyMsg:  "_msg",
+			"service":           serviceName,
 		},
 	}
 
@@ -81,8 +84,9 @@ func NewLogger(cfg LoggingConfig) (Logger, error) {
 
 	// регистрируем hook
 	logger.AddHook(&writerHook{
-		Writer:    []io.Writer{file, os.Stdout},
-		LogLevels: logrus.AllLevels,
+		Writer:      []io.Writer{file, os.Stdout},
+		LogLevels:   logrus.AllLevels,
+		serviceName: serviceName,
 	})
 
 	logger.SetLevel(logrus.TraceLevel)

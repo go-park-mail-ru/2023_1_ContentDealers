@@ -64,7 +64,7 @@ func Run() error {
 		return fmt.Errorf("Fail to parse config yml file: %w", err)
 	}
 
-	logger, err := logging.NewLogger(cfg.Logging)
+	logger, err := logging.NewLogger(cfg.Logging, "api-gateway")
 	if err != nil {
 		return fmt.Errorf("Fail to initialization logger: %w", err)
 	}
@@ -76,7 +76,7 @@ func Run() error {
 	}
 
 	userRepository := userRepo.NewRepository(db, logger)
-	sessionGateway, err := session.NewGateway(logger)
+	sessionGateway, err := session.NewGateway(logger, cfg.ServiceSession)
 	if err != nil {
 		return err
 	}

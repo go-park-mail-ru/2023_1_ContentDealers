@@ -6,6 +6,8 @@ server:
   write_timeout: 10
   read_header_timeout: 5
   shutdown_timeout: 5
+service_sesion:
+  addr: 172.27.195.147:8081
 csrf:
   header: csrf-token
   # seconds

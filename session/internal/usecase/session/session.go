@@ -8,19 +8,18 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/domain"
 )
 
-const SessionTimeout = time.Hour * 12
-
 type Session struct {
-	repo   Repository
-	logger logging.Logger
+	repo      Repository
+	logger    logging.Logger
+	expiresAt time.Duration
 }
 
-func NewSession(repo Repository, logger logging.Logger) *Session {
-	return &Session{repo: repo, logger: logger}
+func NewSession(repo Repository, logger logging.Logger, expiresAt int) *Session {
+	return &Session{repo: repo, logger: logger, expiresAt: time.Duration(expiresAt) * time.Second}
 }
 
 func (uc *Session) Create(ctx context.Context, userID uint64) (domain.Session, error) {
-	newSession := domain.NewSession(userID, time.Now().Add(SessionTimeout))
+	newSession := domain.NewSession(userID, time.Now().Add(uc.expiresAt))
 	err := uc.repo.Add(ctx, newSession)
 	return newSession, err
 }

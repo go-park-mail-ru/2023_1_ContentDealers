@@ -7,12 +7,15 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/proto/session"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 type Gateway struct {
 	logger      logging.Logger
 	sessManager session.SessionServiceClient
+	interseptor SessionInterceptor
 }
 
 func pingServer(ctx context.Context, client session.SessionServiceClient) error {
@@ -27,10 +30,13 @@ func pingServer(ctx context.Context, client session.SessionServiceClient) error 
 	return nil
 }
 
-func NewGateway(logger logging.Logger) (Gateway, error) {
+func NewGateway(logger logging.Logger, cfg ServiceSessionConfig) (Gateway, error) {
+	interseptor := SessionInterceptor{logger: logger}
+
 	grcpConn, err := grpc.Dial(
-		"172.27.195.147:8081",
+		cfg.Addr,
 		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(interseptor.AccessLog),
 	)
 	if err != nil {
 		logger.Error("cant connect to grpc session service")
@@ -50,14 +56,24 @@ func NewGateway(logger logging.Logger) (Gateway, error) {
 func (gate *Gateway) Create(ctx context.Context, user domain.User) (domain.Session, error) {
 	var request session.UserID
 	request.ID = user.ID
+	md := metadata.Pairs(
+		"requestID", ctx.Value("requestID").(string),
+	)
+	ctx = metadata.NewOutgoingContext(ctx, md)
+
 	sessionResponse, err := gate.sessManager.Create(ctx, &request)
 	if err != nil {
-		gate.logger.Error(err)
+		gate.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return domain.Session{}, err
 	}
 
 	expireTime, err := time.Parse(time.RFC3339, sessionResponse.ExpiresAt)
 	if err != nil {
+		gate.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return domain.Session{}, err
 	}
 	sess := domain.Session{
@@ -71,9 +87,16 @@ func (gate *Gateway) Create(ctx context.Context, user domain.User) (domain.Sessi
 func (gate *Gateway) Get(ctx context.Context, id string) (domain.Session, error) {
 	var request session.SessionID
 	request.ID = id
+	md := metadata.Pairs(
+		"requestID", ctx.Value("requestID").(string),
+	)
+	ctx = metadata.NewOutgoingContext(ctx, md)
+
 	sessionResponse, err := gate.sessManager.Get(ctx, &request)
 	if err != nil {
-		gate.logger.Error(err)
+		gate.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return domain.Session{}, err
 	}
 	expireTime, err := time.Parse(time.RFC3339, sessionResponse.ExpiresAt)
@@ -91,9 +114,16 @@ func (gate *Gateway) Get(ctx context.Context, id string) (domain.Session, error)
 func (gate *Gateway) Delete(ctx context.Context, id string) error {
 	var request session.SessionID
 	request.ID = id
+	md := metadata.Pairs(
+		"requestID", ctx.Value("requestID").(string),
+	)
+	ctx = metadata.NewOutgoingContext(ctx, md)
+
 	_, err := gate.sessManager.Delete(ctx, &request)
 	if err != nil {
-		gate.logger.Error(err)
+		gate.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return err
 	}
 	return nil

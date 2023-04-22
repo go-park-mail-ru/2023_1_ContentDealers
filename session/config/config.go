@@ -12,6 +12,9 @@ type Config struct {
 		BindIP string `yaml:"bind_ip"`
 		Port   string `yaml:"port" env-default:"8080"`
 	} `yaml:"server"`
+	Session struct {
+		ExpiresAt int `yaml:"expires_at"`
+	} `yaml:"session"`
 	Redis   redis.RedisConfig     `yaml:"redis"`
 	Logging logging.LoggingConfig `yaml:"logging"`
 }
