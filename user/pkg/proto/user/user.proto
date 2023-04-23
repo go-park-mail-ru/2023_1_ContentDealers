@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option go_package = "./;user";
+
+package user;
+
+message ID {
+  uint64 ID = 1;
+}
+
+message Email {
+  string Email = 1;
+}
+
+message User {
+    uint64 ID = 1;
+    string Email = 2;
+    string PasswordHash = 3;
+    string AvatarURL = 4;
+}
+
+message Nothing {
+    bool Dummy = 1;
+}
+
+message UserAvatar {
+    User User = 1;
+    bytes chunk = 2;
+}
+
+message PingRequest {}
+message PingResponse {}
+
+service UserService {
+    rpc Register(User) returns (User) {}
+    rpc Auth(User) returns (User) {}
+    rpc GetByID(ID) returns (User) {}
+    rpc Update(User) returns (Nothing) {}
+    rpc UpdateAvatar(stream UserAvatar) returns (User) {}
+    rpc DeleteAvatar(User) returns (Nothing) {}
+    rpc Ping(PingRequest) returns (PingResponse) {}
+}
+

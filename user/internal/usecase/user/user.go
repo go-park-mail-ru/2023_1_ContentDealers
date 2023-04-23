@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 
 	"github.com/dlclark/regexp2"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/user/internal/domain"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,13 +27,16 @@ func NewUser(repo Repository, logger logging.Logger) *User {
 }
 
 func (uc *User) Register(ctx context.Context, user domain.User) (domain.User, error) {
+	log.Println("register")
 	err := validateCredentials(user)
 	if err != nil {
+		log.Println("1")
 		uc.logger.WithFields(logrus.Fields{
 			"request_id": ctx.Value("requestID").(string),
 		}).Trace(err)
 		return domain.User{}, err
 	}
+	log.Println("3")
 	passwordHash, err := uc.hashPassword(ctx, user.PasswordHash)
 	if err != nil {
 		return domain.User{}, err

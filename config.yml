@@ -15,7 +15,7 @@ csrf:
 cors:
   allowed_origins: filmium.ru
 avatar:
-  name_form_file: avatarr
+  name_form_file: avatar
   # mb
   max_size_body: 10
 postgres:

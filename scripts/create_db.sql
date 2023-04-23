@@ -16,6 +16,7 @@ drop table if exists content_selections cascade;
 -- namespace, gender, function set_timestamp
 
 create schema if not exists filmium;
+create schema if not exists user_schema;
 set search_path=filmium;
 
 drop domain if exists gender cascade;
@@ -38,7 +39,7 @@ $$ language plpgsql;
 
 -- tables
 
-create table users (
+create table user_schema.users (
     id bigserial primary key,
     email text not null unique,
     password_hash text not null,
