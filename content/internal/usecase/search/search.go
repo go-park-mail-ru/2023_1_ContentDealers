@@ -24,6 +24,7 @@ func (uc *Search) Search(ctx context.Context, query string) (domain.Search, erro
 	group, ctx := errgroup.WithContext(ctx)
 
 	for _, extender := range uc.extenders {
+		extender := extender
 		group.Go(func() error {
 			applier := extender.Extend(ctx, query)
 
@@ -36,7 +37,8 @@ func (uc *Search) Search(ctx context.Context, query string) (domain.Search, erro
 
 	err := group.Wait()
 	if err != nil {
-		return result, err
+		uc.logger.Error(err)
+		return domain.Search{}, err
 	}
 	return result, nil
 }

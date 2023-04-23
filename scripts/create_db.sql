@@ -18,6 +18,8 @@ drop table if exists content_selections cascade;
 create schema if not exists filmium;
 set search_path=filmium;
 
+create extension pg_trgm;
+
 drop domain if exists gender cascade;
 create domain gender char(1)
     check (value IN ('F', 'M'));

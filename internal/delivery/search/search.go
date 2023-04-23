@@ -35,7 +35,10 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	}), " ")
 
 	search, err := h.useCase.Search(r.Context(), searchQuery)
-
+	if err != nil {
+		h.logger.Trace(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 	searchResponse := searchDTO{}
 	err = dto.Map(&searchResponse, search)
 	if err != nil {

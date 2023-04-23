@@ -120,16 +120,16 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
 	likeQuery := "%" + query + "%"
 	rows, err := repo.DB.QueryContext(ctx,
 		`select s.id, s.title, s.description, s.rating, s.year, s.is_free, s.age_limit,
-       			s.preview_url, s.trailer_url from (
+       			s.trailer_url, s.preview_url, s.type from (
 				(select id, 1 sim, title, description, rating, year, is_free, age_limit,
-				        preview_url, trailer_url, type from content
+					trailer_url, preview_url, type from content
 				 where lower(title) like $1)
 				union all
 				(select id, SIMILARITY($2, title) sim, title, description, rating, year, is_free, age_limit,
-				        preview_url, trailer_url, type from content)
+				trailer_url, preview_url, type from content)
 				) s
 				group by s.id, s.title, s.description, s.rating, s.year, s.is_free, s.age_limit,
-       			s.preview_url, s.trailer_url
+				s.trailer_url, s.preview_url, s.type
 				order by max(s.sim), s.rating desc
 				limit $3;`, likeQuery, query, searchLimit)
 	if err != nil {

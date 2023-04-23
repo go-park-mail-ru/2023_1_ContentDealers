@@ -24,6 +24,6 @@ type contentDTO struct {
 }
 
 type searchDTO struct {
-	persons []personDTO
-	content []contentDTO
+	Content []contentDTO `json:"content"`
+	Persons []personDTO  `json:"persons"`
 }
