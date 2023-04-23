@@ -10,7 +10,7 @@ import (
 	"net/url"
 
 	"github.com/dranikpg/dto-mapper"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 
 	"github.com/gorilla/mux"
@@ -33,8 +33,8 @@ const (
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	var limit int = defaultLimit
-	var offset int = defaultOffset
+	var limit int32 = defaultLimit
+	var offset int32 = defaultOffset
 
 	query, err := url.ParseQuery(r.URL.RawQuery)
 	if err == nil {
@@ -51,7 +51,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	selections, err := h.useCase.GetAll(r.Context(), uint(limit), uint(offset))
+	selections, err := h.useCase.GetAll(r.Context(), uint32(limit), uint32(offset))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

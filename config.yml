@@ -21,3 +21,4 @@ logging:
   filename: all.log.json
   # если пусто, то в логируется директория от корня
   project_dir: 2023_1_ContentDealers 
+content_addr: localhost:8081

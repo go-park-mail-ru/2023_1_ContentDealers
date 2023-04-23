@@ -32,11 +32,12 @@ message Selections {
   repeated Selection Selections = 1;
 }
 
-message Nothing {
-  bool Dummy = 1;
+message GetAllCfg {
+  uint32 limit = 1;
+  uint32 offset = 2;
 }
 
 service SelectionService {
-  rpc GetAll (Nothing) returns (Selections) {}
+  rpc GetAll (GetAllCfg) returns (Selections) {}
   rpc GetByID (ID) returns (Selection) {}
 }

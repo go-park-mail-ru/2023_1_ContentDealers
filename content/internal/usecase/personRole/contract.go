@@ -3,13 +3,13 @@ package personRole
 import (
 	"context"
 
-	domain2 "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
 )
 
 type PersonRepository interface {
-	GetByContentID(ctx context.Context, ContentID uint64) ([]domain2.Person, error)
+	GetByContentID(ctx context.Context, ContentID uint64) ([]domain.Person, error)
 }
 
 type RoleRepository interface {
-	GetByContentID(ct context.Context, ContentID uint64) (map[uint64]domain2.Role, error)
+	GetByContentID(ct context.Context, ContentID uint64) (map[uint64]domain.Role, error)
 }

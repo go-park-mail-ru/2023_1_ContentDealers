@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 

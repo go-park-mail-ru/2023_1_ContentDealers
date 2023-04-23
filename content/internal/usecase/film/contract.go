@@ -3,13 +3,13 @@ package film
 import (
 	"context"
 
-	domain2 "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
 )
 
 type Repository interface {
-	GetByContentID(ctx context.Context, id uint64) (domain2.Film, error)
+	GetByContentID(ctx context.Context, id uint64) (domain.Film, error)
 }
 
 type ContentUseCase interface {
-	GetByID(ctx context.Context, id uint64) (domain2.Content, error)
+	GetByID(ctx context.Context, id uint64) (domain.Content, error)
 }

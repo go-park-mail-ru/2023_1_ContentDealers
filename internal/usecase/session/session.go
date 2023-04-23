@@ -3,7 +3,7 @@ package session
 import (
 	"time"
 
-	domain2 "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/domain"
+	domain2 "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/google/uuid"
 )

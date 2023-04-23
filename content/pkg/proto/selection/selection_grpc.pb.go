@@ -8,7 +8,6 @@ package selection
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -23,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SelectionServiceClient interface {
-	GetAll(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*Selections, error)
+	GetAll(ctx context.Context, in *GetAllCfg, opts ...grpc.CallOption) (*Selections, error)
 	GetByID(ctx context.Context, in *ID, opts ...grpc.CallOption) (*Selection, error)
 }
 
@@ -35,7 +34,7 @@ func NewSelectionServiceClient(cc grpc.ClientConnInterface) SelectionServiceClie
 	return &selectionServiceClient{cc}
 }
 
-func (c *selectionServiceClient) GetAll(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*Selections, error) {
+func (c *selectionServiceClient) GetAll(ctx context.Context, in *GetAllCfg, opts ...grpc.CallOption) (*Selections, error) {
 	out := new(Selections)
 	err := c.cc.Invoke(ctx, "/selection.SelectionService/GetAll", in, out, opts...)
 	if err != nil {
@@ -57,7 +56,7 @@ func (c *selectionServiceClient) GetByID(ctx context.Context, in *ID, opts ...gr
 // All implementations must embed UnimplementedSelectionServiceServer
 // for forward compatibility
 type SelectionServiceServer interface {
-	GetAll(context.Context, *Nothing) (*Selections, error)
+	GetAll(context.Context, *GetAllCfg) (*Selections, error)
 	GetByID(context.Context, *ID) (*Selection, error)
 	mustEmbedUnimplementedSelectionServiceServer()
 }
@@ -66,7 +65,7 @@ type SelectionServiceServer interface {
 type UnimplementedSelectionServiceServer struct {
 }
 
-func (UnimplementedSelectionServiceServer) GetAll(context.Context, *Nothing) (*Selections, error) {
+func (UnimplementedSelectionServiceServer) GetAll(context.Context, *GetAllCfg) (*Selections, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAll not implemented")
 }
 func (UnimplementedSelectionServiceServer) GetByID(context.Context, *ID) (*Selection, error) {
@@ -86,7 +85,7 @@ func RegisterSelectionServiceServer(s grpc.ServiceRegistrar, srv SelectionServic
 }
 
 func _SelectionService_GetAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Nothing)
+	in := new(GetAllCfg)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -98,7 +97,7 @@ func _SelectionService_GetAll_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: "/selection.SelectionService/GetAll",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SelectionServiceServer).GetAll(ctx, req.(*Nothing))
+		return srv.(SelectionServiceServer).GetAll(ctx, req.(*GetAllCfg))
 	}
 	return interceptor(ctx, in, info, handler)
 }

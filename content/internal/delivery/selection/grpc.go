@@ -2,11 +2,9 @@ package selection
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/selection"
-	"google.golang.org/grpc/metadata"
 )
 
 type Grpc struct {
@@ -24,23 +22,9 @@ const (
 	defaultOffset = 0
 )
 
-func (service *Grpc) GetAll(ctx context.Context, _ *selection.Nothing) (*selection.Selections, error) {
-	var limit uint = defaultLimit
-	var offset uint = defaultOffset
-
-	meta, ok := metadata.FromIncomingContext(ctx)
-	if ok == true {
-		limitArg := meta.Get("limit")
-		if len(limitArg) >= 1 {
-			limitRaw := limitArg[0]
-			_, _ = fmt.Sscanf(limitRaw, "%d", &limit)
-		}
-		offsetArg := meta.Get("offset")
-		if len(offsetArg) >= 1 {
-			offsetRaw := offsetArg[0]
-			_, _ = fmt.Sscanf(offsetRaw, "%d", &offset)
-		}
-	}
+func (service *Grpc) GetAll(ctx context.Context, cfg *selection.GetAllCfg) (*selection.Selections, error) {
+	limit := uint(cfg.GetLimit())
+	offset := uint(cfg.GetOffset())
 
 	all, err := service.useCase.GetAll(ctx, limit, offset)
 	if err != nil {

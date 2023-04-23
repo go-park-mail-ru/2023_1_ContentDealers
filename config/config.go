@@ -18,9 +18,10 @@ type Config struct {
 		BindIP string `yaml:"bind_ip"`
 		Port   string `yaml:"port" env-default:"8080"`
 	} `yaml:"listen"`
-	Storage postgresql.StorageConfig `yaml:"storage"`
-	Redis   redis.RedisConfig        `yaml:"redis"`
-	Logging logging.LoggingConfig    `yaml:"logging"`
+	Storage     postgresql.StorageConfig `yaml:"storage"`
+	Redis       redis.RedisConfig        `yaml:"redis"`
+	Logging     logging.LoggingConfig    `yaml:"logging"`
+	ContentAddr string                   `content_addr`
 }
 
 var instance *Config
