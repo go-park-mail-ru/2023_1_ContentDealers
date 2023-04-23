@@ -1,12 +1,12 @@
 package setup
 
 import (
-	domain2 "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/google/uuid"
 )
 
 type SessionUseCase interface {
-	Create(user domain2.User) (domain2.Session, error)
-	Get(sessionID uuid.UUID) (domain2.Session, error)
+	Create(user domain.User) (domain.Session, error)
+	Get(sessionID uuid.UUID) (domain.Session, error)
 	Delete(sessionID uuid.UUID) error
 }

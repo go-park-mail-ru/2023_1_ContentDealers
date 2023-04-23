@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
@@ -21,6 +22,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
+	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/search"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/joho/godotenv"
@@ -88,28 +90,16 @@ func Run() error {
 	sessionRepository := session.NewRepository(redisClient, logger)
 	contentGateway, err := content.NewGrpc(cfg.ContentAddr, logger)
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 
-	userUseCase := userUseCase.NewUser(&userRepository, logger)
-	sessionUseCase := sessionUseCase.NewSession(&sessionRepository, logger)
-	selectionUseCase := selectionUseCase.NewSelection(&contentGateway, logger)
-	personRolesUseCase := personRole.NewPersonRole(&personRepository, &roleRepository, logger)
-
-	contentUseCase := content.NewContent(content.Options{
-		ContentRepo:        &contentRepository,
-		GenreRepo:          &genreRepository,
-		SelectionRepo:      &selectionRepository,
-		CountryRepo:        &countryRepository,
-		PersonRolesUseCase: personRolesUseCase,
-	}, logger)
-	filmUseCase := filmUseCase.NewFilm(&filmRepository, contentUseCase, logger)
-	personUseCase := personUseCase.NewPerson(personUseCase.Options{
-		Repo:    &personRepository,
-		Content: &contentRepository,
-		Role:    &roleRepository,
-		Genre:   &genreRepository,
-	}, logger)
+	userUsecase := userUseCase.NewUser(&userRepository, logger)
+	sessionUsecase := sessionUseCase.NewSession(&sessionRepository, logger)
+	selectionUsecase := selectionUseCase.NewSelection(&contentGateway, logger)
+	filmUsecase := filmUseCase.NewFilm(&contentGateway, logger)
+	personUsecase := personUseCase.NewPerson(&contentGateway, logger)
+	searchUsecase := searchUseCase.NewSearch(&contentGateway, logger)
 
 	err = godotenv.Load()
 	if err != nil {
@@ -122,11 +112,12 @@ func Run() error {
 		return err
 	}
 
-	selectionHandler := selection.NewHandler(selectionUseCase, logger)
-	filmHandler := film.NewHandler(filmUseCase, logger)
-	personHandler := person.NewHandler(personUseCase, logger)
-	userHandler := user.NewHandler(userUseCase, sessionUseCase, logger)
+	selectionHandler := selection.NewHandler(selectionUsecase, logger)
+	filmHandler := film.NewHandler(filmUsecase, logger)
+	personHandler := person.NewHandler(personUsecase, logger)
+	userHandler := user.NewHandler(userUsecase, sessionUsecase, logger)
 	csrfHandler := csrf.NewHandler(csrfUseCase, logger)
+	searchHandler := search.NewHandler(searchUsecase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:      userHandler,
@@ -134,7 +125,8 @@ func Run() error {
 		SelectionHandler: selectionHandler,
 		FilmHandler:      filmHandler,
 		PersonHandler:    personHandler,
-		SessionUseCase:   sessionUseCase,
+		SearchHandler:    searchHandler,
+		SessionUseCase:   sessionUsecase,
 		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
 		CSRFUseCase:      *csrfUseCase,
 		Logger:           logger,

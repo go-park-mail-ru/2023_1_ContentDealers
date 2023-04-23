@@ -10,6 +10,8 @@ import (
 	"github.com/lib/pq"
 )
 
+const searchLimit = 6
+
 type Repository struct {
 	DB     *sql.DB
 	logger logging.Logger
@@ -94,6 +96,42 @@ func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.
        		   join content_roles_persons crp on c.id = crp.content_id
        		   where crp.person_id = $1
 			   order by c.rating desc`, id)
+	if err != nil {
+		repo.logger.Trace(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []domain.Content
+	for rows.Next() {
+		c := domain.Content{}
+		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
+			&c.TrailerURL, &c.PreviewURL, &c.Type)
+		if err != nil {
+			repo.logger.Trace(err)
+			return nil, err
+		}
+		result = append(result, c)
+	}
+	return result, nil
+}
+
+func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Content, error) {
+	likeQuery := "%" + query + "%"
+	rows, err := repo.DB.QueryContext(ctx,
+		`select s.id, s.title, s.description, s.rating, s.year, s.is_free, s.age_limit,
+       			s.preview_url, s.trailer_url from (
+				(select id, 1 sim, title, description, rating, year, is_free, age_limit,
+				        preview_url, trailer_url, type from content
+				 where lower(title) like $1)
+				union all
+				(select id, SIMILARITY($2, title) sim, title, description, rating, year, is_free, age_limit,
+				        preview_url, trailer_url, type from content)
+				) s
+				group by s.id, s.title, s.description, s.rating, s.year, s.is_free, s.age_limit,
+       			s.preview_url, s.trailer_url
+				order by max(s.sim), s.rating desc
+				limit $3;`, likeQuery, query, searchLimit)
 	if err != nil {
 		repo.logger.Trace(err)
 		return nil, err

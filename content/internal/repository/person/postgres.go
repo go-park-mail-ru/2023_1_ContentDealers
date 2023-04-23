@@ -9,6 +9,8 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
+const searchLimit = 6
+
 type Repository struct {
 	DB     *sql.DB
 	logger logging.Logger
@@ -59,4 +61,19 @@ func (repo *Repository) GetByContentID(ctx context.Context, ContentID uint64) ([
 	orderByID := `order by p.id`
 	query := strings.Join([]string{fetchQueryTemplate, joinOnContent, filterByContentID, orderByID}, " ")
 	return repo.fetch(ctx, query, ContentID)
+}
+
+func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Person, error) {
+	likeQuery := "%" + query + "%"
+	fullQuery := `select s.id, s.name, s.gender, s.growth, s.birthplace, s.avatar_url, s.age from (
+				(select id, 1 sim, name, gender, growth, birthplace, avatar_url, age from persons
+				 where lower(name) like $1)
+				union all
+				(select id, SIMILARITY($2, name) sim, name, gender, growth, birthplace, avatar_url, age from persons)
+				) s
+				group by s.id, s.name, s.gender, s.growth, s.birthplace, s.avatar_url, s.age
+				order by max(s.sim) desc
+				limit $3;`
+
+	return repo.fetch(ctx, fullQuery, likeQuery, query, searchLimit)
 }

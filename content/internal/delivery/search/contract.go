@@ -1,4 +1,4 @@
-package film
+package search
 
 import (
 	"context"
@@ -7,5 +7,5 @@ import (
 )
 
 type UseCase interface {
-	GetByContentID(ctx context.Context, ContentID uint64) (domain.Film, error)
+	Search(ctx context.Context, query string) (domain.Search, error)
 }

@@ -12,6 +12,7 @@ import (
 	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	filmDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/delivery/film"
 	personDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/delivery/person"
+	searchDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/delivery/search"
 	selectionDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/country"
@@ -24,9 +25,12 @@ import (
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/film"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/personRole"
+	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/search"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/search/extender"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/film"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/person"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
@@ -92,14 +96,22 @@ func Run() error {
 	})
 	selectionUsecase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository, logger)
 
+	searchExtenders := []searchUseCase.Extender{
+		extender.NewContentExtender(&contentRepository, logger),
+		extender.NewPersonExtender(&personRepository, logger),
+	}
+	searchUsecase := searchUseCase.NewSearch(searchExtenders, logger)
+
 	filmService := filmDelivery.NewGrpc(filmUsecase)
 	personService := personDelivery.NewGrpc(personUsecase)
 	selectionService := selectionDelivery.NewGrpc(selectionUsecase)
+	searchService := searchDelivery.NewGrpc(searchUsecase)
 
 	server := grpc.NewServer()
 	film.RegisterFilmServiceServer(server, filmService)
 	person.RegisterPersonServiceServer(server, personService)
 	selection.RegisterSelectionServiceServer(server, selectionService)
+	search.RegisterSearchServiceServer(server, searchService)
 
 	addr := fmt.Sprintf("%s:%s", cfg.Listen.BindIP, cfg.Listen.Port)
 

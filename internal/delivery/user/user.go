@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	domain2 "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
@@ -40,9 +40,9 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain2.Session)
+	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.Trace(domain2.ErrSessionInvalid)
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -68,9 +68,9 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain2.Session)
+	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.Trace(domain2.ErrSessionInvalid)
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -141,9 +141,9 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain2.Session)
+	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.Trace(domain2.ErrSessionInvalid)
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -182,9 +182,9 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain2.Session)
+	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.Trace(domain2.ErrSessionInvalid)
+		h.logger.Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -219,7 +219,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	err = h.userUseCase.Update(ctx, user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		if errors.Is(err, domain2.ErrUserAlreadyExists) {
+		if errors.Is(err, domain.ErrUserAlreadyExists) {
 			io.WriteString(w, `{"status": 7, "message":"user with this email already exists"}`)
 		}
 		return

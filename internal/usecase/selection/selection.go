@@ -12,8 +12,8 @@ type Selection struct {
 	logger         logging.Logger
 }
 
-func NewSelection(contentGateway ContentGateway, logger logging.Logger) Selection {
-	return Selection{
+func NewSelection(contentGateway ContentGateway, logger logging.Logger) *Selection {
+	return &Selection{
 		contentGateway: contentGateway,
 		logger:         logger,
 	}
