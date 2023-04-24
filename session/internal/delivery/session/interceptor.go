@@ -26,16 +26,21 @@ func (service *Grpc) LogInterceptor(
 
 	ctx = context.WithValue(ctx, "requestID", reqID)
 
-	reply, err := handler(ctx, req)
-
 	service.logger.WithFields(logrus.Fields{
 		"info_full_method": info.FullMethod,
 		"request":          req,
-		"reply":            reply,
-		"time":             time.Since(start),
 		"request_id":       reqID,
 		"metadata":         md,
-		"err":              err,
-	}).Debug("The request arrived at the sessions microservice")
+	}).Debug("accepted_by_session_service")
+
+	reply, err := handler(ctx, req)
+
+	service.logger.WithFields(logrus.Fields{
+		"reply":      reply,
+		"time":       time.Since(start),
+		"request_id": reqID,
+		"err":        err,
+	}).Debug("released_by_session_service")
+
 	return reply, err
 }

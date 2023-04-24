@@ -49,7 +49,7 @@ func (mv *GeneralMiddleware) AccessLog(next http.Handler) http.Handler {
 			"url":         r.URL.Path,
 			"user_agent":  r.UserAgent(),
 			"request_id":  requestID,
-		}).Debug("Start processing request")
+		}).Debug("accepted_by_api_gateway")
 		ctx := context.WithValue(r.Context(), "requestID", requestID)
 		start := time.Now()
 
@@ -59,6 +59,6 @@ func (mv *GeneralMiddleware) AccessLog(next http.Handler) http.Handler {
 			"status_http": loggingRW.statusCode,
 			"request_id":  requestID,
 			"time":        fmt.Sprintf("%d mcs", time.Since(start).Microseconds()),
-		}).Debug("End processing request")
+		}).Debug("released_by_api_gateway")
 	})
 }

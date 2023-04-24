@@ -40,6 +40,7 @@ func NewGateway(logger logging.Logger, cfg ServiceSessionConfig) (Gateway, error
 	)
 	if err != nil {
 		logger.Error("cant connect to grpc session service")
+		return Gateway{}, err
 	}
 
 	sessManager := session.NewSessionServiceClient(grcpConn)

@@ -23,7 +23,7 @@ import (
 	roleRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/role"
 	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
-	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
+	userGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
 	personRoleUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/personRole"
@@ -38,7 +38,6 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
 	csrfUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
 	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
-	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
 )
 
@@ -75,7 +74,10 @@ func Run() error {
 		return err
 	}
 
-	userRepository := userRepo.NewRepository(db, logger)
+	userGateway, err := userGate.NewGateway(logger, cfg.ServiceUser)
+	if err != nil {
+		return err
+	}
 	sessionGateway, err := session.NewGateway(logger, cfg.ServiceSession)
 	if err != nil {
 		return err
@@ -88,7 +90,6 @@ func Run() error {
 	countryRepository := countryRepo.NewRepository(db, logger)
 	personRepository := personRepo.NewRepository(db, logger)
 
-	userUseCase := userUseCase.NewUser(&userRepository, logger)
 	sessionUseCase := sessionUseCase.NewSession(&sessionGateway, logger)
 	selectionUseCase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository, logger)
 	personRolesUseCase := personRoleUseCase.NewPersonRole(&personRepository, &roleRepository, logger)
@@ -120,9 +121,11 @@ func Run() error {
 	}
 
 	selectionHandler := selection.NewHandler(selectionUseCase, logger)
+
 	filmHandler := film.NewHandler(filmUseCase, logger)
+
 	personHandler := person.NewHandler(personUseCase, logger)
-	userHandler := user.NewHandler(userUseCase, sessionUseCase, logger, cfg.Avatar)
+	userHandler := user.NewHandler(userGateway, sessionUseCase, logger, cfg.Avatar)
 	csrfHandler := csrf.NewHandler(csrfUseCase, logger, cfg.CSRF)
 
 	router := setup.Routes(&setup.SettingsRouter{

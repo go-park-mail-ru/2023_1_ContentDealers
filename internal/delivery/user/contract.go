@@ -7,7 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
-type UserUseCase interface {
+type UserGateway interface {
 	Register(ctx context.Context, user domain.User) (domain.User, error)
 	Auth(ctx context.Context, user domain.User) (domain.User, error)
 	GetByID(ctx context.Context, id uint64) (domain.User, error)

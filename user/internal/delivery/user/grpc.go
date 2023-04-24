@@ -3,13 +3,16 @@ package user
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 
 	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/user/internal/domain"
 	userProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/proto/user"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -27,6 +30,9 @@ func (service *Grpc) Register(ctx context.Context, userRequest *userProto.User) 
 	user := domain.User{}
 	err := dto.Map(&user, userRequest)
 	if err != nil {
+		service.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	newUser, err := service.userUseCase.Register(ctx, user)
@@ -36,6 +42,9 @@ func (service *Grpc) Register(ctx context.Context, userRequest *userProto.User) 
 	userResponse := userProto.User{}
 	err = dto.Map(&userResponse, newUser)
 	if err != nil {
+		service.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	return &userResponse, nil
@@ -45,6 +54,9 @@ func (service *Grpc) Auth(ctx context.Context, userRequest *userProto.User) (*us
 	user := domain.User{}
 	err := dto.Map(&user, userRequest)
 	if err != nil {
+		service.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	newUser, err := service.userUseCase.Auth(ctx, user)
@@ -54,12 +66,15 @@ func (service *Grpc) Auth(ctx context.Context, userRequest *userProto.User) (*us
 	userResponse := userProto.User{}
 	err = dto.Map(&userResponse, newUser)
 	if err != nil {
+		service.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	return &userResponse, nil
 }
 
-func (service *Grpc) GetByUserID(ctx context.Context, IDRequest *userProto.ID) (*userProto.User, error) {
+func (service *Grpc) GetByID(ctx context.Context, IDRequest *userProto.ID) (*userProto.User, error) {
 	newUser, err := service.userUseCase.GetByID(ctx, IDRequest.ID)
 	if err != nil {
 		return nil, err
@@ -67,6 +82,9 @@ func (service *Grpc) GetByUserID(ctx context.Context, IDRequest *userProto.ID) (
 	userResponse := userProto.User{}
 	err = dto.Map(&userResponse, newUser)
 	if err != nil {
+		service.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	return &userResponse, nil
@@ -76,6 +94,9 @@ func (service *Grpc) Update(ctx context.Context, userRequest *userProto.User) (*
 	user := domain.User{}
 	err := dto.Map(&user, userRequest)
 	if err != nil {
+		service.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return nil, err
 	}
 	err = service.userUseCase.Update(ctx, user)
@@ -91,13 +112,26 @@ func (service *Grpc) UpdateAvatar(stream userProto.UserService_UpdateAvatarServe
 	var bytesAvatar []byte
 	ctx := stream.Context()
 
+	var reqID string
+	md, exists := metadata.FromIncomingContext(ctx)
+	if !exists || len(md.Get("requestId")) == 0 {
+		reqID = "unknown"
+	} else {
+		reqID = md.Get("requestId")[0]
+	}
+	ctx = context.WithValue(ctx, "requestID", reqID)
+
 	for {
 		chunk, err := stream.Recv()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			return status.Errorf(codes.Unknown, "Error reading the client stream: %v", err)
+			err := fmt.Errorf("Error reading the client stream: %w", err)
+			service.logger.WithFields(logrus.Fields{
+				"request_id": ctx.Value("requestID").(string),
+			}).Trace(err)
+			return status.Error(codes.Unknown, err.Error())
 		}
 
 		if chunkCount == 0 {
@@ -108,14 +142,14 @@ func (service *Grpc) UpdateAvatar(stream userProto.UserService_UpdateAvatarServe
 		chunkData := chunk.GetChunk()
 
 		bytesAvatar = append(bytesAvatar, chunkData...)
-		if err != nil {
-			return status.Errorf(codes.Internal, "Could not store the image: %v", err)
-		}
 	}
 	reader := bytes.NewReader(bytesAvatar)
 	user := domain.User{}
 	err := dto.Map(&user, userRequest)
 	if err != nil {
+		service.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return err
 	}
 
@@ -123,6 +157,9 @@ func (service *Grpc) UpdateAvatar(stream userProto.UserService_UpdateAvatarServe
 	userResponse := &userProto.User{}
 	err = dto.Map(userResponse, user)
 	if err != nil {
+		service.logger.WithFields(logrus.Fields{
+			"request_id": ctx.Value("requestID").(string),
+		}).Trace(err)
 		return err
 	}
 	stream.SendAndClose(userResponse)

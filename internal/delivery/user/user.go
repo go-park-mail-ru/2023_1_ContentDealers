@@ -17,15 +17,15 @@ import (
 const buffSize = 512
 
 type Handler struct {
-	userUseCase    UserUseCase
+	userGateway    UserGateway
 	sessionUseCase SessionUseCase
 	logger         logging.Logger
 	avatarCfg      AvatarConfig
 }
 
-func NewHandler(user UserUseCase, session SessionUseCase, logger logging.Logger, avatarCfg AvatarConfig) Handler {
+func NewHandler(user UserGateway, session SessionUseCase, logger logging.Logger, avatarCfg AvatarConfig) Handler {
 	return Handler{
-		userUseCase:    user,
+		userGateway:    user,
 		sessionUseCase: session,
 		logger:         logger,
 		avatarCfg:      avatarCfg,
@@ -46,14 +46,14 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userUseCase.GetByID(ctx, session.UserID)
+	user, err := h.userGateway.GetByID(ctx, session.UserID)
 	if err != nil {
 		// domain.ErrUserNotFound
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = h.userUseCase.DeleteAvatar(ctx, user)
+	err = h.userGateway.DeleteAvatar(ctx, user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -76,7 +76,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userUseCase.GetByID(ctx, session.UserID)
+	user, err := h.userGateway.GetByID(ctx, session.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -90,6 +90,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 			h.logger.WithFields(logrus.Fields{
 				"request_id": r.Context().Value("requestID").(string),
 			}).Tracef("the size exceeded the maximum size equal to %d mb: %w", maxSizeBody, err)
+
 			io.WriteString(w, fmt.Sprintf(`{"status": 5, "message":"the size exceeded the maximum size equal to %d mb"}`, maxSizeBody))
 			// для совместимости с nginx
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
@@ -127,7 +128,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	file.Seek(0, io.SeekStart)
 
-	_, err = h.userUseCase.UpdateAvatar(ctx, user, file)
+	_, err = h.userGateway.UpdateAvatar(ctx, user, file)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -150,7 +151,7 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userUseCase.GetByID(ctx, session.UserID)
+	user, err := h.userGateway.GetByID(ctx, session.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -194,7 +195,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userUseCase.GetByID(ctx, session.UserID)
+	user, err := h.userGateway.GetByID(ctx, session.UserID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -215,7 +216,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	user.Email = userUpdate.Email
 	user.PasswordHash = userUpdate.Password
 
-	err = h.userUseCase.Update(ctx, user)
+	err = h.userGateway.Update(ctx, user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		if errors.Is(err, domain.ErrUserAlreadyExists) {

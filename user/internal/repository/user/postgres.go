@@ -228,7 +228,7 @@ func (repo *Repository) Update(ctx context.Context, user domain.User) error {
 		`update users 
 		set email = $1,
 			password_hash = $2
-		where id = $4;`,
+		where id = $3;`,
 		user.Email,
 		user.PasswordHash,
 		user.ID,

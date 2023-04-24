@@ -35,7 +35,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 		AvatarURL:    userCreate.AvatarURL,
 	}
 
-	_, err = h.userUseCase.Register(r.Context(), user)
+	_, err = h.userGateway.Register(r.Context(), user)
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrUserAlreadyExists):
@@ -77,7 +77,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: credentials.Password, // no hash
 	}
 
-	user, err = h.userUseCase.Auth(r.Context(), user)
+	user, err = h.userGateway.Auth(r.Context(), user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"status": 4, "message":"auth wrong credentials"}`)

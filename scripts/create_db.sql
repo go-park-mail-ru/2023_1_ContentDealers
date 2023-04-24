@@ -139,7 +139,7 @@ create table episodes (
 
 -- trigger
 create trigger set_timestamp_users
-before update on users
+before update on user_schema.users
 for each row
 execute procedure set_timestamp();
 

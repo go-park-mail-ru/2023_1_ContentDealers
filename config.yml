@@ -8,6 +8,8 @@ server:
   shutdown_timeout: 5
 service_sesion:
   addr: 172.27.195.147:8081
+service_user:
+  addr: 172.27.195.147:8082
 csrf:
   header: csrf-token
   # seconds

@@ -4,6 +4,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
+	userGateway "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
@@ -17,7 +18,8 @@ type Config struct {
 	CORS    struct {
 		AllowedOrigins string `yaml:"allowed_origins"`
 	}
-	ServiceSession session.ServiceSessionConfig `yaml:"service_sesion"`
+	ServiceSession session.ServiceSessionConfig  `yaml:"service_sesion"`
+	ServiceUser    userGateway.ServiceUserConfig `yaml:"service_user"`
 	Server         struct {
 		BindIP            string `yaml:"bind_ip"`
 		Port              string `yaml:"port" env-default:"8080"`

@@ -1,4 +1,4 @@
-package session
+package user
 
 import (
 	"context"
@@ -9,16 +9,15 @@ import (
 	"google.golang.org/grpc"
 )
 
-type SessionInterceptor struct {
+type UserInterceptor struct {
 	logger logging.Logger
 }
 
-func (si *SessionInterceptor) AccessLog(
+func (si *UserInterceptor) AccessLog(
 	ctx context.Context,
 	method string,
 	req interface{},
 	reply interface{},
-	// клиент
 	cc *grpc.ClientConn,
 	invoker grpc.UnaryInvoker,
 	opts ...grpc.CallOption) error {
@@ -34,7 +33,7 @@ func (si *SessionInterceptor) AccessLog(
 		"method":     method,
 		"request":    req,
 		"request_id": reqID,
-	}).Debug("sent_to_session_service")
+	}).Debug("sent_to_user_service")
 
 	err := invoker(ctx, method, req, reply, cc, opts...)
 
@@ -43,6 +42,6 @@ func (si *SessionInterceptor) AccessLog(
 		"time":       time.Since(start),
 		"err":        err,
 		"request_id": reqID,
-	}).Debug("returned_from_session_service")
+	}).Debug("returned_from_user_service")
 	return err
 }
