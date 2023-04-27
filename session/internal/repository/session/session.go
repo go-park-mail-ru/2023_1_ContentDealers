@@ -10,7 +10,6 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/domain"
 	"github.com/gomodule/redigo/redis"
-	"github.com/sirupsen/logrus"
 )
 
 type Repository struct {
@@ -60,9 +59,7 @@ func (repo *Repository) Add(ctx context.Context, session domain.Session) error {
 		"expires_at": sessRow.ExpiresAtString,
 	})
 	if err != nil {
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		repo.logger.WithRequestID(ctx).Trace(err)
 		return err
 	}
 
@@ -76,16 +73,12 @@ func (repo *Repository) Add(ctx context.Context, session domain.Session) error {
 	result, err := redis.String(conn.DoContext(ctx, "SET", session.ID,
 		dataSerialized, "EX", uint(timeToLive.Seconds())))
 	if err != nil {
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Tracef("cant set data in redis: %w", err)
+		repo.logger.WithRequestID(ctx).Tracef("cant set data in redis: %w", err)
 		return err
 	}
 	if result != "OK" {
 		err := fmt.Errorf("'set' in redis replies 'not OK'")
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		repo.logger.WithRequestID(ctx).Trace(err)
 		return err
 	}
 	return nil
@@ -102,9 +95,7 @@ func (repo *Repository) Get(ctx context.Context, sessionID string) (domain.Sessi
 
 	data, err := redis.Bytes(conn.DoContext(ctx, "GET", sessionID))
 	if err != nil {
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		repo.logger.WithRequestID(ctx).Trace(err)
 		if errors.Is(err, redis.ErrNil) {
 			return domain.Session{}, domain.ErrSessionNotFound
 		}
@@ -112,17 +103,13 @@ func (repo *Repository) Get(ctx context.Context, sessionID string) (domain.Sessi
 	}
 	err = json.Unmarshal(data, &sessRow)
 	if err != nil {
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		repo.logger.WithRequestID(ctx).Trace(err)
 		return domain.Session{}, fmt.Errorf("cant unpack session data from redis: %w", err)
 	}
 
 	expireTime, err := time.Parse(time.RFC3339, sessRow.ExpiresAtString)
 	if err != nil {
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		repo.logger.WithRequestID(ctx).Trace(err)
 		return domain.Session{}, nil
 	}
 	session := domain.Session{
@@ -142,9 +129,7 @@ func (repo *Repository) Delete(ctx context.Context, sessionID string) error {
 
 	_, err = redis.Int(conn.DoContext(ctx, "DEL", sessionID))
 	if err != nil {
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		repo.logger.WithRequestID(ctx).Trace(err)
 		return fmt.Errorf("cant delete by redis: %w", err)
 	}
 	return nil

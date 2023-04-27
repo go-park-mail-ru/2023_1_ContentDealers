@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -35,6 +36,15 @@ func (hook *writerHook) Levels() []logrus.Level {
 
 type Logger struct {
 	*logrus.Logger
+}
+
+func (lg *Logger) WithRequestID(ctx context.Context) *logrus.Entry {
+	reqID, ok := ctx.Value("requestID").(string)
+	if !ok {
+		reqID = "unknown"
+	}
+	return lg.WithField("request_id", reqID)
+
 }
 
 func NewLogger(cfg LoggingConfig, serviceName string) (Logger, error) {

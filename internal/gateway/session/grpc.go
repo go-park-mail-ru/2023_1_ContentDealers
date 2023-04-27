@@ -7,7 +7,6 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/proto/session"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -64,17 +63,13 @@ func (gate *Gateway) Create(ctx context.Context, user domain.User) (domain.Sessi
 
 	sessionResponse, err := gate.sessManager.Create(ctx, &request)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.Session{}, err
 	}
 
 	expireTime, err := time.Parse(time.RFC3339, sessionResponse.ExpiresAt)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.Session{}, err
 	}
 	sess := domain.Session{
@@ -95,9 +90,7 @@ func (gate *Gateway) Get(ctx context.Context, id string) (domain.Session, error)
 
 	sessionResponse, err := gate.sessManager.Get(ctx, &request)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.Session{}, err
 	}
 	expireTime, err := time.Parse(time.RFC3339, sessionResponse.ExpiresAt)
@@ -122,9 +115,7 @@ func (gate *Gateway) Delete(ctx context.Context, id string) error {
 
 	_, err := gate.sessManager.Delete(ctx, &request)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return err
 	}
 	return nil

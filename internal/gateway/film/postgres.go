@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
-	"github.com/sirupsen/logrus"
 )
 
 type Repository struct {
@@ -26,9 +25,7 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (d
 	film := domain.Film{}
 	err := row.Scan(&film.ID, &film.ContentURL)
 	if err != nil {
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		repo.logger.WithRequestID(ctx).Trace(err)
 	}
 	return film, err
 }

@@ -13,7 +13,6 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
-	"github.com/sirupsen/logrus"
 )
 
 type CSRF struct {
@@ -40,34 +39,26 @@ type tokenData struct {
 func (c *CSRF) Create(ctx context.Context, s domain.Session, tokenExpTime int64) (string, error) {
 	block, err := aes.NewCipher(c.Secret)
 	if err != nil {
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return "", err
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return "", err
 	}
 
 	nonce := make([]byte, aesgcm.NonceSize())
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return "", err
 	}
 
 	td := &tokenData{SessionID: s.ID, UserID: s.UserID, Exp: tokenExpTime}
 	data, err := json.Marshal(td)
 	if err != nil {
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return "", err
 	}
 	ciphertext := aesgcm.Seal(nil, nonce, data, nil)
@@ -83,25 +74,19 @@ func (c *CSRF) Check(ctx context.Context, s domain.Session, inputToken string) (
 	// объект блочного шифра AES
 	block, err := aes.NewCipher(c.Secret)
 	if err != nil {
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return false, err
 	}
 	// GCM - режим аутентифицированного шифрования
 	// на основе tk.Secret генерируется ключ аутентификации
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return false, err
 	}
 	ciphertext, err := base64.StdEncoding.DecodeString(inputToken)
 	if err != nil {
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return false, err
 	}
 	// nonce - случайное число для защиты от повторных атак
@@ -109,35 +94,27 @@ func (c *CSRF) Check(ctx context.Context, s domain.Session, inputToken string) (
 	nonceSize := aesgcm.NonceSize()
 	if len(ciphertext) < nonceSize {
 		err := fmt.Errorf("ciphertext too short")
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return false, err
 	}
 
 	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
 	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return false, err
 	}
 
 	td := tokenData{}
 	err = json.Unmarshal(plaintext, &td)
 	if err != nil {
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return false, err
 	}
 
 	if td.Exp < time.Now().Unix() {
 		err := fmt.Errorf("token expired")
-		c.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		c.logger.WithRequestID(ctx).Trace(err)
 		return false, err
 	}
 

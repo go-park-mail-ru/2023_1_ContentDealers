@@ -10,7 +10,6 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	userProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/proto/user"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -71,16 +70,12 @@ func (gate *Gateway) Register(ctx context.Context, user domain.User) (domain.Use
 	dto.Map(&userRequest, user)
 	userResponse, err := gate.userManager.Register(ctx, &userRequest)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
 	err = dto.Map(&user, userResponse)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
 	return user, nil
@@ -95,16 +90,12 @@ func (gate *Gateway) Auth(ctx context.Context, user domain.User) (domain.User, e
 	dto.Map(&userRequest, user)
 	userResponse, err := gate.userManager.Auth(ctx, &userRequest)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
 	err = dto.Map(&user, userResponse)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
 	return user, nil
@@ -121,9 +112,7 @@ func (gate *Gateway) GetByID(ctx context.Context, id uint64) (domain.User, error
 
 	userResponse, err := gate.userManager.GetByID(ctx, &UserIDRequest)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
 
@@ -131,9 +120,7 @@ func (gate *Gateway) GetByID(ctx context.Context, id uint64) (domain.User, error
 
 	err = dto.Map(&user, userResponse)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
 	return user, nil
@@ -148,9 +135,7 @@ func (gate *Gateway) Update(ctx context.Context, user domain.User) error {
 	dto.Map(&userRequest, user)
 	_, err := gate.userManager.Update(ctx, &userRequest)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return err
 	}
 	return nil
@@ -164,9 +149,7 @@ func (gate *Gateway) UpdateAvatar(ctx context.Context, user domain.User, reader 
 
 	stream, err := gate.userManager.UpdateAvatar(ctx)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
 
@@ -177,9 +160,7 @@ func (gate *Gateway) UpdateAvatar(ctx context.Context, user domain.User, reader 
 		User: &userRequest,
 	})
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Tracef("Error sending user object: %w", err)
+		gate.logger.WithRequestID(ctx).Tracef("Error sending user object: %w", err)
 		return domain.User{}, err
 	}
 
@@ -191,9 +172,7 @@ func (gate *Gateway) UpdateAvatar(ctx context.Context, user domain.User, reader 
 			break
 		}
 		if err != nil {
-			gate.logger.WithFields(logrus.Fields{
-				"request_id": ctx.Value("requestID").(string),
-			}).Trace(err)
+			gate.logger.WithRequestID(ctx).Trace(err)
 			return domain.User{}, err
 		}
 
@@ -201,18 +180,14 @@ func (gate *Gateway) UpdateAvatar(ctx context.Context, user domain.User, reader 
 			Chunk: buffer[:bytesRead],
 		})
 		if err != nil {
-			gate.logger.WithFields(logrus.Fields{
-				"request_id": ctx.Value("requestID").(string),
-			}).Tracef("Error sending chunk to server: %w", err)
+			gate.logger.WithRequestID(ctx).Tracef("Error sending chunk to server: %w", err)
 			return domain.User{}, err
 		}
 	}
 
 	userResponse, err := stream.CloseAndRecv()
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Tracef("Error receiving response from server: %w", err)
+		gate.logger.WithRequestID(ctx).Tracef("Error receiving response from server: %w", err)
 		return domain.User{}, err
 	}
 
@@ -229,9 +204,7 @@ func (gate *Gateway) DeleteAvatar(ctx context.Context, user domain.User) error {
 	dto.Map(&userRequest, user)
 	_, err := gate.userManager.Update(ctx, &userRequest)
 	if err != nil {
-		gate.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		gate.logger.WithRequestID(ctx).Trace(err)
 		return err
 	}
 	return nil

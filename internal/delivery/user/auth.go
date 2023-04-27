@@ -8,19 +8,17 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-	"github.com/sirupsen/logrus"
 )
 
 func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
 	userCreate := userCreateDTO{}
 	err := decoder.Decode(&userCreate)
 	if err != nil {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Tracef("failed to parse json string from the body: %w", err)
+		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
@@ -58,15 +56,14 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
 	credentials := userCredentialsDTO{}
 	err := decoder.Decode(&credentials)
 	if err != nil {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Tracef("failed to parse json string from the body: %w", err)
+		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
@@ -110,9 +107,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

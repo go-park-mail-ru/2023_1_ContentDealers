@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
-	"github.com/sirupsen/logrus"
 )
 
 // TODO: может, имеет смысл для констант ввести префикс ("kNameFormFile", "cNameFormFile")
@@ -39,9 +38,7 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -69,9 +66,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -87,18 +82,14 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile(h.avatarCfg.NameFormFile)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
-			h.logger.WithFields(logrus.Fields{
-				"request_id": r.Context().Value("requestID").(string),
-			}).Tracef("the size exceeded the maximum size equal to %d mb: %w", maxSizeBody, err)
+			h.logger.WithRequestID(ctx).Tracef("the size exceeded the maximum size equal to %d mb: %w", maxSizeBody, err)
 
 			io.WriteString(w, fmt.Sprintf(`{"status": 5, "message":"the size exceeded the maximum size equal to %d mb"}`, maxSizeBody))
 			// для совместимости с nginx
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
 			return
 		} else {
-			h.logger.WithFields(logrus.Fields{
-				"request_id": r.Context().Value("requestID").(string),
-			}).Tracef("failed to parse avatar file from the body: %w", err)
+			h.logger.WithRequestID(ctx).Tracef("failed to parse avatar file from the body: %w", err)
 			io.WriteString(w, `{"message":"failed to parse avatar file from the body"}`)
 		}
 		w.WriteHeader(http.StatusBadRequest)
@@ -109,9 +100,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	buff := make([]byte, buffSize)
 	_, err = file.Read(buff)
 	if err != nil {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Tracef("avatar file can't be read: %w", err)
+		h.logger.WithRequestID(ctx).Tracef("avatar file can't be read: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"avatar file can't be read"}`)
 	}
@@ -119,9 +108,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: можно еще проверить расширение header.filename
 	if header.Header["Content-Type"][0] != "image/jpeg" || filetype != "image/jpeg" {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Trace("avatar does not have type: image/jpeg")
+		h.logger.WithRequestID(ctx).Trace("avatar does not have type: image/jpeg")
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"status": 6, "message":"avatar does not have type: image/jpeg"}`)
 	}
@@ -144,9 +131,7 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -169,9 +154,7 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -188,9 +171,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -205,9 +186,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	userUpdate := userUpdateDTO{}
 	err = decoder.Decode(&userUpdate)
 	if err != nil {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Tracef("failed to parse json string from the body: %w", err)
+		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return

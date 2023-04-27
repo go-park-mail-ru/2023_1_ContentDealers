@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
-	"github.com/sirupsen/logrus"
 )
 
 type Handler struct {
@@ -25,12 +24,11 @@ func NewHandler(csrfUseCase CSRFUseCase, logger logging.Logger, cfg CSRFConfig) 
 }
 
 func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
-	sessionRaw := r.Context().Value("session")
+	ctx := r.Context()
+	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -46,9 +44,7 @@ func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		h.logger.WithFields(logrus.Fields{
-			"request_id": r.Context().Value("requestID").(string),
-		}).Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

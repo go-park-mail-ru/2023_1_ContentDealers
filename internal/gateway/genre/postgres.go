@@ -8,7 +8,6 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 )
 
 type Repository struct {
@@ -26,9 +25,7 @@ const fetchQueryTemplate = `select c.id, g.id, g.name from genres g join content
 func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (map[uint64][]domain.Genre, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		repo.logger.WithRequestID(ctx).Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -39,9 +36,7 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (m
 		g := domain.Genre{}
 		err = rows.Scan(&contentID, &g.ID, &g.Name)
 		if err != nil {
-			repo.logger.WithFields(logrus.Fields{
-				"request_id": ctx.Value("requestID").(string),
-			}).Trace(err)
+			repo.logger.WithRequestID(ctx).Trace(err)
 			return nil, err
 		}
 		result[contentID] = append(result[contentID], g)
@@ -59,9 +54,7 @@ func (repo *Repository) GetByContentIDs(ctx context.Context, contentIDs []uint64
 func (repo *Repository) GetByContentID(ctx context.Context, contentID uint64) ([]domain.Genre, error) {
 	ContentIDGenres, err := repo.GetByContentIDs(ctx, []uint64{contentID})
 	if err != nil {
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		repo.logger.WithRequestID(ctx).Trace(err)
 		return nil, err
 	}
 	return ContentIDGenres[contentID], nil
@@ -75,9 +68,7 @@ func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]d
 			order by g.id`
 	rows, err := repo.DB.QueryContext(ctx, query, PersonID)
 	if err != nil {
-		repo.logger.WithFields(logrus.Fields{
-			"request_id": ctx.Value("requestID").(string),
-		}).Trace(err)
+		repo.logger.WithRequestID(ctx).Trace(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -87,9 +78,7 @@ func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]d
 		g := domain.Genre{}
 		err = rows.Scan(&g.ID, &g.Name)
 		if err != nil {
-			repo.logger.WithFields(logrus.Fields{
-				"request_id": ctx.Value("requestID").(string),
-			}).Trace(err)
+			repo.logger.WithRequestID(ctx).Trace(err)
 			return nil, err
 		}
 		result = append(result, g)

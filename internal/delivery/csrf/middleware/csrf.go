@@ -9,7 +9,6 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
-	"github.com/sirupsen/logrus"
 )
 
 type CSRF struct {
@@ -30,6 +29,7 @@ func NewCSRF(csrfUseCase csrf.CSRF, logger logging.Logger, cfg csrfDelivery.CSRF
 // RequireCSRF обрабатывает только POST запросы
 func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		if r.Method != "POST" {
 			handler.ServeHTTP(w, r)
 			return
@@ -37,9 +37,7 @@ func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 		CSRFToken := r.Header.Get(mc.header)
 		if CSRFToken == "" {
 			msg := "csrf token was not given in header 'csrf-token'"
-			mc.logger.WithFields(logrus.Fields{
-				"request_id": r.Context().Value("requestID").(string),
-			}).Trace(msg)
+			mc.logger.WithRequestID(ctx).Trace(msg)
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, fmt.Sprintf(`{"message": "%s"}`, msg))
 			return
@@ -47,17 +45,13 @@ func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 		sessionRaw := r.Context().Value("session")
 		session, ok := sessionRaw.(domain.Session)
 		if !ok {
-			mc.logger.WithFields(logrus.Fields{
-				"request_id": r.Context().Value("requestID").(string),
-			}).Trace(domain.ErrSessionInvalid)
+			mc.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		isValid, err := mc.csrfUseCase.Check(r.Context(), session, CSRFToken)
 		if err != nil || !isValid {
-			mc.logger.WithFields(logrus.Fields{
-				"request_id": r.Context().Value("requestID").(string),
-			}).Tracef("csrf token is invalid: %w, isValid: %d", err, isValid)
+			mc.logger.WithRequestID(ctx).Tracef("csrf token is invalid: %w, isValid: %d", err, isValid)
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"message": "csrf token is invalid"}`)
 			return
