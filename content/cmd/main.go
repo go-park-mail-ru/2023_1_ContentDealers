@@ -11,24 +11,27 @@ import (
 
 	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	filmDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/delivery/film"
+	genreDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/delivery/genre"
 	personDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/delivery/person"
 	searchDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/delivery/search"
 	selectionDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/country"
 	filmRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/film"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/genre"
+	genreRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/genre"
 	personRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/role"
 	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/repository/selection"
 	contentUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/content"
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/film"
+	genreUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/genre"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/personrole"
 	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/search/extender"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/content/internal/usecase/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/film"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/selection"
@@ -73,7 +76,7 @@ func Run() error {
 
 	filmRepository := filmRepo.NewRepository(db, logger)
 	contentRepository := content.NewRepository(db, logger)
-	genreRepository := genre.NewRepository(db, logger)
+	genreRepository := genreRepo.NewRepository(db, logger)
 	selectionRepository := selectionRepo.NewRepository(db, logger)
 	countryRepository := country.NewRepository(db, logger)
 	personRepository := personRepo.NewRepository(db, logger)
@@ -97,6 +100,7 @@ func Run() error {
 		Logger:  logger,
 	})
 	selectionUsecase := selectionUseCase.NewUseCase(&selectionRepository, &contentRepository, logger)
+	genreUsecase := genreUseCase.NewUseCase(&genreRepository, &contentRepository, logger)
 
 	searchExtenders := []searchUseCase.Extender{
 		extender.NewContentExtender(&contentRepository, logger),
@@ -108,6 +112,7 @@ func Run() error {
 	personService := personDelivery.NewGrpc(personUsecase)
 	selectionService := selectionDelivery.NewGrpc(selectionUsecase)
 	searchService := searchDelivery.NewGrpc(searchUsecase)
+	genreService := genreDelivery.NewGrpc(genreUsecase)
 	pingService := pingDelivery.NewGrpc()
 
 	server := grpc.NewServer()
@@ -115,6 +120,7 @@ func Run() error {
 	person.RegisterPersonServiceServer(server, personService)
 	selection.RegisterSelectionServiceServer(server, selectionService)
 	search.RegisterSearchServiceServer(server, searchService)
+	genre.RegisterGenreServiceServer(server, genreService)
 	ping.RegisterPingServiceServer(server, pingService)
 
 	addr := fmt.Sprintf(":%s", cfg.Content.Port)

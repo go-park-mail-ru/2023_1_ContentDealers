@@ -116,7 +116,7 @@ func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.
 	return result, nil
 }
 
-func (repo *Repository) GetByGenreID(ctx context.Context, options domain.ContentFilter) ([]domain.Content, error) {
+func (repo *Repository) GetByGenreOptions(ctx context.Context, options domain.ContentFilter) ([]domain.Content, error) {
 	joinGenres := `join content_genres cg on cg.content_id = c.id
                    join genres g where cg.genre_id = g.id`
 	filterByGenreID := `where g.id = $1`
