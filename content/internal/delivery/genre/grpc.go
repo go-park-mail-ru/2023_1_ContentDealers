@@ -44,7 +44,7 @@ func (service *Grpc) GetAllGenres(ctx context.Context, _ *genre.Nothing) (*genre
 	}
 
 	var response genre.Genres
-	err = dto.Map(&response, genres)
+	err = dto.Map(&response.Genres, genres)
 	if err != nil {
 		return nil, err
 	}

@@ -108,6 +108,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	genres, err := h.useCase.GetAll(r.Context())
 	if err != nil {
+		h.logger.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -115,13 +116,14 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	var genresResponse []genreDTO
 	err = dto.Map(&genresResponse, genres)
 	if err != nil {
+		h.logger.Error(err)
 		h.logger.Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"selections": genresResponse,
+			"genres": genresResponse,
 		},
 	})
 

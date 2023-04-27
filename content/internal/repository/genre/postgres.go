@@ -87,7 +87,7 @@ func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]d
 }
 
 func (repo *Repository) GetAll(ctx context.Context) ([]domain.Genre, error) {
-	query := `select id, name fom genres order by id`
+	query := `select id, name from genres order by id;`
 	rows, err := repo.DB.QueryContext(ctx, query)
 	if err != nil {
 		repo.logger.Error(err)

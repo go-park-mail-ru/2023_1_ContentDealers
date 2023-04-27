@@ -145,7 +145,7 @@ func (gateway *Grpc) GetAllGenres(ctx context.Context) ([]domain.Genre, error) {
 	}
 
 	var result []domain.Genre
-	err = dto.Map(&result, genresDTO)
+	err = dto.Map(&result, genresDTO.Genres)
 	if err != nil {
 		return nil, err
 	}

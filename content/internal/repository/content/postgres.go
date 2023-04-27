@@ -118,11 +118,10 @@ func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.
 
 func (repo *Repository) GetByGenreOptions(ctx context.Context, options domain.ContentFilter) ([]domain.Content, error) {
 	joinGenres := `join content_genres cg on cg.content_id = c.id
-                   join genres g where cg.genre_id = g.id`
+                   join genres g on cg.genre_id = g.id`
 	filterByGenreID := `where g.id = $1`
 	orderByID := `order by c.id`
-	limitOffset := `limit $2 offset $3`
-
+	limitOffset := `limit $2 offset $3;`
 	query := strings.Join([]string{fetchQueryTemplate, joinGenres, filterByGenreID, orderByID, limitOffset}, " ")
 	rows, err := repo.DB.QueryContext(ctx, query, options.ID, options.Limit, options.Offset)
 	if err != nil {
