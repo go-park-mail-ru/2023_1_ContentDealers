@@ -29,7 +29,7 @@ func (service *Grpc) GetContentByOptions(ctx context.Context, options *genre.Opt
 	}
 
 	var response genre.GenreContent
-	err = dto.Map(&response, content)
+	err = dto.Map(&response.Content, content)
 	if err != nil {
 		return nil, err
 	}

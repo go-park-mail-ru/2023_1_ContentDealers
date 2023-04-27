@@ -131,7 +131,7 @@ func (gateway *Grpc) GetContentByOptions(ctx context.Context, options domain.Con
 		return nil, err
 	}
 	var result []domain.Content
-	err = dto.Map(&result, contentDTO)
+	err = dto.Map(&result, contentDTO.Content)
 	if err != nil {
 		return nil, err
 	}

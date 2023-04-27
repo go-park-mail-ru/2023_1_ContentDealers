@@ -65,8 +65,8 @@ func (h *Handler) GetContentByID(w http.ResponseWriter, r *http.Request) {
 
 	genre, err := h.useCase.GetContentByID(r.Context(), domainContent.ContentFilter{
 		ID:     id,
-		Limit:  0,
-		Offset: 0,
+		Limit:  uint32(limit),
+		Offset: uint32(offset),
 	})
 	if err != nil {
 		switch {
