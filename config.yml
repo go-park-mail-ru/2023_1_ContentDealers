@@ -2,7 +2,7 @@ is_debug: true
 listen:
   port: 8080
 cors:
-  allowed_origins: filmium.ru
+  allowed_origins: 89.208.199.170:8100
 storage:
   # password from env
   user: postgres
@@ -21,4 +21,3 @@ logging:
   filename: all.log.json
   # если пусто, то в логируется директория от корня
   project_dir: 2023_1_ContentDealers 
-content_addr: localhost:8081

@@ -130,7 +130,7 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
 				) s
 				group by s.id, s.title, s.description, s.rating, s.year, s.is_free, s.age_limit,
 				s.trailer_url, s.preview_url, s.type
-				order by max(s.sim), s.rating desc
+				order by max(s.sim) desc, s.rating desc
 				limit $3;`, likeQuery, query, searchLimit)
 	if err != nil {
 		repo.logger.Trace(err)

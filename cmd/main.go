@@ -86,9 +86,10 @@ func Run() error {
 		return err
 	}
 
+	contentAddr := fmt.Sprintf("%s:%s", cfg.Content.Host, cfg.Content.Port)
 	userRepository := userRepo.NewRepository(db, logger)
 	sessionRepository := session.NewRepository(redisClient, logger)
-	contentGateway, err := content.NewGrpc(cfg.ContentAddr, logger)
+	contentGateway, err := content.NewGrpc(contentAddr, logger)
 	if err != nil {
 		logger.Error(err)
 		return err

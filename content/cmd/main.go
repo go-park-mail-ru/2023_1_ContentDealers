@@ -113,7 +113,7 @@ func Run() error {
 	selection.RegisterSelectionServiceServer(server, selectionService)
 	search.RegisterSearchServiceServer(server, searchService)
 
-	addr := cfg.ContentAddr
+	addr := fmt.Sprintf(":%s", cfg.Content.Port)
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
