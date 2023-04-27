@@ -7,5 +7,5 @@ import (
 )
 
 type Extender interface {
-	Extend(ctx context.Context, query string) func(search *domain.Search) error
+	Extend(ctx context.Context, query string) (func(search *domain.Search), error)
 }

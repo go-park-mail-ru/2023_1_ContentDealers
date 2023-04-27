@@ -7,18 +7,18 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
-type Film struct {
+type UseCase struct {
 	contentGateway ContentGateway
 	logger         logging.Logger
 }
 
-func NewFilm(contentGateway ContentGateway, logger logging.Logger) *Film {
-	return &Film{
+func NewUseCase(contentGateway ContentGateway, logger logging.Logger) *UseCase {
+	return &UseCase{
 		contentGateway: contentGateway,
 		logger:         logger,
 	}
 }
 
-func (uc *Film) GetByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {
+func (uc *UseCase) GetByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {
 	return uc.contentGateway.GetFilmByContentID(ctx, ContentID)
 }

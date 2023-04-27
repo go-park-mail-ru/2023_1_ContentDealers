@@ -133,8 +133,10 @@ create table episodes (
     id bigserial primary key,
     series_id bigint not null references series(id) on delete cascade,
     season_num integer not null,
+    episode_num integer not null,
     content_url text not null,
-    title text not null
+    release_date date,
+    title text
 );
 
 -- trigger

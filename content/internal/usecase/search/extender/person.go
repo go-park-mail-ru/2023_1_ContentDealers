@@ -16,13 +16,12 @@ func NewPersonExtender(repo PersonRepository, logger logging.Logger) *PersonExte
 	return &PersonExtender{repo: repo, logger: logger}
 }
 
-func (extender *PersonExtender) Extend(ctx context.Context, query string) func(search *domain.Search) error {
-	return func(search *domain.Search) error {
-		persons, err := extender.repo.Search(ctx, query)
-		if err != nil {
-			return err
-		}
-		search.Persons = persons
-		return nil
+func (extender *PersonExtender) Extend(ctx context.Context, query string) (func(search *domain.Search), error) {
+	persons, err := extender.repo.Search(ctx, query)
+	if err != nil {
+		return nil, err
 	}
+	return func(search *domain.Search) {
+		search.Persons = persons
+	}, nil
 }

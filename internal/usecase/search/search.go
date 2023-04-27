@@ -7,18 +7,18 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
-type Search struct {
+type UseCase struct {
 	contentGateway ContentGateway
 	logger         logging.Logger
 }
 
-func NewSearch(contentGateway ContentGateway, logger logging.Logger) *Search {
-	return &Search{
+func NewUseCase(contentGateway ContentGateway, logger logging.Logger) *UseCase {
+	return &UseCase{
 		contentGateway: contentGateway,
 		logger:         logger,
 	}
 }
 
-func (uc *Search) Search(ctx context.Context, query string) (domain.Search, error) {
+func (uc *UseCase) Search(ctx context.Context, query string) (domain.Search, error) {
 	return uc.contentGateway.Search(ctx, query)
 }

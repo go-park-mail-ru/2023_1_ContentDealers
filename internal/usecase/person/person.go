@@ -7,18 +7,18 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
-type Person struct {
+type UseCase struct {
 	contentGateway ContentGateway
 	logger         logging.Logger
 }
 
-func NewPerson(contentGateway ContentGateway, logger logging.Logger) *Person {
-	return &Person{
+func NewUseCase(contentGateway ContentGateway, logger logging.Logger) *UseCase {
+	return &UseCase{
 		contentGateway: contentGateway,
 		logger:         logger,
 	}
 }
 
-func (uc *Person) GetByID(ctx context.Context, id uint64) (domain.Person, error) {
+func (uc *UseCase) GetByID(ctx context.Context, id uint64) (domain.Person, error) {
 	return uc.contentGateway.GetPersonByID(ctx, id)
 }

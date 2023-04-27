@@ -1,4 +1,4 @@
-package selection
+package genre
 
 import (
 	"context"
@@ -19,10 +19,10 @@ func NewUseCase(contentGateway ContentGateway, logger logging.Logger) *UseCase {
 	}
 }
 
-func (uc *UseCase) GetAll(ctx context.Context, limit, offset uint32) ([]domain.Selection, error) {
-	return uc.contentGateway.GetAllSelections(ctx, limit, offset)
+func (uc *UseCase) GetContentByID(ctx context.Context, filter domain.ContentFilter) ([]domain.Content, error) {
+	return uc.contentGateway.GetContentByGenreID(ctx, filter)
 }
 
-func (uc *UseCase) GetByID(ctx context.Context, id uint64) (domain.Selection, error) {
-	return uc.contentGateway.GetSelectionByID(ctx, id)
+func (uc *UseCase) GetAll(ctx context.Context) ([]domain.Genre, error) {
+	return uc.contentGateway.GetAllGenres(ctx)
 }

@@ -78,7 +78,29 @@ func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]d
 		g := domain.Genre{}
 		err = rows.Scan(&g.ID, &g.Name)
 		if err != nil {
-			repo.logger.Trace(err)
+			repo.logger.Error(err)
+			return nil, err
+		}
+		result = append(result, g)
+	}
+	return result, nil
+}
+
+func (repo *Repository) GetAll(ctx context.Context) ([]domain.Genre, error) {
+	query := `select id, name fom genres order by id`
+	rows, err := repo.DB.QueryContext(ctx, query)
+	if err != nil {
+		repo.logger.Error(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []domain.Genre
+	for rows.Next() {
+		g := domain.Genre{}
+		err = rows.Scan(&g.ID, &g.Name)
+		if err != nil {
+			repo.logger.Error(err)
 			return nil, err
 		}
 		result = append(result, g)

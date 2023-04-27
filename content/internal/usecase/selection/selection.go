@@ -7,17 +7,17 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
-type Selection struct {
+type UseCase struct {
 	repo    Repository
 	content ContentRepository
 	logger  logging.Logger
 }
 
-func NewSelection(repo Repository, content ContentRepository, logger logging.Logger) *Selection {
-	return &Selection{repo: repo, content: content, logger: logger}
+func NewUseCase(repo Repository, content ContentRepository, logger logging.Logger) *UseCase {
+	return &UseCase{repo: repo, content: content, logger: logger}
 }
 
-func (uc *Selection) joinContent(ctx context.Context, selections *[]domain.Selection) error {
+func (uc *UseCase) joinContent(ctx context.Context, selections *[]domain.Selection) error {
 
 	IDs := make([]uint64, 0, len(*selections))
 	IDToIdx := make(map[uint64]int, len(*selections))
@@ -39,7 +39,7 @@ func (uc *Selection) joinContent(ctx context.Context, selections *[]domain.Selec
 	return nil
 }
 
-func (uc *Selection) GetAll(ctx context.Context, limit, offset uint) ([]domain.Selection, error) {
+func (uc *UseCase) GetAll(ctx context.Context, limit, offset uint) ([]domain.Selection, error) {
 	selections, err := uc.repo.GetAll(ctx, limit, offset)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (uc *Selection) GetAll(ctx context.Context, limit, offset uint) ([]domain.S
 	return selections, err
 }
 
-func (uc *Selection) GetByID(ctx context.Context, id uint64) (domain.Selection, error) {
+func (uc *UseCase) GetByID(ctx context.Context, id uint64) (domain.Selection, error) {
 	selection, err := uc.repo.GetByID(ctx, id)
 	if err != nil {
 		return domain.Selection{}, err

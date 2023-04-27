@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+// protoc --go_out=. --go-grpc_out=. --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative *.proto
+option go_package = "./;genre";
+
+package genre;
+
+message Options {
+  uint64 ID = 1;
+  uint32 limit = 2;
+  uint32 offset = 3;
+}
+
+message Content {
+  uint64 ID = 1;
+  string Title = 2;
+  string Description = 3;
+  double Rating = 4;
+  int32 Year = 5;
+  bool IsFree = 6;
+  int32 AgeLimit = 7;
+  string TrailerURL = 8;
+  string PreviewURL = 9;
+  string Type = 10;
+}
+
+message GenreContent {
+  repeated Content Content = 1;
+}
+
+message Nothing {}
+
+message Genre {
+  uint64 ID = 1;
+  string Title = 2;
+}
+
+message Genres {
+  repeated Genre Genres = 1;
+}
+
+service GenreService {
+  rpc GetContentByOptions (Options) returns (GenreContent) {}
+  rpc GetAllGenres(Nothing) returns (Genres) {}
+}

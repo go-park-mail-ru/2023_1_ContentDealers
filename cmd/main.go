@@ -97,17 +97,17 @@ func Run() error {
 
 	userUsecase := userUseCase.NewUser(&userRepository, logger)
 	sessionUsecase := sessionUseCase.NewSession(&sessionRepository, logger)
-	selectionUsecase := selectionUseCase.NewSelection(&contentGateway, logger)
-	filmUsecase := filmUseCase.NewFilm(&contentGateway, logger)
-	personUsecase := personUseCase.NewPerson(&contentGateway, logger)
-	searchUsecase := searchUseCase.NewSearch(&contentGateway, logger)
+	selectionUsecase := selectionUseCase.NewUseCase(contentGateway, logger)
+	filmUsecase := filmUseCase.NewUseCase(contentGateway, logger)
+	personUsecase := personUseCase.NewUseCase(contentGateway, logger)
+	searchUsecase := searchUseCase.NewUseCase(contentGateway, logger)
 
 	err = godotenv.Load()
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
-	csrfUseCase, err := csrfUseCase.NewCSRF(os.Getenv("CSRF_TOKEN"), logger)
+	csrfUsecase, err := csrfUseCase.NewCSRF(os.Getenv("CSRF_TOKEN"), logger)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -117,7 +117,7 @@ func Run() error {
 	filmHandler := film.NewHandler(filmUsecase, logger)
 	personHandler := person.NewHandler(personUsecase, logger)
 	userHandler := user.NewHandler(userUsecase, sessionUsecase, logger)
-	csrfHandler := csrf.NewHandler(csrfUseCase, logger)
+	csrfHandler := csrf.NewHandler(csrfUsecase, logger)
 	searchHandler := search.NewHandler(searchUsecase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
@@ -129,7 +129,7 @@ func Run() error {
 		SearchHandler:    searchHandler,
 		SessionUseCase:   sessionUsecase,
 		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
-		CSRFUseCase:      *csrfUseCase,
+		CSRFUseCase:      *csrfUsecase,
 		Logger:           logger,
 	})
 

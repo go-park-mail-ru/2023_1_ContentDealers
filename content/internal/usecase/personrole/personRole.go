@@ -1,4 +1,4 @@
-package personRole
+package personrole
 
 import (
 	"context"
@@ -7,17 +7,17 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
-type PersonRole struct {
+type UseCase struct {
 	personRepo PersonRepository
 	roleRepo   RoleRepository
 	logger     logging.Logger
 }
 
-func NewPersonRole(person PersonRepository, role RoleRepository, logger logging.Logger) *PersonRole {
-	return &PersonRole{personRepo: person, roleRepo: role, logger: logger}
+func NewUseCase(person PersonRepository, role RoleRepository, logger logging.Logger) *UseCase {
+	return &UseCase{personRepo: person, roleRepo: role, logger: logger}
 }
 
-func (uc *PersonRole) GetByContentID(ctx context.Context, ContentID uint64) ([]domain.PersonRoles, error) {
+func (uc *UseCase) GetByContentID(ctx context.Context, ContentID uint64) ([]domain.PersonRoles, error) {
 	persons, err := uc.personRepo.GetByContentID(ctx, ContentID)
 	if err != nil {
 		return nil, err
