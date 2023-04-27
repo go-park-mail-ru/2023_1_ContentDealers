@@ -17,6 +17,7 @@ drop table if exists content_selections cascade;
 
 create schema if not exists filmium;
 create schema if not exists user_schema;
+create schema if not exists favorites_schema;
 set search_path=filmium;
 
 drop domain if exists gender cascade;
@@ -46,6 +47,20 @@ create table user_schema.users (
     avatar_url text not null default 'media/avatars/default_avatar.jpg',
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
+);
+
+create table favorites_schema.users_content_favorites (
+    user_id bigint not null,
+    content_id bigint not null,
+    created_at timestamp not null default now(),
+    primary key (user_id, content_id)
+);
+
+create table favorites_schema.users_persons_favorites (
+    user_id bigint not null,
+    person_id bigint not null,
+    created_at timestamp not null default now(),
+    primary key (user_id, person_id)
 );
 
 create table roles (
