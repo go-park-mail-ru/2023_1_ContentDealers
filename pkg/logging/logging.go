@@ -92,10 +92,26 @@ func NewLogger(cfg LoggingConfig, serviceName string) (Logger, error) {
 	// используем только hooks, обычный вывод не нужен
 	logger.SetOutput(io.Discard)
 
+	// определяем уровни логирования
+	var levels []logrus.Level
+	if len(cfg.Levels) != 0 {
+		if cfg.Levels[0] == "all" {
+			levels = logrus.AllLevels
+		} else {
+			for _, levelString := range cfg.Levels {
+				level, err := logrus.ParseLevel(levelString)
+				if err != nil {
+					return Logger{}, err
+				}
+				levels = append(levels, level)
+			}
+		}
+	}
+
 	// регистрируем hook
 	logger.AddHook(&writerHook{
 		Writer:      []io.Writer{file, os.Stdout},
-		LogLevels:   logrus.AllLevels,
+		LogLevels:   levels,
 		serviceName: serviceName,
 	})
 

@@ -11,5 +11,6 @@ session:
 logging:
   dir: log
   filename: all.log.json
-  # если пусто, то в логируется директория от корня
+  levels: 
+    - all
   project_dir: 2023_1_ContentDealers/session 

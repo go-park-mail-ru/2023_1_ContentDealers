@@ -6,6 +6,10 @@ server:
   write_timeout: 10
   read_header_timeout: 5
   shutdown_timeout: 5
+service_sesion:
+  addr: 172.27.195.147:8081
+service_user:
+  addr: 172.27.195.147:8082
 csrf:
   header: csrf-token
   # seconds
@@ -13,7 +17,7 @@ csrf:
 cors:
   allowed_origins: filmium.ru
 avatar:
-  name_form_file: avatarr
+  name_form_file: avatar
   # mb
   max_size_body: 10
 postgres:
@@ -32,4 +36,6 @@ redis:
 logging:
   dir: log
   filename: all.log.json
+  level: 
+    - all
 

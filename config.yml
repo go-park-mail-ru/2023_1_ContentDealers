@@ -36,5 +36,17 @@ redis:
 logging:
   dir: log
   filename: all.log.json
+  levels: 
+    - all
   # если пусто, то в логируется директория от корня
   project_dir: 2023_1_ContentDealers 
+
+# levels
+  # - all
+  # - panic
+  # - fatal
+  # - error
+  # - warn
+  # - info
+  # - debug
+  # - trace
