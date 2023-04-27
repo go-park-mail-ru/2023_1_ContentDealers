@@ -20,7 +20,7 @@ func NewUseCase(contentGateway ContentGateway, logger logging.Logger) *UseCase {
 }
 
 func (uc *UseCase) GetContentByID(ctx context.Context, filter domain.ContentFilter) ([]domain.Content, error) {
-	return uc.contentGateway.GetContentByGenreID(ctx, filter)
+	return uc.contentGateway.GetContentByOptions(ctx, filter)
 }
 
 func (uc *UseCase) GetAll(ctx context.Context) ([]domain.Genre, error) {

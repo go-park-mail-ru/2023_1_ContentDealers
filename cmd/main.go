@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
@@ -21,6 +22,7 @@ import (
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
+	genreUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/genre"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
 	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/search"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
@@ -101,6 +103,7 @@ func Run() error {
 	filmUsecase := filmUseCase.NewUseCase(contentGateway, logger)
 	personUsecase := personUseCase.NewUseCase(contentGateway, logger)
 	searchUsecase := searchUseCase.NewUseCase(contentGateway, logger)
+	genreUsecase := genreUseCase.NewUseCase(contentGateway, logger)
 
 	err = godotenv.Load()
 	if err != nil {
@@ -119,6 +122,7 @@ func Run() error {
 	userHandler := user.NewHandler(userUsecase, sessionUsecase, logger)
 	csrfHandler := csrf.NewHandler(csrfUsecase, logger)
 	searchHandler := search.NewHandler(searchUsecase, logger)
+	genreHandler := genre.NewHandler(genreUsecase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:      userHandler,
@@ -127,6 +131,7 @@ func Run() error {
 		FilmHandler:      filmHandler,
 		PersonHandler:    personHandler,
 		SearchHandler:    searchHandler,
+		GenreHandler:     genreHandler,
 		SessionUseCase:   sessionUsecase,
 		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
 		CSRFUseCase:      *csrfUsecase,

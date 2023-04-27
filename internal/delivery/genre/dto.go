@@ -1,4 +1,4 @@
-package selection
+package genre
 
 type contentDTO struct {
 	ID          uint64  `json:"id"`
@@ -14,7 +14,6 @@ type contentDTO struct {
 }
 
 type genreDTO struct {
-	ID      uint64       `json:"id"`
-	Title   string       `json:"title"`
-	Content []contentDTO `json:"content"`
+	ID    uint64 `json:"id"`
+	Title string `json:"title"`
 }

@@ -7,6 +7,6 @@ import (
 )
 
 type ContentGateway interface {
-	GetContentByGenreID(ctx context.Context, filter domain.ContentFilter) ([]domain.Content, error)
+	GetContentByOptions(ctx context.Context, filter domain.ContentFilter) ([]domain.Content, error)
 	GetAllGenres(ctx context.Context) ([]domain.Genre, error)
 }

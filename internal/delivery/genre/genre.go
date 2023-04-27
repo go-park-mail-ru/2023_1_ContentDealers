@@ -1,4 +1,4 @@
-package selection
+package genre
 
 import (
 	"encoding/json"
@@ -80,7 +80,7 @@ func (h *Handler) GetContentByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	genreResponse := genreDTO{}
+	var genreResponse []contentDTO
 	err = dto.Map(&genreResponse, genre)
 	if err != nil {
 		h.logger.Trace(err)
@@ -89,7 +89,39 @@ func (h *Handler) GetContentByID(w http.ResponseWriter, r *http.Request) {
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"genre": genreResponse,
+			"content": genreResponse,
+		},
+	})
+
+	if err != nil {
+		h.logger.Trace(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+}
+
+func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	genres, err := h.useCase.GetAll(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var genresResponse []genreDTO
+	err = dto.Map(&genresResponse, genres)
+	if err != nil {
+		h.logger.Trace(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	response, err := json.Marshal(map[string]interface{}{
+		"body": map[string]interface{}{
+			"selections": genresResponse,
 		},
 	})
 
