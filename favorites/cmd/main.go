@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	config "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/config"
+	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	delivery "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/internal/delivery/content"
 	repository "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/internal/repository/content"
 	usecase "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/internal/usecase/content"
@@ -35,10 +35,12 @@ func Run() error {
 		return fmt.Errorf("Needed to pass config file")
 	}
 
-	cfg, err := config.GetCfg(*configPtr)
+	cfgGeneral, err := config.GetCfg(*configPtr)
 	if err != nil {
 		return fmt.Errorf("Fail to parse config yml file: %w", err)
 	}
+
+	cfg := cfgGeneral.Favorites
 
 	logger, err := logging.NewLogger(cfg.Logging, "favorites service")
 	if err != nil {

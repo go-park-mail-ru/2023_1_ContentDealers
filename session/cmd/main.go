@@ -9,9 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
-	config "github.com/go-park-mail-ru/2023_1_ContentDealers/session/config"
 	delivery "github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/delivery/session"
 	repository "github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/repository/session"
 	usecase "github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/usecase/session"
@@ -35,10 +35,12 @@ func Run() error {
 		return fmt.Errorf("Needed to pass config file")
 	}
 
-	cfg, err := config.GetCfg(*configPtr)
+	cfgGeneral, err := config.GetCfg(*configPtr)
 	if err != nil {
 		return fmt.Errorf("Fail to parse config yml file: %w", err)
 	}
+
+	cfg := cfgGeneral.Session
 
 	logger, err := logging.NewLogger(cfg.Logging, "session service")
 	if err != nil {

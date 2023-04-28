@@ -1,0 +1,3 @@
+FROM ubuntu
+
+CMD /build/out -c /build/config.yml

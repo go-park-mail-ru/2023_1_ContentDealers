@@ -11,9 +11,14 @@ version: '3'
 # docker compose config - подставляет переменные окружения из .env в ${POSTGRES_PASSWORD} и показывает итоговый конфиг 
 
 services:
-  # зайти в контейнере в бд "psql -U postgres"
+
+# -------------------------------------
+# ===========[ STORAGES ]==============
+# -------------------------------------
   postgres:
-    build: .
+    build:
+      context: .
+      dockerfile: postgres-dockerfile
     restart: always
     environment: 
       - PGDATA=/var/lib/postgresql/data/pgdata
@@ -23,22 +28,139 @@ services:
       options:
         max-size: 10m
         max-file: "3"
-    ports:
-      - '5432:5432'
     volumes:
-      # локальная директория для хранения данных бд
       - ./tmp_persist:/var/lib/postgresql/data
-  adminer:
-    image: adminer
-    restart: always
-    links:
-        - "postgres:postgres"
-    ports:
-      - '8090:8080'
+    networks:
+      net:
+        ipv4_address: 192.168.243.20
+        
+# -------------------------------------
+
   redis:
     image: 'redis'
     volumes:
       - ./tmp_persist/redis_data:/data
     ports:
       - '6379:6379'
+    networks:
+      net:
+        ipv4_address: 192.168.243.21
+      
+# -------------------------------------
+# ==========[ SERVICES ]===============
+# -------------------------------------
+
+  content:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    environment: 
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+    - ./build/content:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.11
+
+# -------------------------------------
+
+  user:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    environment: 
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+    - ./build/user:/build/
+    - ./media:/media/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.12
+
+# -------------------------------------
+
+  favorites:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    environment: 
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+    - ./build/favorites:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.13
+
+# -------------------------------------
+
+  session:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    links:
+      - redis:redis
+    depends_on:
+      - redis
+    volumes:
+    - ./build/session:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.14
+
+# -------------------------------------
+# ========[ API-GATEWAY ]==============
+# -------------------------------------
+
+  api_gateway:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    ports:
+      - 8080:80
+    links:
+      - session:session
+      - user:user
+      - favorites:favorites
+      - content:content
+    depends_on:
+      - session
+      - user
+      - favorites
+      - content
+    environment: 
+      - CSRF_TOKEN=${CSRF_TOKEN}
+    volumes:
+    - ./build/api_gateway:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.10
+
+        
+# -------------------------------------
+# ==========[ NETWORKS ]===============
+# -------------------------------------
+
+networks:
+  net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.243.0/24
 

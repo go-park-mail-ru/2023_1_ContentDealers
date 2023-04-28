@@ -58,10 +58,11 @@ func Run() error {
 		return fmt.Errorf("needed to pass config file")
 	}
 
-	cfg, err := config.GetCfg(*configPtr)
+	cfgGeneral, err := config.GetCfg(*configPtr)
 	if err != nil {
 		return fmt.Errorf("fail to parse config yml file: %w", err)
 	}
+	cfg := cfgGeneral.Content
 
 	logger, err := logging.NewLogger(cfg.Logging, "content serivce")
 	if err != nil {

@@ -54,10 +54,12 @@ func Run() error {
 		return fmt.Errorf("Needed to pass config file")
 	}
 
-	cfg, err := config.GetCfg(*configPtr)
+	cfgGeneral, err := config.GetCfg(*configPtr)
 	if err != nil {
 		return fmt.Errorf("Fail to parse config yml file: %w", err)
 	}
+
+	cfg := cfgGeneral.ApiGateway
 
 	logger, err := logging.NewLogger(cfg.Logging, "api-gateway")
 	if err != nil {
@@ -96,7 +98,6 @@ func Run() error {
 	err = godotenv.Load()
 	if err != nil {
 		logger.Error(err)
-		return err
 	}
 
 	csrfUseCase, err := csrfUseCase.NewUseCase(os.Getenv("CSRF_TOKEN"), logger)

@@ -1,10 +1,12 @@
 tmp_persist/pgdata/*
 tmp_persist/redis_data/*
+tmp_persist
 
 # IDE folders
 .idea
 
 # .env 
+build
 log
 media/avatars/2023
 
