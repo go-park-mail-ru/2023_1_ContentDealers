@@ -15,19 +15,19 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 )
 
-type CSRF struct {
+type UseCase struct {
 	Secret []byte
 	logger logging.Logger
 }
 
-func NewCSRF(secret string, logger logging.Logger) (*CSRF, error) {
+func NewUseCase(secret string, logger logging.Logger) (*UseCase, error) {
 	tmp := []byte(secret)
 	// проверка секрета на валидность (длина секрета 16, 24, 32 байта)
 	_, err := aes.NewCipher(tmp)
 	if err != nil {
-		return &CSRF{}, fmt.Errorf("cypher problem %v", err)
+		return &UseCase{}, fmt.Errorf("cypher problem %v", err)
 	}
-	return &CSRF{Secret: tmp, logger: logger}, nil
+	return &UseCase{Secret: tmp, logger: logger}, nil
 }
 
 type tokenData struct {
@@ -36,7 +36,7 @@ type tokenData struct {
 	Exp       int64
 }
 
-func (c *CSRF) Create(ctx context.Context, s domain.Session, tokenExpTime int64) (string, error) {
+func (c *UseCase) Create(ctx context.Context, s domain.Session, tokenExpTime int64) (string, error) {
 	block, err := aes.NewCipher(c.Secret)
 	if err != nil {
 		c.logger.WithRequestID(ctx).Trace(err)
@@ -70,7 +70,7 @@ func (c *CSRF) Create(ctx context.Context, s domain.Session, tokenExpTime int64)
 	return token, nil
 }
 
-func (c *CSRF) Check(ctx context.Context, s domain.Session, inputToken string) (bool, error) {
+func (c *UseCase) Check(ctx context.Context, s domain.Session, inputToken string) (bool, error) {
 	// объект блочного шифра AES
 	block, err := aes.NewCipher(c.Secret)
 	if err != nil {

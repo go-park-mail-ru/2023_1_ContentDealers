@@ -10,12 +10,12 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
-func NewAuth(sessionUseCase user.SessionUseCase, logger logging.Logger) Auth {
-	return Auth{sessionUseCase: sessionUseCase, logger: logger}
+func NewAuth(sessionGateway user.SessionGateway, logger logging.Logger) Auth {
+	return Auth{sessionGateway: sessionGateway, logger: logger}
 }
 
 type Auth struct {
-	sessionUseCase user.SessionUseCase
+	sessionGateway user.SessionGateway
 	logger         logging.Logger
 }
 
@@ -30,7 +30,7 @@ func (mw *Auth) RequireUnAuth(handler http.Handler) http.Handler {
 
 		sessionID := sessionIDRaw.Value
 
-		session, err := mw.sessionUseCase.Get(r.Context(), sessionID)
+		session, err := mw.sessionGateway.Get(r.Context(), sessionID)
 		if err == nil && session.ExpiresAt.After(time.Now()) {
 			mw.logger.WithRequestID(ctx).Trace("user is already logged in")
 			w.WriteHeader(http.StatusBadRequest)
@@ -55,7 +55,7 @@ func (mw *Auth) RequireAuth(handler http.Handler) http.Handler {
 
 		sessionID := sessionIDRaw.Value
 
-		session, err := mw.sessionUseCase.Get(r.Context(), sessionID)
+		session, err := mw.sessionGateway.Get(r.Context(), sessionID)
 		if err != nil || session.ExpiresAt.Before(time.Now()) {
 			mw.logger.WithRequestID(ctx).Trace(err)
 			w.WriteHeader(http.StatusBadRequest)

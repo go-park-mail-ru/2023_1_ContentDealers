@@ -12,12 +12,12 @@ import (
 )
 
 type CSRF struct {
-	csrfUseCase csrf.CSRF
+	csrfUseCase csrf.UseCase
 	logger      logging.Logger
 	header      string
 }
 
-func NewCSRF(csrfUseCase csrf.CSRF, logger logging.Logger, cfg csrfDelivery.CSRFConfig) CSRF {
+func NewCSRF(csrfUseCase csrf.UseCase, logger logging.Logger, cfg csrfDelivery.CSRFConfig) CSRF {
 	return CSRF{
 		csrfUseCase: csrfUseCase,
 		logger:      logger,

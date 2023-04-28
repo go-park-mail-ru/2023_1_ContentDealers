@@ -40,7 +40,6 @@ import (
 	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
 	csrfUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
-	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
 )
 
@@ -100,7 +99,6 @@ func Run() error {
 	countryRepository := countryRepo.NewRepository(db, logger)
 	personRepository := personRepo.NewRepository(db, logger)
 
-	sessionUseCase := sessionUseCase.NewSession(&sessionGateway, logger)
 	selectionUseCase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository, logger)
 	personRolesUseCase := personRoleUseCase.NewPersonRole(&personRepository, &roleRepository, logger)
 
@@ -119,14 +117,14 @@ func Run() error {
 		Genre:   &genreRepository,
 	}, logger)
 
-	favUseCase := favUseCase.NewUseCase(favGateway, sessionUseCase, contentUseCase, logger)
+	favUseCase := favUseCase.NewUseCase(favGateway, sessionGateway, contentUseCase, logger)
 
 	err = godotenv.Load()
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
-	csrfUseCase, err := csrfUseCase.NewCSRF(os.Getenv("CSRF_TOKEN"), logger)
+	csrfUseCase, err := csrfUseCase.NewUseCase(os.Getenv("CSRF_TOKEN"), logger)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -137,19 +135,19 @@ func Run() error {
 	filmHandler := film.NewHandler(filmUseCase, logger)
 
 	personHandler := person.NewHandler(personUseCase, logger)
-	userHandler := user.NewHandler(userGateway, sessionUseCase, logger, cfg.Avatar)
+	userHandler := user.NewHandler(userGateway, sessionGateway, logger, cfg.Avatar)
 	csrfHandler := csrf.NewHandler(csrfUseCase, logger, cfg.CSRF)
 
 	favHandler := favorites.NewHandler(favUseCase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
-		UserHandler:      userHandler,
-		FavHandler:       favHandler,
-		CSRFHandler:      csrfHandler,
+		UserHandler:      *userHandler,
+		FavHandler:       *favHandler,
+		CSRFHandler:      *csrfHandler,
 		SelectionHandler: selectionHandler,
 		FilmHandler:      filmHandler,
 		PersonHandler:    personHandler,
-		SessionUseCase:   sessionUseCase,
+		SessionGateway:   sessionGateway,
 		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
 		CSRFUseCase:      *csrfUseCase,
 		Logger:           logger,

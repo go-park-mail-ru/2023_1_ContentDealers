@@ -11,12 +11,12 @@ import (
 
 type UseCase struct {
 	gate    Gateway
-	session SessionUseCase
+	session SessionGateway
 	content ContentUseCase
 	logger  logging.Logger
 }
 
-func NewUseCase(gate Gateway, session SessionUseCase, content ContentUseCase, logger logging.Logger) *UseCase {
+func NewUseCase(gate Gateway, session SessionGateway, content ContentUseCase, logger logging.Logger) *UseCase {
 	return &UseCase{gate: gate, session: session, content: content, logger: logger}
 }
 

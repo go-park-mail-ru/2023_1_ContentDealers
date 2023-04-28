@@ -17,7 +17,7 @@ type UserGateway interface {
 	DeleteAvatar(context.Context, domainUser.User) error
 }
 
-type SessionUseCase interface {
+type SessionGateway interface {
 	Create(ctx context.Context, user domainUser.User) (domainSession.Session, error)
 	Get(ctx context.Context, sessionID string) (domainSession.Session, error)
 	Delete(ctx context.Context, sessionID string) error

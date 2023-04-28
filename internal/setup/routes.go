@@ -34,8 +34,8 @@ type SettingsRouter struct {
 	SelectionHandler selection.Handler
 	FilmHandler      film.Handler
 	PersonHandler    person.Handler
-	SessionUseCase   SessionUseCase
-	CSRFUseCase      csrfUseCase.CSRF
+	SessionGateway   SessionGateway
+	CSRFUseCase      csrfUseCase.UseCase
 	Logger           logging.Logger
 	CSRFConfig       csrf.CSRFConfig
 }
@@ -54,7 +54,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 		Debug:            true,
 	})
 	corsMiddleware.Log = FakeLogger{}
-	authMiddleware := middlewareUser.NewAuth(s.SessionUseCase, s.Logger)
+	authMiddleware := middlewareUser.NewAuth(s.SessionGateway, s.Logger)
 	CSRFMiddleware := middlewareCSRF.NewCSRF(s.CSRFUseCase, s.Logger, s.CSRFConfig)
 	generalMiddleware := middleware.NewGeneral(s.Logger)
 

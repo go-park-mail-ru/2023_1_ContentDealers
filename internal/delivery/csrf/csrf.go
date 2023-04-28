@@ -10,13 +10,13 @@ import (
 )
 
 type Handler struct {
-	csrfUseCase CSRFUseCase
+	csrfUseCase UseCase
 	logger      logging.Logger
 	expiresAt   time.Duration
 }
 
-func NewHandler(csrfUseCase CSRFUseCase, logger logging.Logger, cfg CSRFConfig) Handler {
-	return Handler{
+func NewHandler(csrfUseCase UseCase, logger logging.Logger, cfg CSRFConfig) *Handler {
+	return &Handler{
 		csrfUseCase: csrfUseCase,
 		logger:      logger,
 		expiresAt:   time.Second * time.Duration(cfg.ExpiresAt),

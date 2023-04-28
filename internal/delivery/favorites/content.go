@@ -15,8 +15,8 @@ type Handler struct {
 	logger  logging.Logger
 }
 
-func NewHandler(useCase FavContentUseCase, logger logging.Logger) Handler {
-	return Handler{
+func NewHandler(useCase FavContentUseCase, logger logging.Logger) *Handler {
+	return &Handler{
 		useCase: useCase,
 		logger:  logger,
 	}

@@ -84,7 +84,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := h.sessionUseCase.Create(r.Context(), user)
+	session, err := h.sessionGateway.Create(r.Context(), user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -115,7 +115,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.sessionUseCase.Delete(r.Context(), session.ID)
+	err := h.sessionGateway.Delete(r.Context(), session.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

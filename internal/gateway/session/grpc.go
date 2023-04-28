@@ -30,7 +30,7 @@ func pingServer(ctx context.Context, client session.SessionServiceClient) error 
 	return nil
 }
 
-func NewGateway(logger logging.Logger, cfg ServiceSessionConfig) (Gateway, error) {
+func NewGateway(logger logging.Logger, cfg ServiceSessionConfig) (*Gateway, error) {
 	interseptor := SessionInterceptor{logger: logger}
 
 	grcpConn, err := grpc.Dial(
@@ -40,7 +40,7 @@ func NewGateway(logger logging.Logger, cfg ServiceSessionConfig) (Gateway, error
 	)
 	if err != nil {
 		logger.Error("cant connect to grpc session service")
-		return Gateway{}, err
+		return nil, err
 	}
 
 	sessManager := session.NewSessionServiceClient(grcpConn)
@@ -48,10 +48,10 @@ func NewGateway(logger logging.Logger, cfg ServiceSessionConfig) (Gateway, error
 	err = pingServer(context.Background(), sessManager)
 	if err != nil {
 		logger.Error(err)
-		return Gateway{}, err
+		return nil, err
 	}
 
-	return Gateway{logger: logger, sessManager: sessManager}, nil
+	return &Gateway{logger: logger, sessManager: sessManager}, nil
 }
 
 func (gate *Gateway) Create(ctx context.Context, user domainUser.User) (domainSession.Session, error) {
