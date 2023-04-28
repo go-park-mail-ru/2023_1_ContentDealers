@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	domainFav "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 )
 
 type UseCase struct {
@@ -20,14 +21,14 @@ func NewUseCase(gate Gateway, session SessionUseCase, content ContentUseCase, lo
 }
 
 func (uc *UseCase) GetUserIDByContext(ctx context.Context) (uint64, error) {
-	session, ok := ctx.Value("session").(domain.Session)
+	session, ok := ctx.Value("session").(domainSession.Session)
 	if !ok {
 		return 0, fmt.Errorf("session not found")
 	}
 	return session.UserID, nil
 }
 
-func (uc *UseCase) Delete(ctx context.Context, favorite domain.FavoriteContent) error {
+func (uc *UseCase) Delete(ctx context.Context, favorite domainFav.FavoriteContent) error {
 	userID, err := uc.GetUserIDByContext(ctx)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
@@ -37,7 +38,7 @@ func (uc *UseCase) Delete(ctx context.Context, favorite domain.FavoriteContent) 
 	return uc.gate.Delete(ctx, favorite)
 }
 
-func (uc *UseCase) Add(ctx context.Context, favorite domain.FavoriteContent) error {
+func (uc *UseCase) Add(ctx context.Context, favorite domainFav.FavoriteContent) error {
 	userID, err := uc.GetUserIDByContext(ctx)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
@@ -47,11 +48,11 @@ func (uc *UseCase) Add(ctx context.Context, favorite domain.FavoriteContent) err
 	return uc.gate.Add(ctx, favorite)
 }
 
-func (uc *UseCase) Get(ctx context.Context, options domain.FavoritesOptions) ([]domain.FavoriteContent, error) {
+func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) ([]domainFav.FavoriteContent, error) {
 	userID, err := uc.GetUserIDByContext(ctx)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
-		return []domain.FavoriteContent{}, err
+		return []domainFav.FavoriteContent{}, err
 	}
 	options.UserID = userID
 	return uc.gate.Get(ctx, options)

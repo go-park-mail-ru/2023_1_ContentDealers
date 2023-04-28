@@ -8,8 +8,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
+	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 )
 
 // TODO: может, имеет смысл для констант ввести префикс ("kNameFormFile", "cNameFormFile")
@@ -36,9 +37,9 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain.Session)
+	session, ok := sessionRaw.(domainSession.Session)
 	if !ok {
-		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domainSession.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -64,9 +65,9 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain.Session)
+	session, ok := sessionRaw.(domainSession.Session)
 	if !ok {
-		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domainSession.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -129,9 +130,9 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain.Session)
+	session, ok := sessionRaw.(domainSession.Session)
 	if !ok {
-		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domainSession.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -169,9 +170,9 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain.Session)
+	session, ok := sessionRaw.(domainSession.Session)
 	if !ok {
-		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domainSession.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -198,7 +199,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	err = h.userGateway.Update(ctx, user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		if errors.Is(err, domain.ErrUserAlreadyExists) {
+		if errors.Is(err, domainUser.ErrUserAlreadyExists) {
 			io.WriteString(w, `{"status": 7, "message":"user with this email already exists"}`)
 		}
 		return

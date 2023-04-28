@@ -4,11 +4,12 @@ import (
 	"context"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/dranikpg/dto-mapper"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 	userProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/proto/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -71,7 +72,16 @@ func (gate *Gateway) Register(ctx context.Context, user domain.User) (domain.Use
 	userResponse, err := gate.userManager.Register(ctx, &userRequest)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return domain.User{}, err
+		switch {
+		case strings.Contains(err.Error(), domain.ErrNotValidPassword.Error()):
+			return domain.User{}, domain.ErrNotValidPassword
+		case strings.Contains(err.Error(), domain.ErrNotValidEmail.Error()):
+			return domain.User{}, domain.ErrNotValidEmail
+		case strings.Contains(err.Error(), domain.ErrUserAlreadyExists.Error()):
+			return domain.User{}, domain.ErrUserAlreadyExists
+		default:
+			return domain.User{}, err
+		}
 	}
 	err = dto.Map(&user, userResponse)
 	if err != nil {
@@ -91,7 +101,12 @@ func (gate *Gateway) Auth(ctx context.Context, user domain.User) (domain.User, e
 	userResponse, err := gate.userManager.Auth(ctx, &userRequest)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return domain.User{}, err
+		switch {
+		case strings.Contains(err.Error(), domain.ErrWrongCredentials.Error()):
+			return domain.User{}, domain.ErrWrongCredentials
+		default:
+			return domain.User{}, err
+		}
 	}
 	err = dto.Map(&user, userResponse)
 	if err != nil {
@@ -113,7 +128,12 @@ func (gate *Gateway) GetByID(ctx context.Context, id uint64) (domain.User, error
 	userResponse, err := gate.userManager.GetByID(ctx, &UserIDRequest)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return domain.User{}, err
+		switch {
+		case strings.Contains(err.Error(), domain.ErrUserNotFound.Error()):
+			return domain.User{}, domain.ErrUserNotFound
+		default:
+			return domain.User{}, err
+		}
 	}
 
 	user := domain.User{}

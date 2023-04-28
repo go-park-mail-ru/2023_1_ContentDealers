@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
+	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 )
 
 func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +28,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	if userCreate.AvatarURL == "" {
 		userCreate.AvatarURL = "media/avatars/default_avatar.jpg"
 	}
-	user := domain.User{
+	user := domainUser.User{
 		Email:        userCreate.Email,
 		PasswordHash: userCreate.Password,
 		AvatarURL:    userCreate.AvatarURL,
@@ -70,7 +70,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := domain.User{
+	user := domainUser.User{
 		Email:        credentials.Email,
 		PasswordHash: credentials.Password, // no hash
 	}
@@ -108,9 +108,9 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain.Session)
+	session, ok := sessionRaw.(domainSession.Session)
 	if !ok {
-		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domainSession.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

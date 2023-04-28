@@ -4,9 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/proto/session"
+	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -53,7 +54,7 @@ func NewGateway(logger logging.Logger, cfg ServiceSessionConfig) (Gateway, error
 	return Gateway{logger: logger, sessManager: sessManager}, nil
 }
 
-func (gate *Gateway) Create(ctx context.Context, user domain.User) (domain.Session, error) {
+func (gate *Gateway) Create(ctx context.Context, user domainUser.User) (domainSession.Session, error) {
 	var request session.UserID
 	request.ID = user.ID
 	md := metadata.Pairs(
@@ -64,15 +65,15 @@ func (gate *Gateway) Create(ctx context.Context, user domain.User) (domain.Sessi
 	sessionResponse, err := gate.sessManager.Create(ctx, &request)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return domain.Session{}, err
+		return domainSession.Session{}, err
 	}
 
 	expireTime, err := time.Parse(time.RFC3339, sessionResponse.ExpiresAt)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return domain.Session{}, err
+		return domainSession.Session{}, err
 	}
-	sess := domain.Session{
+	sess := domainSession.Session{
 		ID:        sessionResponse.ID,
 		UserID:    sessionResponse.UserID,
 		ExpiresAt: expireTime,
@@ -80,7 +81,7 @@ func (gate *Gateway) Create(ctx context.Context, user domain.User) (domain.Sessi
 	return sess, nil
 }
 
-func (gate *Gateway) Get(ctx context.Context, id string) (domain.Session, error) {
+func (gate *Gateway) Get(ctx context.Context, id string) (domainSession.Session, error) {
 	var request session.SessionID
 	request.ID = id
 	md := metadata.Pairs(
@@ -91,13 +92,13 @@ func (gate *Gateway) Get(ctx context.Context, id string) (domain.Session, error)
 	sessionResponse, err := gate.sessManager.Get(ctx, &request)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return domain.Session{}, err
+		return domainSession.Session{}, err
 	}
 	expireTime, err := time.Parse(time.RFC3339, sessionResponse.ExpiresAt)
 	if err != nil {
-		return domain.Session{}, err
+		return domainSession.Session{}, err
 	}
-	sess := domain.Session{
+	sess := domainSession.Session{
 		ID:        sessionResponse.ID,
 		UserID:    sessionResponse.UserID,
 		ExpiresAt: expireTime,

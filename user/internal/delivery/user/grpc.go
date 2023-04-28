@@ -8,7 +8,7 @@ import (
 
 	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/user/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 	userProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/proto/user"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"

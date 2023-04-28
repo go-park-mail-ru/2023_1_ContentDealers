@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dranikpg/dto-mapper"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
 	favProto "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/proto/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )

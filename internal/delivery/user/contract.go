@@ -4,20 +4,21 @@ import (
 	"context"
 	"io"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
+	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 )
 
 type UserGateway interface {
-	Register(ctx context.Context, user domain.User) (domain.User, error)
-	Auth(ctx context.Context, user domain.User) (domain.User, error)
-	GetByID(ctx context.Context, id uint64) (domain.User, error)
-	Update(ctx context.Context, user domain.User) error
-	UpdateAvatar(context.Context, domain.User, io.Reader) (domain.User, error)
-	DeleteAvatar(context.Context, domain.User) error
+	Register(ctx context.Context, user domainUser.User) (domainUser.User, error)
+	Auth(ctx context.Context, user domainUser.User) (domainUser.User, error)
+	GetByID(ctx context.Context, id uint64) (domainUser.User, error)
+	Update(ctx context.Context, user domainUser.User) error
+	UpdateAvatar(context.Context, domainUser.User, io.Reader) (domainUser.User, error)
+	DeleteAvatar(context.Context, domainUser.User) error
 }
 
 type SessionUseCase interface {
-	Create(ctx context.Context, user domain.User) (domain.Session, error)
-	Get(ctx context.Context, sessionID string) (domain.Session, error)
+	Create(ctx context.Context, user domainUser.User) (domainSession.Session, error)
+	Get(ctx context.Context, sessionID string) (domainSession.Session, error)
 	Delete(ctx context.Context, sessionID string) error
 }

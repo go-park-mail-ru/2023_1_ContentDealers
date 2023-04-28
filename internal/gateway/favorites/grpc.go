@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/dranikpg/dto-mapper"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
 	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/proto/content"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"

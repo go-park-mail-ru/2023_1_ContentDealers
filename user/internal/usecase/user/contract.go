@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/user/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 )
 
 type Repository interface {

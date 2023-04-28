@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 	"github.com/gomodule/redigo/redis"
 )
 

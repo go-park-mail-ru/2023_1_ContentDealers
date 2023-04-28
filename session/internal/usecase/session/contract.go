@@ -3,7 +3,7 @@ package session
 import (
 	"context"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 )
 
 type Repository interface {
