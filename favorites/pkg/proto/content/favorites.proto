@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
 option go_package = "./;content";
 
 package content;
@@ -7,7 +8,8 @@ package content;
 message Favorite {
   uint64 UserID = 1;
   uint64 ContentID = 2;
-  string DateAdding = 3;
+  google.protobuf.Timestamp created_at = 3;
+  // string DateAdding = 3;
 }
 
 message FavoritesOptions {

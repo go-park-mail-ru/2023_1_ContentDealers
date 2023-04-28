@@ -12,6 +12,8 @@ drop table if exists series cascade;
 drop table if exists episodes cascade;
 drop table if exists selections cascade;
 drop table if exists content_selections cascade;
+drop table if exists users_content_favorites cascade;
+drop table if exists users_persons_favorites cascade;
 
 -- namespace, gender, function set_timestamp
 

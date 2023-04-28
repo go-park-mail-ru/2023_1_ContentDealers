@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
@@ -48,18 +49,18 @@ func (repo *Repository) Add(ctx context.Context, favorite domain.FavoriteContent
 
 func (repo *Repository) Get(ctx context.Context, options domain.FavoritesOptions) (domain.FavoritesContent, error) {
 	var orderDate string
-	if options.Order == "old" {
-		orderDate = "ask"
+	if options.SortDate == "old" {
+		orderDate = "asc"
 	} else {
 		orderDate = "desc"
 	}
+
+	query := `select user_id, content_id, created_at 
+			from users_content_favorites 
+			where user_id = $1`
 	rows, err := repo.DB.QueryContext(ctx,
-		`select user_id, content_id, created_at 
-		from users_content_favorites 
-		where user_id = $1
-		order by created_at &2;`,
+		fmt.Sprintf("%s order by created_at %s;", query, orderDate),
 		options.UserID,
-		orderDate,
 	)
 	if err != nil {
 		repo.logger.WithRequestID(ctx).Trace(err)

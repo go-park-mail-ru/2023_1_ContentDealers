@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 )
 
 func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
@@ -36,13 +37,13 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	_, err = h.userGateway.Register(r.Context(), user)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrUserAlreadyExists):
+		case errors.Is(err, domainUser.ErrUserAlreadyExists):
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"status": 1, "message":"user already exists"}`)
-		case errors.Is(err, domain.ErrNotValidEmail):
+		case errors.Is(err, domainUser.ErrNotValidEmail):
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"status": 2, "message":"email not validated"}`)
-		case errors.Is(err, domain.ErrNotValidPassword):
+		case errors.Is(err, domainUser.ErrNotValidPassword):
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"status": 3, "message":"password not validated"}`)
 
@@ -73,6 +74,8 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 		Email:        credentials.Email,
 		PasswordHash: credentials.Password, // no hash
 	}
+
+	// TODO: user, session, err := h.userUseCase.Auth(r.Context(), user)
 
 	user, err = h.userGateway.Auth(r.Context(), user)
 	if err != nil {

@@ -54,6 +54,7 @@ func (service *Grpc) GetContent(ctx context.Context, favOptionsRequest *favProto
 		service.logger.WithRequestID(ctx).Trace(err)
 		return nil, err
 	}
+
 	favorites, err := service.favUseCase.Get(ctx, favOptions)
 	if err != nil {
 		return nil, err

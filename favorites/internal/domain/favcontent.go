@@ -3,8 +3,8 @@ package domain
 import "time"
 
 type FavoritesOptions struct {
-	UserID uint64
-	Order  string
+	UserID   uint64
+	SortDate string
 }
 
 type FavoriteContent struct {

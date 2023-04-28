@@ -10,6 +10,8 @@ service_sesion:
   addr: 172.27.195.147:8081
 service_user:
   addr: 172.27.195.147:8082
+service_favorites:
+  addr: 172.27.195.147:8083
 csrf:
   header: csrf-token
   # seconds

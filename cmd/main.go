@@ -11,12 +11,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	contentRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
 	countryRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/country"
+	favGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/favorites"
 	filmRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/film"
 	genreRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/genre"
 	personRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/person"
@@ -24,6 +26,7 @@ import (
 	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
 	userGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
+	favUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/favorites"
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
 	personRoleUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/personRole"
@@ -78,10 +81,17 @@ func Run() error {
 	if err != nil {
 		return err
 	}
+
 	sessionGateway, err := session.NewGateway(logger, cfg.ServiceSession)
 	if err != nil {
 		return err
 	}
+
+	favGateway, err := favGate.NewGateway(logger, cfg.ServiceFavorites)
+	if err != nil {
+		return err
+	}
+
 	selectionRepository := selectionRepo.NewRepository(db, logger)
 	contentRepository := contentRepo.NewRepository(db, logger)
 	filmRepository := filmRepo.NewRepository(db, logger)
@@ -109,6 +119,8 @@ func Run() error {
 		Genre:   &genreRepository,
 	}, logger)
 
+	favUseCase := favUseCase.NewUseCase(favGateway, sessionUseCase, contentUseCase, logger)
+
 	err = godotenv.Load()
 	if err != nil {
 		logger.Error(err)
@@ -128,8 +140,11 @@ func Run() error {
 	userHandler := user.NewHandler(userGateway, sessionUseCase, logger, cfg.Avatar)
 	csrfHandler := csrf.NewHandler(csrfUseCase, logger, cfg.CSRF)
 
+	favHandler := favorites.NewHandler(favUseCase, logger)
+
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:      userHandler,
+		FavHandler:       favHandler,
 		CSRFHandler:      csrfHandler,
 		SelectionHandler: selectionHandler,
 		FilmHandler:      filmHandler,

@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
 	middlewareCSRF "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf/middleware"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
@@ -27,6 +28,7 @@ func NotFound(w http.ResponseWriter, r *http.Request) {
 
 type SettingsRouter struct {
 	AllowedOrigins   []string
+	FavHandler       favorites.Handler
 	UserHandler      user.Handler
 	CSRFHandler      csrf.Handler
 	SelectionHandler selection.Handler
@@ -84,6 +86,10 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter.HandleFunc("/user/csrf", s.CSRFHandler.GetCSRF).Methods("GET")
 
 	authRouter.HandleFunc("/user/update", s.UserHandler.Update).Methods("POST")
+
+	authRouter.HandleFunc("/favorites/content", s.FavHandler.GetFavContent).Methods("GET")
+	authRouter.HandleFunc("/favorites/content/add", s.FavHandler.AddFavContent).Methods("POST")
+	authRouter.HandleFunc("/favorites/content/delete", s.FavHandler.DeleteFavContent).Methods("POST")
 
 	// TODO: PATCH в постмане выдавал 405 Method not allowed
 	authRouter.HandleFunc("/user/avatar/update", s.UserHandler.UpdateAvatar).Methods("POST")
