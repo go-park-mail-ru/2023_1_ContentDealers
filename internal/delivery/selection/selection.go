@@ -34,8 +34,8 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	defer r.Body.Close()
 
-	var limit int = defaultLimit
-	var offset int = defaultOffset
+	var limit int32 = defaultLimit
+	var offset int32 = defaultOffset
 
 	query, err := url.ParseQuery(r.URL.RawQuery)
 	if err == nil {
@@ -52,7 +52,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	selections, err := h.useCase.GetAll(r.Context(), uint(limit), uint(offset))
+	selections, err := h.useCase.GetAll(r.Context(), uint32(limit), uint32(offset))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

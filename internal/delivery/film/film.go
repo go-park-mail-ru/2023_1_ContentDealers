@@ -47,7 +47,7 @@ func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
 			io.WriteString(w, `{"message":"film not found"}`)
 		default:
 			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusBadRequest)
 		}
 		return
 	}

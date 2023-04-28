@@ -42,6 +42,7 @@ logging:
     - all
   # если пусто, то в логируется директория от корня
   project_dir: 2023_1_ContentDealers 
+content_addr: 172.27.195.147:8084
 
 # levels
   # - all

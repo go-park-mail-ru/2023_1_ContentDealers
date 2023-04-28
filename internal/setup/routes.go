@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	middlewareUser "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user/middleware"
@@ -36,6 +37,7 @@ type SettingsRouter struct {
 	PersonHandler    person.Handler
 	SessionGateway   SessionGateway
 	CSRFUseCase      csrfUseCase.UseCase
+	SearchHandler    search.Handler
 	Logger           logging.Logger
 	CSRFConfig       csrf.CSRFConfig
 }
@@ -77,6 +79,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 	router.HandleFunc("/selections/{id:[0-9]+}", s.SelectionHandler.GetByID)
 	router.HandleFunc("/persons/{id:[0-9]+}", s.PersonHandler.GetByID)
 	router.HandleFunc("/films/{content_id:[0-9]+}", s.FilmHandler.GetByContentID)
+	router.HandleFunc("/search", s.SearchHandler.Search)
 
 	unAuthRouter.HandleFunc("/user/signin", s.UserHandler.SignIn).Methods("POST")
 	unAuthRouter.HandleFunc("/user/signup", s.UserHandler.SignUp).Methods("POST")

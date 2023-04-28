@@ -14,8 +14,10 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
 	contentRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
 	countryRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/country"
 	favGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/favorites"
@@ -26,13 +28,13 @@ import (
 	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
 	userGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
+	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
 	favUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/favorites"
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
-	personRoleUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/personRole"
-
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	contentUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
+	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/search"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/joho/godotenv"
@@ -91,31 +93,16 @@ func Run() error {
 		return err
 	}
 
-	selectionRepository := selectionRepo.NewRepository(db, logger)
-	contentRepository := contentRepo.NewRepository(db, logger)
-	filmRepository := filmRepo.NewRepository(db, logger)
-	genreRepository := genreRepo.NewRepository(db, logger)
-	roleRepository := roleRepo.NewRepository(db, logger)
-	countryRepository := countryRepo.NewRepository(db, logger)
-	personRepository := personRepo.NewRepository(db, logger)
+	contentGateway, err := content.NewGrpc(cfg.ContentAddr, logger)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
 
-	selectionUseCase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository, logger)
-	personRolesUseCase := personRoleUseCase.NewPersonRole(&personRepository, &roleRepository, logger)
-
-	contentUseCase := contentUseCase.NewContent(contentUseCase.Options{
-		ContentRepo:        &contentRepository,
-		GenreRepo:          &genreRepository,
-		SelectionRepo:      &selectionRepository,
-		CountryRepo:        &countryRepository,
-		PersonRolesUseCase: personRolesUseCase,
-	}, logger)
-	filmUseCase := filmUseCase.NewFilm(&filmRepository, contentUseCase, logger)
-	personUseCase := personUseCase.NewPerson(personUseCase.Options{
-		Repo:    &personRepository,
-		Content: &contentRepository,
-		Role:    &roleRepository,
-		Genre:   &genreRepository,
-	}, logger)
+	selectionUsecase := selectionUseCase.NewSelection(&contentGateway, logger)
+	filmUsecase := filmUseCase.NewFilm(&contentGateway, logger)
+	personUsecase := personUseCase.NewPerson(&contentGateway, logger)
+	searchUsecase := searchUseCase.NewSearch(&contentGateway, logger)
 
 	favUseCase := favUseCase.NewUseCase(favGateway, sessionGateway, contentUseCase, logger)
 
@@ -130,15 +117,13 @@ func Run() error {
 		return err
 	}
 
-	selectionHandler := selection.NewHandler(selectionUseCase, logger)
-
-	filmHandler := film.NewHandler(filmUseCase, logger)
-
-	personHandler := person.NewHandler(personUseCase, logger)
 	userHandler := user.NewHandler(userGateway, sessionGateway, logger, cfg.Avatar)
-	csrfHandler := csrf.NewHandler(csrfUseCase, logger, cfg.CSRF)
-
 	favHandler := favorites.NewHandler(favUseCase, logger)
+	selectionHandler := selection.NewHandler(selectionUsecase, logger)
+	filmHandler := film.NewHandler(filmUsecase, logger)
+	personHandler := person.NewHandler(personUsecase, logger)
+	csrfHandler := csrf.NewHandler(csrfUseCase, logger)
+	searchHandler := search.NewHandler(searchUsecase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:      *userHandler,
@@ -148,6 +133,7 @@ func Run() error {
 		FilmHandler:      filmHandler,
 		PersonHandler:    personHandler,
 		SessionGateway:   sessionGateway,
+		SearchHandler:    searchHandler,
 		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
 		CSRFUseCase:      *csrfUseCase,
 		Logger:           logger,

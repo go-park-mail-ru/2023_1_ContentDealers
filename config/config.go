@@ -30,11 +30,12 @@ type Config struct {
 		ReadHeaderTimeout int    `yaml:"read_header_timeout"`
 		ShutdownTimeout   int    `yaml:"shutdown_timeout"`
 	} `yaml:"server"`
-	Avatar   user.AvatarConfig
-	CSRF     csrf.CSRFConfig          `yaml:"csrf"`
-	Postgres postgresql.StorageConfig `yaml:"postgres"`
-	Redis    redis.RedisConfig        `yaml:"redis"`
-	Logging  logging.LoggingConfig    `yaml:"logging"`
+	Avatar      user.AvatarConfig
+	CSRF        csrf.CSRFConfig          `yaml:"csrf"`
+	Postgres    postgresql.StorageConfig `yaml:"postgres"`
+	Redis       redis.RedisConfig        `yaml:"redis"`
+	Logging     logging.LoggingConfig    `yaml:"logging"`
+	ContentAddr string                   `content_addr`
 }
 
 var instance *Config
