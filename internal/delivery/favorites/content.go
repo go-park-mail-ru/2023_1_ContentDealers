@@ -92,15 +92,15 @@ func (h *Handler) GetFavContent(w http.ResponseWriter, r *http.Request) {
 		SortDate: order,
 	}
 
-	favsContent, err := h.useCase.Get(ctx, options)
+	content, err := h.useCase.Get(ctx, options)
 	if err != nil {
 		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	var favContentResponse []FavoriteContentDTO
-	err = dto.Map(&favContentResponse, favsContent)
+	var contentResponse []contentDTO
+	err = dto.Map(&contentResponse, content)
 	if err != nil {
 		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -108,15 +108,43 @@ func (h *Handler) GetFavContent(w http.ResponseWriter, r *http.Request) {
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"favcontent": favContentResponse,
+			"content": contentResponse,
 		},
 	})
 	if err != nil {
-		h.logger.WithRequestID(ctx).Trace(err)
+		h.logger.Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(response)
+
+	// favsContent, err := h.useCase.Get(ctx, options)
+	// if err != nil {
+	// 	h.logger.WithRequestID(ctx).Trace(err)
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	return
+	// }
+
+	// var favContentResponse []FavoriteContentDTO
+	// err = dto.Map(&favContentResponse, favsContent)
+	// if err != nil {
+	// 	h.logger.WithRequestID(ctx).Trace(err)
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// }
+
+	// response, err := json.Marshal(map[string]interface{}{
+	// 	"body": map[string]interface{}{
+	// 		"favcontent": favContentResponse,
+	// 	},
+	// })
+	// if err != nil {
+	// 	h.logger.WithRequestID(ctx).Trace(err)
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// w.WriteHeader(http.StatusOK)
+	// w.Write(response)
 }

@@ -91,7 +91,7 @@ func Run() error {
 	searchUsecase := searchUseCase.NewUseCase(contentGateway, logger)
 	genreUsecase := genreUseCase.NewUseCase(contentGateway, logger)
 
-	favUseCase := favUseCase.NewUseCase(favGateway, sessionGateway, logger)
+	favUseCase := favUseCase.NewUseCase(favGateway, sessionGateway, filmUsecase, logger)
 
 	err = godotenv.Load()
 	if err != nil {
