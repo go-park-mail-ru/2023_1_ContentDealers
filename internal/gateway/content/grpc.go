@@ -22,8 +22,8 @@ type Grpc struct {
 	logger logging.Logger
 }
 
-func NewGrpc(addr string, logger logging.Logger) (Grpc, error) {
-	grpcConn, err := grpc.Dial(addr, grpc.WithInsecure())
+func NewGateway(cfg ServiceContentConfig, logger logging.Logger) (Grpc, error) {
+	grpcConn, err := grpc.Dial(cfg.Addr, grpc.WithInsecure())
 	if err != nil {
 		return Grpc{}, err
 	}

@@ -18,18 +18,9 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
-	contentRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
-	countryRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/country"
 	favGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/favorites"
-	filmRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/film"
-	genreRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/genre"
-	personRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/person"
-	roleRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/role"
-	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
 	userGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
-	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
 	favUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/favorites"
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
@@ -42,7 +33,6 @@ import (
 	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
 	csrfUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
 )
 
 func main() {
@@ -72,12 +62,6 @@ func Run() error {
 		return fmt.Errorf("Fail to initialization logger: %w", err)
 	}
 
-	db, err := postgresql.NewClientPostgres(cfg.Postgres)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
-
 	userGateway, err := userGate.NewGateway(logger, cfg.ServiceUser)
 	if err != nil {
 		return err
@@ -93,7 +77,7 @@ func Run() error {
 		return err
 	}
 
-	contentGateway, err := content.NewGrpc(cfg.ContentAddr, logger)
+	contentGateway, err := content.NewGateway(cfg.ServiceContent, logger)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -104,7 +88,7 @@ func Run() error {
 	personUsecase := personUseCase.NewPerson(&contentGateway, logger)
 	searchUsecase := searchUseCase.NewSearch(&contentGateway, logger)
 
-	favUseCase := favUseCase.NewUseCase(favGateway, sessionGateway, contentUseCase, logger)
+	favUseCase := favUseCase.NewUseCase(favGateway, sessionGateway, logger)
 
 	err = godotenv.Load()
 	if err != nil {
@@ -122,7 +106,7 @@ func Run() error {
 	selectionHandler := selection.NewHandler(selectionUsecase, logger)
 	filmHandler := film.NewHandler(filmUsecase, logger)
 	personHandler := person.NewHandler(personUsecase, logger)
-	csrfHandler := csrf.NewHandler(csrfUseCase, logger)
+	csrfHandler := csrf.NewHandler(csrfUseCase, logger, cfg.CSRF)
 	searchHandler := search.NewHandler(searchUsecase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{

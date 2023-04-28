@@ -58,12 +58,12 @@ func Run() error {
 		return fmt.Errorf("fail to parse config yml file: %w", err)
 	}
 
-	logger, err := logging.NewLogger(cfg.Logging)
+	logger, err := logging.NewLogger(cfg.Logging, "content serivce")
 	if err != nil {
 		return fmt.Errorf("fail to initialization logger: %w", err)
 	}
 
-	db, err := postgresql.NewClientPostgres(cfg.Storage)
+	db, err := postgresql.NewClientPostgres(cfg.Postgres)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -113,7 +113,7 @@ func Run() error {
 	selection.RegisterSelectionServiceServer(server, selectionService)
 	search.RegisterSearchServiceServer(server, searchService)
 
-	addr := cfg.ContentAddr
+	addr := fmt.Sprintf("%s:%s", cfg.Server.BindIP, cfg.Server.Port)
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {

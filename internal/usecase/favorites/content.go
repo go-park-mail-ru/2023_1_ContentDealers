@@ -12,12 +12,11 @@ import (
 type UseCase struct {
 	gate    Gateway
 	session SessionGateway
-	content ContentUseCase
 	logger  logging.Logger
 }
 
-func NewUseCase(gate Gateway, session SessionGateway, content ContentUseCase, logger logging.Logger) *UseCase {
-	return &UseCase{gate: gate, session: session, content: content, logger: logger}
+func NewUseCase(gate Gateway, session SessionGateway, logger logging.Logger) *UseCase {
+	return &UseCase{gate: gate, session: session, logger: logger}
 }
 
 func (uc *UseCase) GetUserIDByContext(ctx context.Context) (uint64, error) {

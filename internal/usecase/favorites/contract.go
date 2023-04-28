@@ -4,14 +4,9 @@ import (
 	"context"
 
 	domainFav "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 )
-
-type ContentUseCase interface {
-	GetByID(ctx context.Context, id uint64) (domain.Content, error)
-}
 
 type SessionGateway interface {
 	Create(ctx context.Context, user domainUser.User) (domainSession.Session, error)

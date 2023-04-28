@@ -12,6 +12,8 @@ service_user:
   addr: 172.27.195.147:8082
 service_favorites:
   addr: 172.27.195.147:8083
+service_content:
+  addr: 172.27.195.147:8084
 csrf:
   header: csrf-token
   # seconds
@@ -42,7 +44,6 @@ logging:
     - all
   # если пусто, то в логируется директория от корня
   project_dir: 2023_1_ContentDealers 
-content_addr: 172.27.195.147:8084
 
 # levels
   # - all
