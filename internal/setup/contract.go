@@ -1,12 +1,14 @@
 package setup
 
 import (
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
-	"github.com/google/uuid"
+	"context"
+
+	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
+	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 )
 
-type SessionUseCase interface {
-	Create(user domain.User) (domain.Session, error)
-	Get(sessionID uuid.UUID) (domain.Session, error)
-	Delete(sessionID uuid.UUID) error
+type SessionGateway interface {
+	Create(ctx context.Context, user domainUser.User) (domainSession.Session, error)
+	Get(ctx context.Context, sessionID string) (domainSession.Session, error)
+	Delete(ctx context.Context, sessionID string) error
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
 	middlewareCSRF "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf/middleware"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
@@ -17,9 +18,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
-
-	_ "github.com/go-park-mail-ru/2023_1_ContentDealers/docs"
-	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
@@ -30,14 +28,16 @@ func NotFound(w http.ResponseWriter, r *http.Request) {
 
 type SettingsRouter struct {
 	AllowedOrigins   []string
+	FavHandler       favorites.Handler
 	UserHandler      user.Handler
 	CSRFHandler      csrf.Handler
 	SelectionHandler selection.Handler
 	FilmHandler      film.Handler
 	PersonHandler    person.Handler
-	SessionUseCase   SessionUseCase
-	CSRFUseCase      csrfUseCase.CSRF
+	SessionGateway   SessionGateway
+	CSRFUseCase      csrfUseCase.UseCase
 	Logger           logging.Logger
+	CSRFConfig       csrf.CSRFConfig
 }
 
 type FakeLogger struct {
@@ -54,20 +54,20 @@ func Routes(s *SettingsRouter) *mux.Router {
 		Debug:            true,
 	})
 	corsMiddleware.Log = FakeLogger{}
-	authMiddleware := middlewareUser.NewAuth(s.SessionUseCase, s.Logger)
-	CSRFMiddleware := middlewareCSRF.NewCSRF(s.CSRFUseCase, s.Logger)
+	authMiddleware := middlewareUser.NewAuth(s.SessionGateway, s.Logger)
+	CSRFMiddleware := middlewareCSRF.NewCSRF(s.CSRFUseCase, s.Logger, s.CSRFConfig)
 	generalMiddleware := middleware.NewGeneral(s.Logger)
 
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(NotFound)
 
-	authRouter := router.Methods("GET", "POST").Subrouter()
-	unAuthRouter := router.Methods("GET", "POST").Subrouter()
-
 	router.Use(generalMiddleware.AccessLog)
 	router.Use(generalMiddleware.Panic)
 	router.Use(corsMiddleware.Handler)
 	router.Use(generalMiddleware.SetContentTypeJSON)
+
+	authRouter := router.Methods("GET", "POST").Subrouter()
+	unAuthRouter := router.Methods("GET", "POST").Subrouter()
 
 	authRouter.Use(authMiddleware.RequireAuth)
 	authRouter.Use(CSRFMiddleware.RequireCSRF)
@@ -87,11 +87,13 @@ func Routes(s *SettingsRouter) *mux.Router {
 
 	authRouter.HandleFunc("/user/update", s.UserHandler.Update).Methods("POST")
 
+	authRouter.HandleFunc("/favorites/content", s.FavHandler.GetFavContent).Methods("GET")
+	authRouter.HandleFunc("/favorites/content/add", s.FavHandler.AddFavContent).Methods("POST")
+	authRouter.HandleFunc("/favorites/content/delete", s.FavHandler.DeleteFavContent).Methods("POST")
+
 	// TODO: PATCH в постмане выдавал 405 Method not allowed
 	authRouter.HandleFunc("/user/avatar/update", s.UserHandler.UpdateAvatar).Methods("POST")
 	authRouter.HandleFunc("/user/avatar/delete", s.UserHandler.DeleteAvatar).Methods("POST")
-
-	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(httpSwagger.URL("./swagger/doc.json")))
 
 	return router
 }

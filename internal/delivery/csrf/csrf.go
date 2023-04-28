@@ -5,42 +5,34 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 )
 
-const ExpirationTimeCSRF = 2 * time.Hour
-
 type Handler struct {
-	csrfUseCase CSRFUseCase
+	csrfUseCase UseCase
 	logger      logging.Logger
+	expiresAt   time.Duration
 }
 
-func NewHandler(csrfUseCase CSRFUseCase, logger logging.Logger) Handler {
-	return Handler{
+func NewHandler(csrfUseCase UseCase, logger logging.Logger, cfg CSRFConfig) *Handler {
+	return &Handler{
 		csrfUseCase: csrfUseCase,
 		logger:      logger,
+		expiresAt:   time.Second * time.Duration(cfg.ExpiresAt),
 	}
 }
 
-// @Summary CSRF
-// @Tags user
-// @Description Получить CSRF токен
-// @Description Необходимы куки
-// @Produce  json
-// @Success 200 {object} tokenDTO
-// @Failure 400
-// @Failure 500
-// @Router /user/csrf [get]
 func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
-	sessionRaw := r.Context().Value("session")
+	ctx := r.Context()
+	sessionRaw := ctx.Value("session")
 	session, ok := sessionRaw.(domain.Session)
 	if !ok {
-		h.logger.Trace(domain.ErrSessionInvalid)
+		h.logger.WithRequestID(ctx).Trace(domain.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	token, err := h.csrfUseCase.Create(session, time.Now().Add(ExpirationTimeCSRF).Unix())
+	token, err := h.csrfUseCase.Create(r.Context(), session, time.Now().Add(h.expiresAt).Unix())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -52,7 +44,7 @@ func (h *Handler) GetCSRF(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

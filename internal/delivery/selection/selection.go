@@ -31,6 +31,7 @@ const (
 )
 
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	var limit int = defaultLimit
@@ -60,7 +61,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	var selectionsResponse []selectionDTO
 	err = dto.Map(&selectionsResponse, selections)
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -71,7 +72,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -81,6 +82,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	idRaw := mux.Vars(r)["id"]
@@ -88,7 +90,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	_, err := fmt.Sscanf(idRaw, "%d", &id)
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"film selection id is not numeric"}`)
 		return
@@ -110,7 +112,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	selectionResponse := selectionDTO{}
 	err = dto.Map(&selectionResponse, selection)
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -121,7 +123,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

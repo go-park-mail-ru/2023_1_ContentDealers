@@ -1,0 +1,16 @@
+server:
+  port: 8081
+redis:
+  user: user
+  host: localhost
+  port: 6379
+  dbnum: 0
+session:
+  # seconds
+  expires_at: 43200 
+logging:
+  dir: log
+  filename: all.log.json
+  levels: 
+    - all
+  project_dir: 2023_1_ContentDealers/session 
