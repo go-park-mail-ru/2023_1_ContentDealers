@@ -1,6 +1,11 @@
 package setup
 
 import (
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
+	favGateway "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/favorites"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
+	userGateway "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
@@ -14,13 +19,22 @@ type Config struct {
 	CORS    struct {
 		AllowedOrigins string `yaml:"allowed_origins"`
 	}
-	Listen struct {
-		BindIP string `yaml:"bind_ip"`
-		Port   string `yaml:"port" env-default:"8080"`
-	} `yaml:"listen"`
-	Storage postgresql.StorageConfig `yaml:"storage"`
-	Redis   redis.RedisConfig        `yaml:"redis"`
-	Logging logging.LoggingConfig    `yaml:"logging"`
+	ServiceSession   session.ServiceSessionConfig      `yaml:"service_sesion"`
+	ServiceUser      userGateway.ServiceUserConfig     `yaml:"service_user"`
+	ServiceFavorites favGateway.ServiceFavoritesConfig `yaml:"service_favorites"`
+	Server           struct {
+		BindIP            string `yaml:"bind_ip"`
+		Port              string `yaml:"port" env-default:"8080"`
+		WriteTimeout      int    `yaml:"write_timeout"`
+		ReadTimeout       int    `yaml:"read_timeout"`
+		ReadHeaderTimeout int    `yaml:"read_header_timeout"`
+		ShutdownTimeout   int    `yaml:"shutdown_timeout"`
+	} `yaml:"server"`
+	Avatar   user.AvatarConfig
+	CSRF     csrf.CSRFConfig          `yaml:"csrf"`
+	Postgres postgresql.StorageConfig `yaml:"postgres"`
+	Redis    redis.RedisConfig        `yaml:"redis"`
+	Logging  logging.LoggingConfig    `yaml:"logging"`
 }
 
 var instance *Config

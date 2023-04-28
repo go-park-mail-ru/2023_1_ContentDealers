@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+option go_package = "./;content";
+
+package content;
+
+message Favorite {
+  uint64 UserID = 1;
+  uint64 ContentID = 2;
+  google.protobuf.Timestamp created_at = 3;
+  // string DateAdding = 3;
+}
+
+message FavoritesOptions {
+  uint64 UserID = 1;
+  string SortDate = 2;
+}
+
+message Favorites {
+  repeated Favorite Favorites = 1;
+}
+
+message Nothing {
+    bool Dummy = 1;
+}
+
+message PingRequest {}
+message PingResponse {}
+
+service FavoritesContentService {
+    rpc DeleteContent(Favorite) returns (Nothing) {}
+    rpc AddContent(Favorite) returns (Nothing) {}
+    rpc GetContent(FavoritesOptions) returns (Favorites) {}
+    rpc Ping(PingRequest) returns (PingResponse) {}
+}
+

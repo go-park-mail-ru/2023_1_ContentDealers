@@ -25,6 +25,7 @@ func NewHandler(useCase UseCase, logger logging.Logger) Handler {
 }
 
 func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	idRaw := mux.Vars(r)["content_id"]
@@ -32,7 +33,7 @@ func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
 
 	_, err := fmt.Sscanf(idRaw, "%d", &id)
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"film id is not numeric"}`)
 		return
@@ -54,7 +55,7 @@ func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
 	filmResponse := filmDTO{}
 	err = dto.Map(&filmResponse, film)
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -65,7 +66,7 @@ func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -12,11 +13,13 @@ import (
 )
 
 type writerHook struct {
-	Writer    []io.Writer
-	LogLevels []logrus.Level
+	Writer      []io.Writer
+	LogLevels   []logrus.Level
+	serviceName string
 }
 
 func (hook *writerHook) Fire(entry *logrus.Entry) error {
+	entry.Data["service"] = hook.serviceName
 	line, err := entry.String()
 	if err != nil {
 		return err
@@ -35,7 +38,16 @@ type Logger struct {
 	*logrus.Logger
 }
 
-func NewLogger(cfg LoggingConfig) (Logger, error) {
+func (lg *Logger) WithRequestID(ctx context.Context) *logrus.Entry {
+	reqID, ok := ctx.Value("requestID").(string)
+	if !ok {
+		reqID = "unknown"
+	}
+	return lg.WithField("request_id", reqID)
+
+}
+
+func NewLogger(cfg LoggingConfig, serviceName string) (Logger, error) {
 	logger := logrus.New()
 	if cfg.Dir == "" && cfg.Filename == "" && cfg.ProjectDir == "" {
 		return Logger{Logger: logger}, nil
@@ -62,6 +74,7 @@ func NewLogger(cfg LoggingConfig) (Logger, error) {
 			// поля выводятся в алфавитном порядке
 			logrus.FieldKeyTime: "__time",
 			logrus.FieldKeyMsg:  "_msg",
+			"service":           serviceName,
 		},
 	}
 
@@ -79,10 +92,27 @@ func NewLogger(cfg LoggingConfig) (Logger, error) {
 	// используем только hooks, обычный вывод не нужен
 	logger.SetOutput(io.Discard)
 
+	// определяем уровни логирования
+	var levels []logrus.Level
+	if len(cfg.Levels) != 0 {
+		if cfg.Levels[0] == "all" {
+			levels = logrus.AllLevels
+		} else {
+			for _, levelString := range cfg.Levels {
+				level, err := logrus.ParseLevel(levelString)
+				if err != nil {
+					return Logger{}, err
+				}
+				levels = append(levels, level)
+			}
+		}
+	}
+
 	// регистрируем hook
 	logger.AddHook(&writerHook{
-		Writer:    []io.Writer{file, os.Stdout},
-		LogLevels: logrus.AllLevels,
+		Writer:      []io.Writer{file, os.Stdout},
+		LogLevels:   levels,
+		serviceName: serviceName,
 	})
 
 	logger.SetLevel(logrus.TraceLevel)

@@ -11,8 +11,9 @@ func (mv *GeneralMiddleware) Panic(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				mv.logger.WithFields(logrus.Fields{
-					"method": r.Method,
-					"url":    r.URL.Path,
+					"method":     r.Method,
+					"url":        r.URL.Path,
+					"request_id": r.Context().Value("requestID").(string),
 				}).Panicf("recovered %s", err)
 				w.WriteHeader(http.StatusInternalServerError)
 			}
