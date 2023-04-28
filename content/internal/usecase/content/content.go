@@ -7,7 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
-type Content struct {
+type UseCase struct {
 	repo        Repository
 	personRoles PersonRolesUseCase
 	genre       GenreRepository
@@ -25,8 +25,8 @@ type Options struct {
 	Logger             logging.Logger
 }
 
-func NewContent(options Options) *Content {
-	return &Content{
+func NewUseCase(options Options) *UseCase {
+	return &UseCase{
 		repo:        options.ContentRepo,
 		personRoles: options.PersonRolesUseCase,
 		genre:       options.GenreRepo,
@@ -36,7 +36,7 @@ func NewContent(options Options) *Content {
 	}
 }
 
-func (uc *Content) GetByID(ctx context.Context, id uint64) (domain.Content, error) {
+func (uc *UseCase) GetByID(ctx context.Context, id uint64) (domain.Content, error) {
 	content, err := uc.repo.GetByID(ctx, id)
 	if err != nil {
 		return domain.Content{}, err

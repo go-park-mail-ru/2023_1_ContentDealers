@@ -6,39 +6,39 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
-	"golang.org/x/sync/errgroup"
 )
 
-type Search struct {
+type UseCase struct {
 	extenders []Extender
 	logger    logging.Logger
 }
 
-func NewSearch(extenders []Extender, logger logging.Logger) *Search {
-	return &Search{extenders: extenders, logger: logger}
+func NewUseCase(extenders []Extender, logger logging.Logger) *UseCase {
+	return &UseCase{extenders: extenders, logger: logger}
 }
 
-func (uc *Search) Search(ctx context.Context, query string) (domain.Search, error) {
+func (uc *UseCase) Search(ctx context.Context, query string) (domain.Search, error) {
 	var result domain.Search
 	var mu sync.Mutex
-	group, ctx := errgroup.WithContext(ctx)
+	wg := sync.WaitGroup{}
 
 	for _, extender := range uc.extenders {
-		extender := extender
-		group.Go(func() error {
-			applier := extender.Extend(ctx, query)
+		wg.Add(1)
+		go func(extender Extender) {
+			defer wg.Done()
+			applier, err := extender.Extend(ctx, query)
+			if err != nil {
+				uc.logger.Error(err)
+				return
+			}
 
 			mu.Lock()
 			defer mu.Unlock()
+			applier(&result)
+		}(extender)
 
-			return applier(&result)
-		})
 	}
 
-	err := group.Wait()
-	if err != nil {
-		uc.logger.Error(err)
-		return domain.Search{}, err
-	}
+	wg.Wait()
 	return result, nil
 }

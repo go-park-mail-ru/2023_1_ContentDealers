@@ -1,4 +1,4 @@
-package personRole
+package personrole
 
 import (
 	"context"

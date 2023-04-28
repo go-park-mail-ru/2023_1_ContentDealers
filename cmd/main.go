@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
@@ -24,6 +25,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
 	favUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/favorites"
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
+	genreUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/genre"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
 	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/search"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
@@ -83,10 +85,11 @@ func Run() error {
 		return err
 	}
 
-	selectionUsecase := selectionUseCase.NewSelection(&contentGateway, logger)
-	filmUsecase := filmUseCase.NewFilm(&contentGateway, logger)
-	personUsecase := personUseCase.NewPerson(&contentGateway, logger)
-	searchUsecase := searchUseCase.NewSearch(&contentGateway, logger)
+	selectionUsecase := selectionUseCase.NewUseCase(contentGateway, logger)
+	filmUsecase := filmUseCase.NewUseCase(contentGateway, logger)
+	personUsecase := personUseCase.NewUseCase(contentGateway, logger)
+	searchUsecase := searchUseCase.NewUseCase(contentGateway, logger)
+	genreUsecase := genreUseCase.NewUseCase(contentGateway, logger)
 
 	favUseCase := favUseCase.NewUseCase(favGateway, sessionGateway, logger)
 
@@ -95,6 +98,7 @@ func Run() error {
 		logger.Error(err)
 		return err
 	}
+
 	csrfUseCase, err := csrfUseCase.NewUseCase(os.Getenv("CSRF_TOKEN"), logger)
 	if err != nil {
 		logger.Error(err)
@@ -108,6 +112,7 @@ func Run() error {
 	personHandler := person.NewHandler(personUsecase, logger)
 	csrfHandler := csrf.NewHandler(csrfUseCase, logger, cfg.CSRF)
 	searchHandler := search.NewHandler(searchUsecase, logger)
+	genreHandler := genre.NewHandler(genreUsecase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:      *userHandler,
@@ -118,6 +123,7 @@ func Run() error {
 		PersonHandler:    personHandler,
 		SessionGateway:   sessionGateway,
 		SearchHandler:    searchHandler,
+		GenreHandler:     genreHandler,
 		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
 		CSRFUseCase:      *csrfUseCase,
 		Logger:           logger,

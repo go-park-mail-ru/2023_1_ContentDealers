@@ -6,9 +6,11 @@ import (
 	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/film"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/selection"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"google.golang.org/grpc"
 )
@@ -18,14 +20,15 @@ type Grpc struct {
 	personService    person.PersonServiceClient
 	selectionService selection.SelectionServiceClient
 	searchService    search.SearchServiceClient
+	genreService     genre.GenreServiceClient
 
 	logger logging.Logger
 }
 
-func NewGateway(cfg ServiceContentConfig, logger logging.Logger) (Grpc, error) {
+func NewGateway(cfg ServiceContentConfig, logger logging.Logger) (*Grpc, error) {
 	grpcConn, err := grpc.Dial(cfg.Addr, grpc.WithInsecure())
 	if err != nil {
-		return Grpc{}, err
+		return &Grpc{}, err
 	}
 
 	result := Grpc{}
@@ -33,8 +36,14 @@ func NewGateway(cfg ServiceContentConfig, logger logging.Logger) (Grpc, error) {
 	result.personService = person.NewPersonServiceClient(grpcConn)
 	result.selectionService = selection.NewSelectionServiceClient(grpcConn)
 	result.searchService = search.NewSearchServiceClient(grpcConn)
+	result.genreService = genre.NewGenreServiceClient(grpcConn)
 
-	return result, nil
+	err = ping.Ping(grpcConn)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func (gateway *Grpc) GetAllSelections(ctx context.Context, limit, offset uint32) ([]domain.Selection, error) {
@@ -108,6 +117,37 @@ func (gateway *Grpc) Search(ctx context.Context, query string) (domain.Search, e
 	err = dto.Map(&result, searchDTO)
 	if err != nil {
 		return domain.Search{}, err
+	}
+	return result, nil
+}
+
+func (gateway *Grpc) GetContentByOptions(ctx context.Context, options domain.ContentFilter) ([]domain.Content, error) {
+	contentDTO, err := gateway.genreService.GetContentByOptions(ctx, &genre.Options{
+		ID:     options.ID,
+		Limit:  options.Limit,
+		Offset: options.Offset,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var result []domain.Content
+	err = dto.Map(&result, contentDTO.Content)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (gateway *Grpc) GetAllGenres(ctx context.Context) ([]domain.Genre, error) {
+	genresDTO, err := gateway.genreService.GetAllGenres(ctx, &genre.Nothing{})
+	if err != nil {
+		return nil, err
+	}
+
+	var result []domain.Genre
+	err = dto.Map(&result, genresDTO.Genres)
+	if err != nil {
+		return nil, err
 	}
 	return result, nil
 }

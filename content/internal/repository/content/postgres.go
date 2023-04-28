@@ -116,6 +116,31 @@ func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.
 	return result, nil
 }
 
+func (repo *Repository) GetByGenreOptions(ctx context.Context, options domain.ContentFilter) ([]domain.Content, error) {
+	joinGenres := `join content_genres cg on cg.content_id = c.id
+                   join genres g on cg.genre_id = g.id`
+	filterByGenreID := `where g.id = $1`
+	orderByRating := `order by c.rating desc`
+	limitOffset := `limit $2 offset $3;`
+	query := strings.Join([]string{fetchQueryTemplate, joinGenres, filterByGenreID, orderByRating, limitOffset}, " ")
+	rows, err := repo.DB.QueryContext(ctx, query, options.ID, options.Limit, options.Offset)
+	if err != nil {
+		return nil, err
+	}
+	var result []domain.Content
+	for rows.Next() {
+		c := domain.Content{}
+		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
+			&c.TrailerURL, &c.PreviewURL, &c.Type)
+		if err != nil {
+			repo.logger.Trace(err)
+			return nil, err
+		}
+		result = append(result, c)
+	}
+	return result, nil
+}
+
 func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Content, error) {
 	likeQuery := "%" + query + "%"
 	rows, err := repo.DB.QueryContext(ctx,
@@ -130,7 +155,7 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
 				) s
 				group by s.id, s.title, s.description, s.rating, s.year, s.is_free, s.age_limit,
 				s.trailer_url, s.preview_url, s.type
-				order by max(s.sim), s.rating desc
+				order by max(s.sim) desc, s.rating desc
 				limit $3;`, likeQuery, query, searchLimit)
 	if err != nil {
 		repo.logger.Trace(err)

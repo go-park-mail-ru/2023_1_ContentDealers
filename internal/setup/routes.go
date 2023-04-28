@@ -8,6 +8,7 @@ import (
 	middlewareCSRF "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf/middleware"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
@@ -38,6 +39,7 @@ type SettingsRouter struct {
 	SessionGateway   SessionGateway
 	CSRFUseCase      csrfUseCase.UseCase
 	SearchHandler    search.Handler
+	GenreHandler     genre.Handler
 	Logger           logging.Logger
 	CSRFConfig       csrf.CSRFConfig
 }
@@ -80,6 +82,8 @@ func Routes(s *SettingsRouter) *mux.Router {
 	router.HandleFunc("/persons/{id:[0-9]+}", s.PersonHandler.GetByID)
 	router.HandleFunc("/films/{content_id:[0-9]+}", s.FilmHandler.GetByContentID)
 	router.HandleFunc("/search", s.SearchHandler.Search)
+	router.HandleFunc("/genres", s.GenreHandler.GetAll)
+	router.HandleFunc("/genres/{id:[0-9]+}", s.GenreHandler.GetContentByID)
 
 	unAuthRouter.HandleFunc("/user/signin", s.UserHandler.SignIn).Methods("POST")
 	unAuthRouter.HandleFunc("/user/signup", s.UserHandler.SignUp).Methods("POST")

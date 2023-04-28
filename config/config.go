@@ -37,7 +37,10 @@ type Config struct {
 	Postgres    postgresql.StorageConfig `yaml:"postgres"`
 	Redis       redis.RedisConfig        `yaml:"redis"`
 	Logging     logging.LoggingConfig    `yaml:"logging"`
-	ContentAddr string                   `content_addr`
+	Content struct {
+		Host string `yaml:"host"`
+		Port string `yaml:"port"`
+	} `yaml:"content"`
 }
 
 var instance *Config

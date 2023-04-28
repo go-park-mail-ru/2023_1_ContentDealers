@@ -33,6 +33,9 @@ redis:
   host:     redis
   port:     6379
   dbnum:    0
+content:
+  host: content
+  port: 8081
 logging:
   dir: log
   filename: all.log.json
