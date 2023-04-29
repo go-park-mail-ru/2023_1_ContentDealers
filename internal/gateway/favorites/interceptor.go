@@ -33,7 +33,7 @@ func (si *FavoritesInterceptor) AccessLog(
 		"method":     method,
 		"request":    req,
 		"request_id": reqID,
-	}).Debug("sent_to_user_service")
+	}).Debug("sent_to_favorites_service")
 
 	err := invoker(ctx, method, req, reply, cc, opts...)
 
@@ -42,6 +42,6 @@ func (si *FavoritesInterceptor) AccessLog(
 		"time":       time.Since(start),
 		"err":        err,
 		"request_id": reqID,
-	}).Debug("returned_from_user_service")
+	}).Debug("returned_from_favorites_service")
 	return err
 }

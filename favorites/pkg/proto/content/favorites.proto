@@ -25,6 +25,10 @@ message Nothing {
     bool Dummy = 1;
 }
 
+message HasFav {
+    bool HasFav = 1;
+}
+
 message PingRequest {}
 message PingResponse {}
 
@@ -32,6 +36,7 @@ service FavoritesContentService {
     rpc DeleteContent(Favorite) returns (Nothing) {}
     rpc AddContent(Favorite) returns (Nothing) {}
     rpc GetContent(FavoritesOptions) returns (Favorites) {}
+    rpc HasFavContent(Favorite) returns (HasFav) {}
     rpc Ping(PingRequest) returns (PingResponse) {}
 }
 

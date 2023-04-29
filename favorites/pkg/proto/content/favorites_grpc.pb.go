@@ -21,6 +21,7 @@ type FavoritesContentServiceClient interface {
 	DeleteContent(ctx context.Context, in *Favorite, opts ...grpc.CallOption) (*Nothing, error)
 	AddContent(ctx context.Context, in *Favorite, opts ...grpc.CallOption) (*Nothing, error)
 	GetContent(ctx context.Context, in *FavoritesOptions, opts ...grpc.CallOption) (*Favorites, error)
+	HasFavContent(ctx context.Context, in *Favorite, opts ...grpc.CallOption) (*HasFav, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
@@ -59,6 +60,15 @@ func (c *favoritesContentServiceClient) GetContent(ctx context.Context, in *Favo
 	return out, nil
 }
 
+func (c *favoritesContentServiceClient) HasFavContent(ctx context.Context, in *Favorite, opts ...grpc.CallOption) (*HasFav, error) {
+	out := new(HasFav)
+	err := c.cc.Invoke(ctx, "/content.FavoritesContentService/HasFavContent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *favoritesContentServiceClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
 	out := new(PingResponse)
 	err := c.cc.Invoke(ctx, "/content.FavoritesContentService/Ping", in, out, opts...)
@@ -75,6 +85,7 @@ type FavoritesContentServiceServer interface {
 	DeleteContent(context.Context, *Favorite) (*Nothing, error)
 	AddContent(context.Context, *Favorite) (*Nothing, error)
 	GetContent(context.Context, *FavoritesOptions) (*Favorites, error)
+	HasFavContent(context.Context, *Favorite) (*HasFav, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	mustEmbedUnimplementedFavoritesContentServiceServer()
 }
@@ -91,6 +102,9 @@ func (UnimplementedFavoritesContentServiceServer) AddContent(context.Context, *F
 }
 func (UnimplementedFavoritesContentServiceServer) GetContent(context.Context, *FavoritesOptions) (*Favorites, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContent not implemented")
+}
+func (UnimplementedFavoritesContentServiceServer) HasFavContent(context.Context, *Favorite) (*HasFav, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HasFavContent not implemented")
 }
 func (UnimplementedFavoritesContentServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -163,6 +177,24 @@ func _FavoritesContentService_GetContent_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FavoritesContentService_HasFavContent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Favorite)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FavoritesContentServiceServer).HasFavContent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/content.FavoritesContentService/HasFavContent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FavoritesContentServiceServer).HasFavContent(ctx, req.(*Favorite))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FavoritesContentService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PingRequest)
 	if err := dec(in); err != nil {
@@ -199,6 +231,10 @@ var FavoritesContentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetContent",
 			Handler:    _FavoritesContentService_GetContent_Handler,
+		},
+		{
+			MethodName: "HasFavContent",
+			Handler:    _FavoritesContentService_HasFavContent_Handler,
 		},
 		{
 			MethodName: "Ping",

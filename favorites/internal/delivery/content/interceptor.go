@@ -31,7 +31,7 @@ func (service *Grpc) LogInterceptor(
 		"request":          req,
 		"request_id":       reqID,
 		"metadata":         md,
-	}).Debug("accepted_by_user_service")
+	}).Debug("accepted_by_favorites_service")
 
 	reply, err := handler(ctx, req)
 
@@ -40,6 +40,6 @@ func (service *Grpc) LogInterceptor(
 		"time":       time.Since(start),
 		"request_id": reqID,
 		"err":        err,
-	}).Debug("released_by_user_service")
+	}).Debug("released_by_favorites_service")
 	return reply, err
 }

@@ -19,6 +19,7 @@ type Gateway interface {
 	Delete(ctx context.Context, favorite domainFav.FavoriteContent) error
 	Add(ctx context.Context, favorite domainFav.FavoriteContent) error
 	Get(ctx context.Context, options domainFav.FavoritesOptions) ([]domainFav.FavoriteContent, error)
+	HasFav(ctx context.Context, favorite domainFav.FavoriteContent) (bool, error)
 }
 
 type FilmUseCase interface {

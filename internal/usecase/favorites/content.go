@@ -49,6 +49,16 @@ func (uc *UseCase) Add(ctx context.Context, favorite domainFav.FavoriteContent) 
 	return uc.gate.Add(ctx, favorite)
 }
 
+func (uc *UseCase) HasFav(ctx context.Context, favorite domainFav.FavoriteContent) (bool, error) {
+	userID, err := uc.GetUserIDByContext(ctx)
+	if err != nil {
+		uc.logger.WithRequestID(ctx).Trace(err)
+		return false, err
+	}
+	favorite.UserID = userID
+	return uc.gate.HasFav(ctx, favorite)
+}
+
 func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) ([]domain.Content, error) {
 	userID, err := uc.GetUserIDByContext(ctx)
 	if err != nil {

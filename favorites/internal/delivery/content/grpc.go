@@ -47,6 +47,20 @@ func (service *Grpc) AddContent(ctx context.Context, favRequest *favProto.Favori
 	return &favProto.Nothing{}, nil
 }
 
+func (service *Grpc) HasFavContent(ctx context.Context, favRequest *favProto.Favorite) (*favProto.HasFav, error) {
+	fav := domain.FavoriteContent{}
+	err := dto.Map(&fav, favRequest)
+	if err != nil {
+		service.logger.WithRequestID(ctx).Trace(err)
+		return nil, err
+	}
+	HasFav, err := service.favUseCase.HasFav(ctx, fav)
+	if err != nil {
+		return nil, err
+	}
+	return &favProto.HasFav{HasFav: HasFav}, nil
+}
+
 func (service *Grpc) GetContent(ctx context.Context, favOptionsRequest *favProto.FavoritesOptions) (*favProto.Favorites, error) {
 	favOptions := domain.FavoritesOptions{}
 	err := dto.Map(&favOptions, favOptionsRequest)

@@ -11,4 +11,5 @@ type FavContentUseCase interface {
 	Delete(ctx context.Context, favorite domain.FavoriteContent) error
 	Add(ctx context.Context, favorite domain.FavoriteContent) error
 	Get(ctx context.Context, options domain.FavoritesOptions) ([]domainContent.Content, error)
+	HasFav(ctx context.Context, options domain.FavoriteContent) (bool, error)
 }

@@ -47,6 +47,22 @@ func (repo *Repository) Add(ctx context.Context, favorite domain.FavoriteContent
 	return err
 }
 
+func (repo *Repository) HasFav(ctx context.Context, favorite domain.FavoriteContent) (bool, error) {
+	var count int
+	err := repo.DB.QueryRowContext(ctx,
+		`select count(*)
+		from users_content_favorites 
+		where user_id = $1 and content_id = $2`,
+		favorite.UserID, favorite.ContentID).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	if count == 1 {
+		return true, nil
+	}
+	return false, nil
+}
+
 func (repo *Repository) Get(ctx context.Context, options domain.FavoritesOptions) (domain.FavoritesContent, error) {
 	var orderDate string
 	if options.SortDate == "old" {

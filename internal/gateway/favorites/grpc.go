@@ -92,6 +92,25 @@ func (gate *Gateway) Add(ctx context.Context, favorite domain.FavoriteContent) e
 	return nil
 }
 
+func (gate *Gateway) HasFav(ctx context.Context, favorite domain.FavoriteContent) (bool, error) {
+	md := metadata.Pairs(
+		"requestID", ctx.Value("requestID").(string),
+	)
+	ctx = metadata.NewOutgoingContext(ctx, md)
+	favRequest := favContentProto.Favorite{}
+	err := dto.Map(&favRequest, favorite)
+	if err != nil {
+		gate.logger.WithRequestID(ctx).Trace(err)
+		return false, err
+	}
+	hasFav, err := gate.favContentManager.HasFavContent(ctx, &favRequest)
+	if err != nil {
+		gate.logger.WithRequestID(ctx).Trace(err)
+		return false, err
+	}
+	return hasFav.HasFav, nil
+}
+
 func (gate *Gateway) Get(ctx context.Context, options domain.FavoritesOptions) ([]domain.FavoriteContent, error) {
 	md := metadata.Pairs(
 		"requestID", ctx.Value("requestID").(string),

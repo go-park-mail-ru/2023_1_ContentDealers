@@ -24,6 +24,10 @@ func (uc *UseCase) Add(ctx context.Context, favorite domain.FavoriteContent) err
 	return uc.repo.Add(ctx, favorite)
 }
 
+func (uc *UseCase) HasFav(ctx context.Context, favorite domain.FavoriteContent) (bool, error) {
+	return uc.repo.HasFav(ctx, favorite)
+}
+
 func (uc *UseCase) Get(ctx context.Context, options domain.FavoritesOptions) (domain.FavoritesContent, error) {
 	return uc.repo.Get(ctx, options)
 }

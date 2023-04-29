@@ -95,6 +95,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter.HandleFunc("/user/update", s.UserHandler.Update).Methods("POST")
 
 	authRouter.HandleFunc("/favorites/content", s.FavHandler.GetFavContent).Methods("GET")
+	authRouter.HandleFunc("/favorites/content/{id:[0-9]+}/has", s.FavHandler.HasFavContent).Methods("GET")
 	authRouter.HandleFunc("/favorites/content/add", s.FavHandler.AddFavContent).Methods("POST")
 	authRouter.HandleFunc("/favorites/content/delete", s.FavHandler.DeleteFavContent).Methods("POST")
 
