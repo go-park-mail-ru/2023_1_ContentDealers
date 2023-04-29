@@ -26,7 +26,7 @@ create domain gender char(1)
 
 drop type if exists filmium.content_type cascade;
 create type content_type as enum (
-    'series',
+    'film',
     'series'
 );
 

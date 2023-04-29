@@ -56,12 +56,12 @@ type filmDTO struct {
 }
 
 type episodeDTO struct {
-	ID          uint64    `json:"id"`
-	SeasonNum   uint32    `json:"season_num"`
-	EpisodeNum  uint32    `json:"episode_num"`
-	ContentURL  string    `json:"content_url"`
-	Title       string    `json:"title"`
-	ReleaseDate time.Time `json:"release_date"`
+	ID          uint64     `json:"id"`
+	SeasonNum   uint32     `json:"season_num"`
+	EpisodeNum  uint32     `json:"episode_num"`
+	ContentURL  string     `json:"content_url"`
+	Title       *string    `json:"title"`
+	ReleaseDate *time.Time `json:"release_date"`
 }
 
 type seriesDTO struct {
