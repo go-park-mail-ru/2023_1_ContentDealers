@@ -38,7 +38,7 @@ func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	film, err := h.useCase.GetByContentID(r.Context(), id)
+	film, err := h.useCase.GetFilmByContentID(r.Context(), id)
 	if err != nil {
 		switch {
 		case errors.Is(err, domain.ErrRepoNotFound):

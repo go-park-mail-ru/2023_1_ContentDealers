@@ -18,7 +18,7 @@ drop table if exists content_selections cascade;
 create schema if not exists filmium;
 set search_path=filmium;
 
-create extension pg_trgm;
+create extension if not exists pg_trgm;
 
 drop domain if exists gender cascade;
 create domain gender char(1)
@@ -26,7 +26,7 @@ create domain gender char(1)
 
 drop type if exists filmium.content_type cascade;
 create type content_type as enum (
-    'film',
+    'series',
     'series'
 );
 

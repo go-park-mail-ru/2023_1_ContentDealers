@@ -1,12 +1,18 @@
 syntax = "proto3";
 
 // protoc --go_out=. --go-grpc_out=. --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative *.proto
-option go_package = "./;film";
+option go_package = "./;content";
 
-package film;
+import "google/protobuf/timestamp.proto";
+
+package content;
 
 message ContentID {
   uint64 ID = 1;
+}
+
+message ContentIDs {
+  repeated ContentID ContentIDs = 1;
 }
 
 message Person {
@@ -56,12 +62,32 @@ message Content {
   repeated Country Countries = 14;
 }
 
+message ContentSeq {
+  repeated Content Content = 1;
+}
+
 message Film {
   uint64 ID = 1;
   string ContentURL = 2;
   Content Content = 3;
 }
 
-service FilmService {
-  rpc GetByContentID (ContentID) returns (Film) {}
+message Episode {
+  uint64 ID = 1;
+  uint32 SeasonNum = 2;
+  uint32 EpisodeNum = 3;
+  string ContentURL = 4;
+  string Title = 5;
+  google.protobuf.Timestamp ReleaseDate = 6;
+}
+
+message Series {
+  uint64 ID = 1;
+  Content Content = 2;
+}
+
+service ContentService {
+  rpc GetFilmByContentID (ContentID) returns (Film) {}
+  rpc GetSeriesByContentID (ContentID) returns (Series) {}
+  rpc GetContentByContentIDs (ContentIDs) returns (ContentSeq) {}
 }

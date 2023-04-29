@@ -176,3 +176,36 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
 	}
 	return result, nil
 }
+
+func (repo *Repository) GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {
+	query := `select id, content_url from films where content_id = $1`
+	row := repo.DB.QueryRowContext(ctx, query, ContentID)
+	film := domain.Film{}
+	err := row.Scan(&film.ID, &film.ContentURL)
+	if err != nil {
+		repo.logger.Trace(err)
+	}
+	return film, err
+}
+
+func (repo *Repository) GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error) {
+	query := `select s.id, e.id, e.season_num, e.episode_num, e.content_url, e.release_date, e.title
+		 from series s join episodes e on s.id = e.series_id
+         where s.content_id = $1 order by season_num, episode_num`
+	rows, err := repo.DB.QueryContext(ctx, query, ContentID)
+	if err != nil {
+		return domain.Series{}, err
+	}
+	defer rows.Close()
+
+	var s domain.Series
+	for rows.Next() {
+		e := domain.Episode{}
+		err = rows.Scan(&s.ID, &e.ID, &e.SeasonNum, &e.EpisodeNum, &e.ContentURL, &e.ReleaseDate, &e.Title)
+		if err != nil {
+			return domain.Series{}, err
+		}
+		s.Episodes = append(s.Episodes, e)
+	}
+	return s, err
+}

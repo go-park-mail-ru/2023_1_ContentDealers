@@ -1,4 +1,4 @@
-package film
+package content
 
 import (
 	"context"
@@ -8,4 +8,6 @@ import (
 
 type UseCase interface {
 	GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error)
+	GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error)
+	GetContentByContentIDs(ctx context.Context, ContentIDs []uint64) ([]domain.Content, error)
 }

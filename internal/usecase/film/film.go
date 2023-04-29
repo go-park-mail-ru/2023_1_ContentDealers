@@ -19,6 +19,6 @@ func NewUseCase(contentGateway ContentGateway, logger logging.Logger) *UseCase {
 	}
 }
 
-func (uc *UseCase) GetByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {
+func (uc *UseCase) GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {
 	return uc.contentGateway.GetFilmByContentID(ctx, ContentID)
 }
