@@ -11,17 +11,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
+	contentGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
+	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
 	genreUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/genre"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
 	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/search"
@@ -91,7 +91,7 @@ func Run() error {
 	contentAddr := fmt.Sprintf("%s:%s", cfg.Content.Host, cfg.Content.Port)
 	userRepository := userRepo.NewRepository(db, logger)
 	sessionRepository := session.NewRepository(redisClient, logger)
-	contentGateway, err := content.NewGrpc(contentAddr, logger)
+	contentGateway, err := contentGate.NewGrpc(contentAddr, logger)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -117,7 +117,7 @@ func Run() error {
 	}
 
 	selectionHandler := selection.NewHandler(selectionUsecase, logger)
-	filmHandler := film.NewHandler(filmUsecase, logger)
+	contentHandler := content.NewHandler(filmUsecase, logger)
 	personHandler := person.NewHandler(personUsecase, logger)
 	userHandler := user.NewHandler(userUsecase, sessionUsecase, logger)
 	csrfHandler := csrf.NewHandler(csrfUsecase, logger)
@@ -128,7 +128,7 @@ func Run() error {
 		UserHandler:      userHandler,
 		CSRFHandler:      csrfHandler,
 		SelectionHandler: selectionHandler,
-		FilmHandler:      filmHandler,
+		ContentHandler:   contentHandler,
 		PersonHandler:    personHandler,
 		SearchHandler:    searchHandler,
 		GenreHandler:     genreHandler,

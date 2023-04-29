@@ -1,4 +1,4 @@
-package film
+package content
 
 import (
 	"encoding/json"
@@ -24,7 +24,7 @@ func NewHandler(useCase UseCase, logger logging.Logger) Handler {
 	return Handler{useCase: useCase, logger: logger}
 }
 
-func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetFilmByContentID(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	idRaw := mux.Vars(r)["content_id"]
@@ -61,6 +61,56 @@ func (h *Handler) GetByContentID(w http.ResponseWriter, r *http.Request) {
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
 			"film": filmResponse,
+		},
+	})
+
+	if err != nil {
+		h.logger.Trace(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+}
+
+func (h *Handler) GetSeriesByContentID(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	idRaw := mux.Vars(r)["content_id"]
+	var id uint64
+
+	_, err := fmt.Sscanf(idRaw, "%d", &id)
+	if err != nil {
+		h.logger.Trace(err)
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, `{"message":"series id is not numeric"}`)
+		return
+	}
+
+	series, err := h.useCase.GetSeriesByContentID(r.Context(), id)
+	if err != nil {
+		switch {
+		case errors.Is(err, domain.ErrRepoNotFound):
+			w.WriteHeader(http.StatusNotFound)
+			io.WriteString(w, `{"message":"series not found"}`)
+		default:
+			log.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		return
+	}
+
+	seriesResponse := seriesDTO{}
+	err = dto.Map(&seriesResponse, series)
+	if err != nil {
+		h.logger.Trace(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	response, err := json.Marshal(map[string]interface{}{
+		"body": map[string]interface{}{
+			"series": seriesResponse,
 		},
 	})
 

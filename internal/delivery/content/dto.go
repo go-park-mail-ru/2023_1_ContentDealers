@@ -1,4 +1,6 @@
-package film
+package content
+
+import "time"
 
 type personDTO struct {
 	ID   uint64 `json:"id"`
@@ -51,4 +53,19 @@ type filmDTO struct {
 	ID         uint64     `json:"id"`
 	ContentURL string     `json:"content_url"`
 	Content    contentDTO `json:"content"`
+}
+
+type episodeDTO struct {
+	ID          uint64    `json:"id"`
+	SeasonNum   uint32    `json:"season_num"`
+	EpisodeNum  uint32    `json:"episode_num"`
+	ContentURL  string    `json:"content_url"`
+	Title       string    `json:"title"`
+	ReleaseDate time.Time `json:"release_date"`
+}
+
+type seriesDTO struct {
+	ID       uint64       `json:"id"`
+	Content  contentDTO   `json:"content"`
+	Episodes []episodeDTO `json:"episodes"`
 }

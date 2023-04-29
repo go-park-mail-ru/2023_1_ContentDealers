@@ -84,6 +84,7 @@ message Episode {
 message Series {
   uint64 ID = 1;
   Content Content = 2;
+  repeated Episode Episodes = 3;
 }
 
 service ContentService {

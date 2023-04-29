@@ -1,4 +1,4 @@
-package film
+package content
 
 import (
 	"context"
@@ -8,11 +8,11 @@ import (
 )
 
 type UseCase struct {
-	contentGateway ContentGateway
+	contentGateway Gateway
 	logger         logging.Logger
 }
 
-func NewUseCase(contentGateway ContentGateway, logger logging.Logger) *UseCase {
+func NewUseCase(contentGateway Gateway, logger logging.Logger) *UseCase {
 	return &UseCase{
 		contentGateway: contentGateway,
 		logger:         logger,
@@ -21,4 +21,8 @@ func NewUseCase(contentGateway ContentGateway, logger logging.Logger) *UseCase {
 
 func (uc *UseCase) GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {
 	return uc.contentGateway.GetFilmByContentID(ctx, ContentID)
+}
+
+func (uc *UseCase) GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error) {
+	return uc.contentGateway.GetSeriesByContentID(ctx, ContentID)
 }

@@ -95,6 +95,20 @@ func (gateway *Grpc) GetFilmByContentID(ctx context.Context, ContentID uint64) (
 	return result, nil
 }
 
+func (gateway *Grpc) GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error) {
+	seriesDTO, err := gateway.contentService.GetSeriesByContentID(ctx, &content.ContentID{ID: ContentID})
+	if err != nil {
+		return domain.Series{}, err
+	}
+
+	var result domain.Series
+	err = dto.Map(&result, seriesDTO)
+	if err != nil {
+		return domain.Series{}, err
+	}
+	return result, nil
+}
+
 func (gateway *Grpc) GetPersonByID(ctx context.Context, id uint64) (domain.Person, error) {
 	personDTO, err := gateway.personService.GetByID(ctx, &person.ID{ID: id})
 	if err != nil {
