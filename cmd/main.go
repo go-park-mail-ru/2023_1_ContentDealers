@@ -11,25 +11,20 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/content"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
-	contentRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/content"
-	countryRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/country"
-	filmRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/film"
-	genreRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/genre"
-	personRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/person"
-	roleRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/role"
-	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/selection"
+	contentGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
 	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
-	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
-	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
-	personRoleUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/personRole"
-
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	contentUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
+	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
+	genreUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/genre"
+	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
+	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/search"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/joho/godotenv"
@@ -93,62 +88,53 @@ func Run() error {
 		return err
 	}
 
+	contentAddr := fmt.Sprintf("%s:%s", cfg.Content.Host, cfg.Content.Port)
 	userRepository := userRepo.NewRepository(db, logger)
 	sessionRepository := session.NewRepository(redisClient, logger)
-	selectionRepository := selectionRepo.NewRepository(db, logger)
-	contentRepository := contentRepo.NewRepository(db, logger)
-	filmRepository := filmRepo.NewRepository(db, logger)
-	genreRepository := genreRepo.NewRepository(db, logger)
-	roleRepository := roleRepo.NewRepository(db, logger)
-	countryRepository := countryRepo.NewRepository(db, logger)
-	personRepository := personRepo.NewRepository(db, logger)
+	contentGateway, err := contentGate.NewGrpc(contentAddr, logger)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
 
-	userUseCase := userUseCase.NewUser(&userRepository, logger)
-	sessionUseCase := sessionUseCase.NewSession(&sessionRepository, logger)
-	selectionUseCase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository, logger)
-	personRolesUseCase := personRoleUseCase.NewPersonRole(&personRepository, &roleRepository, logger)
-
-	contentUseCase := contentUseCase.NewContent(contentUseCase.Options{
-		ContentRepo:        &contentRepository,
-		GenreRepo:          &genreRepository,
-		SelectionRepo:      &selectionRepository,
-		CountryRepo:        &countryRepository,
-		PersonRolesUseCase: personRolesUseCase,
-	}, logger)
-	filmUseCase := filmUseCase.NewFilm(&filmRepository, contentUseCase, logger)
-	personUseCase := personUseCase.NewPerson(personUseCase.Options{
-		Repo:    &personRepository,
-		Content: &contentRepository,
-		Role:    &roleRepository,
-		Genre:   &genreRepository,
-	}, logger)
+	userUsecase := userUseCase.NewUser(&userRepository, logger)
+	sessionUsecase := sessionUseCase.NewSession(&sessionRepository, logger)
+	selectionUsecase := selectionUseCase.NewUseCase(contentGateway, logger)
+	filmUsecase := filmUseCase.NewUseCase(contentGateway, logger)
+	personUsecase := personUseCase.NewUseCase(contentGateway, logger)
+	searchUsecase := searchUseCase.NewUseCase(contentGateway, logger)
+	genreUsecase := genreUseCase.NewUseCase(contentGateway, logger)
 
 	err = godotenv.Load()
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
-	csrfUseCase, err := csrfUseCase.NewCSRF(os.Getenv("CSRF_TOKEN"), logger)
+	csrfUsecase, err := csrfUseCase.NewCSRF(os.Getenv("CSRF_TOKEN"), logger)
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
 
-	selectionHandler := selection.NewHandler(selectionUseCase, logger)
-	filmHandler := film.NewHandler(filmUseCase, logger)
-	personHandler := person.NewHandler(personUseCase, logger)
-	userHandler := user.NewHandler(userUseCase, sessionUseCase, logger)
-	csrfHandler := csrf.NewHandler(csrfUseCase, logger)
+	selectionHandler := selection.NewHandler(selectionUsecase, logger)
+	contentHandler := content.NewHandler(filmUsecase, logger)
+	personHandler := person.NewHandler(personUsecase, logger)
+	userHandler := user.NewHandler(userUsecase, sessionUsecase, logger)
+	csrfHandler := csrf.NewHandler(csrfUsecase, logger)
+	searchHandler := search.NewHandler(searchUsecase, logger)
+	genreHandler := genre.NewHandler(genreUsecase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
 		UserHandler:      userHandler,
 		CSRFHandler:      csrfHandler,
 		SelectionHandler: selectionHandler,
-		FilmHandler:      filmHandler,
+		ContentHandler:   contentHandler,
 		PersonHandler:    personHandler,
-		SessionUseCase:   sessionUseCase,
+		SearchHandler:    searchHandler,
+		GenreHandler:     genreHandler,
+		SessionUseCase:   sessionUsecase,
 		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
-		CSRFUseCase:      *csrfUseCase,
+		CSRFUseCase:      *csrfUsecase,
 		Logger:           logger,
 	})
 

@@ -18,6 +18,8 @@ drop table if exists content_selections cascade;
 create schema if not exists filmium;
 set search_path=filmium;
 
+create extension if not exists pg_trgm;
+
 drop domain if exists gender cascade;
 create domain gender char(1)
     check (value IN ('F', 'M'));
@@ -131,8 +133,10 @@ create table episodes (
     id bigserial primary key,
     series_id bigint not null references series(id) on delete cascade,
     season_num integer not null,
+    episode_num integer not null,
     content_url text not null,
-    title text not null
+    release_date date,
+    title text
 );
 
 -- trigger

@@ -34,7 +34,7 @@ services:
     links:
         - "postgres:postgres"
     ports:
-      - 8090:8080
+      - '8090:8080'
   redis:
     image: 'redis'
     volumes:

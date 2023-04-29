@@ -2,7 +2,7 @@ is_debug: true
 listen:
   port: 8080
 cors:
-  allowed_origins: filmium.ru
+  allowed_origins: 89.208.199.170:8100
 storage:
   # password from env
   user:     postgres
@@ -16,6 +16,9 @@ redis:
   host:     redis
   port:     6379
   dbnum:    0
+content:
+  host: content
+  port: 8081
 logging:
   dir: log
   filename: all.log.json
