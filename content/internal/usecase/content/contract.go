@@ -8,6 +8,9 @@ import (
 
 type Repository interface {
 	GetByID(ctx context.Context, id uint64) (domain.Content, error)
+	GetFilmByContentID(ctx context.Context, id uint64) (domain.Film, error)
+	GetSeriesByContentID(ctx context.Context, id uint64) (domain.Series, error)
+	GetByIDs(ctx context.Context, ids []uint64) ([]domain.Content, error)
 }
 
 type PersonRolesUseCase interface {

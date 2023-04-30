@@ -3,7 +3,7 @@ package favorites
 import (
 	"context"
 
-	domainFilm "github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
 	domainFav "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
 	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
@@ -22,6 +22,6 @@ type Gateway interface {
 	HasFav(ctx context.Context, favorite domainFav.FavoriteContent) (bool, error)
 }
 
-type FilmUseCase interface {
-	GetByContentID(ctx context.Context, ContentID uint64) (domainFilm.Film, error)
+type ContentGateway interface {
+	GetContentByContentIDs(ctx context.Context, ContentIDs []uint64) ([]domain.Content, error)
 }

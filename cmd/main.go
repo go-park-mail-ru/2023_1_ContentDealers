@@ -11,20 +11,20 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
+	contentGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
 	favGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/favorites"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
+	sessGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
 	userGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
+	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
 	favUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/favorites"
-	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
 	genreUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/genre"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
 	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/search"
@@ -71,7 +71,7 @@ func Run() error {
 		return err
 	}
 
-	sessionGateway, err := session.NewGateway(logger, cfg.ServiceSession)
+	sessionGateway, err := sessGate.NewGateway(logger, cfg.ServiceSession)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func Run() error {
 		return err
 	}
 
-	contentGateway, err := content.NewGateway(cfg.ServiceContent, logger)
+	contentGateway, err := contentGate.NewGateway(cfg.ServiceContent, logger)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -93,7 +93,7 @@ func Run() error {
 	searchUsecase := searchUseCase.NewUseCase(contentGateway, logger)
 	genreUsecase := genreUseCase.NewUseCase(contentGateway, logger)
 
-	favUseCase := favUseCase.NewUseCase(favGateway, sessionGateway, filmUsecase, logger)
+	favUseCase := favUseCase.NewUseCase(favGateway, sessionGateway, contentGateway, logger)
 
 	err = godotenv.Load()
 	if err != nil {
@@ -109,7 +109,7 @@ func Run() error {
 	userHandler := user.NewHandler(userGateway, sessionGateway, logger, cfg.Avatar)
 	favHandler := favorites.NewHandler(favUseCase, logger)
 	selectionHandler := selection.NewHandler(selectionUsecase, logger)
-	filmHandler := film.NewHandler(filmUsecase, logger)
+	contentHandler := content.NewHandler(filmUsecase, logger)
 	personHandler := person.NewHandler(personUsecase, logger)
 	csrfHandler := csrf.NewHandler(csrfUseCase, logger, cfg.CSRF)
 	searchHandler := search.NewHandler(searchUsecase, logger)
@@ -120,7 +120,7 @@ func Run() error {
 		FavHandler:       *favHandler,
 		CSRFHandler:      *csrfHandler,
 		SelectionHandler: selectionHandler,
-		FilmHandler:      filmHandler,
+		ContentHandler:   contentHandler,
 		PersonHandler:    personHandler,
 		SessionGateway:   sessionGateway,
 		SearchHandler:    searchHandler,

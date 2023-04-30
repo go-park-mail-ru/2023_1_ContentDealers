@@ -4,10 +4,10 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
 	middlewareCSRF "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf/middleware"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
@@ -34,7 +34,7 @@ type SettingsRouter struct {
 	UserHandler      user.Handler
 	CSRFHandler      csrf.Handler
 	SelectionHandler selection.Handler
-	FilmHandler      film.Handler
+	ContentHandler   content.Handler
 	PersonHandler    person.Handler
 	SessionGateway   SessionGateway
 	CSRFUseCase      csrfUseCase.UseCase
@@ -80,7 +80,8 @@ func Routes(s *SettingsRouter) *mux.Router {
 	router.HandleFunc("/selections", s.SelectionHandler.GetAll)
 	router.HandleFunc("/selections/{id:[0-9]+}", s.SelectionHandler.GetByID)
 	router.HandleFunc("/persons/{id:[0-9]+}", s.PersonHandler.GetByID)
-	router.HandleFunc("/films/{content_id:[0-9]+}", s.FilmHandler.GetByContentID)
+	router.HandleFunc("/films/{content_id:[0-9]+}", s.ContentHandler.GetFilmByContentID)
+	router.HandleFunc("/series/{content_id:[0-9]+}", s.ContentHandler.GetSeriesByContentID)
 	router.HandleFunc("/search", s.SearchHandler.Search)
 	router.HandleFunc("/genres", s.GenreHandler.GetAll)
 	router.HandleFunc("/genres/{id:[0-9]+}", s.GenreHandler.GetContentByID)

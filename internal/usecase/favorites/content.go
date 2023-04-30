@@ -14,14 +14,14 @@ type UseCase struct {
 	gate    Gateway
 	session SessionGateway
 	logger  logging.Logger
-	film    FilmUseCase
+	content ContentGateway
 }
 
-func NewUseCase(gate Gateway, session SessionGateway, film FilmUseCase, logger logging.Logger) *UseCase {
-	return &UseCase{gate: gate, session: session, film: film, logger: logger}
+func NewUseCase(gate Gateway, session SessionGateway, content ContentGateway, logger logging.Logger) *UseCase {
+	return &UseCase{gate: gate, session: session, content: content, logger: logger}
 }
 
-func (uc *UseCase) GetUserIDByContext(ctx context.Context) (uint64, error) {
+func (uc *UseCase) getUserIDByContext(ctx context.Context) (uint64, error) {
 	session, ok := ctx.Value("session").(domainSession.Session)
 	if !ok {
 		return 0, fmt.Errorf("session not found")
@@ -30,7 +30,7 @@ func (uc *UseCase) GetUserIDByContext(ctx context.Context) (uint64, error) {
 }
 
 func (uc *UseCase) Delete(ctx context.Context, favorite domainFav.FavoriteContent) error {
-	userID, err := uc.GetUserIDByContext(ctx)
+	userID, err := uc.getUserIDByContext(ctx)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
 		return err
@@ -40,7 +40,7 @@ func (uc *UseCase) Delete(ctx context.Context, favorite domainFav.FavoriteConten
 }
 
 func (uc *UseCase) Add(ctx context.Context, favorite domainFav.FavoriteContent) error {
-	userID, err := uc.GetUserIDByContext(ctx)
+	userID, err := uc.getUserIDByContext(ctx)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
 		return err
@@ -50,7 +50,7 @@ func (uc *UseCase) Add(ctx context.Context, favorite domainFav.FavoriteContent) 
 }
 
 func (uc *UseCase) HasFav(ctx context.Context, favorite domainFav.FavoriteContent) (bool, error) {
-	userID, err := uc.GetUserIDByContext(ctx)
+	userID, err := uc.getUserIDByContext(ctx)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
 		return false, err
@@ -60,7 +60,7 @@ func (uc *UseCase) HasFav(ctx context.Context, favorite domainFav.FavoriteConten
 }
 
 func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) ([]domain.Content, error) {
-	userID, err := uc.GetUserIDByContext(ctx)
+	userID, err := uc.getUserIDByContext(ctx)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
 		return []domain.Content{}, err
@@ -71,15 +71,14 @@ func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) 
 		return []domain.Content{}, err
 	}
 
-	var content []domain.Content
-
+	var contentIDs []uint64
 	for _, fav := range favs {
-		film, err := uc.film.GetByContentID(ctx, fav.ContentID)
-		if err != nil {
-			return []domain.Content{}, err
-		}
-		content = append(content, film.Content)
+		contentIDs = append(contentIDs, fav.ContentID)
 	}
 
-	return content, nil
+	contentSlice, err := uc.content.GetContentByContentIDs(ctx, contentIDs)
+	if err != nil {
+		return []domain.Content{}, err
+	}
+	return contentSlice, nil
 }

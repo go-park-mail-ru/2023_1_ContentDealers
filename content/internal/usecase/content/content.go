@@ -59,3 +59,25 @@ func (uc *UseCase) GetByID(ctx context.Context, id uint64) (domain.Content, erro
 	}
 	return content, nil
 }
+
+func (uc *UseCase) GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {
+	film, err := uc.repo.GetFilmByContentID(ctx, ContentID)
+	if err != nil {
+		return domain.Film{}, err
+	}
+	film.Content, err = uc.GetByID(ctx, ContentID)
+	return film, err
+}
+
+func (uc *UseCase) GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error) {
+	series, err := uc.repo.GetSeriesByContentID(ctx, ContentID)
+	if err != nil {
+		return domain.Series{}, err
+	}
+	series.Content, err = uc.GetByID(ctx, ContentID)
+	return series, err
+}
+
+func (uc *UseCase) GetContentByContentIDs(ctx context.Context, ContentIDs []uint64) ([]domain.Content, error) {
+	return uc.repo.GetByIDs(ctx, ContentIDs)
+}
