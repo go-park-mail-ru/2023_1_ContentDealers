@@ -7,6 +7,7 @@ import (
 	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
 	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/proto/content"
+	interceptorClient "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/client"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -15,7 +16,6 @@ import (
 type Gateway struct {
 	logger            logging.Logger
 	favContentManager favContentProto.FavoritesContentServiceClient
-	interseptor       FavoritesInterceptor
 }
 
 func pingServer(ctx context.Context, client favContentProto.FavoritesContentServiceClient) error {
@@ -31,12 +31,12 @@ func pingServer(ctx context.Context, client favContentProto.FavoritesContentServ
 }
 
 func NewGateway(logger logging.Logger, cfg ServiceFavoritesConfig) (*Gateway, error) {
-	interseptor := FavoritesInterceptor{logger: logger}
+	interceptor := interceptorClient.NewInterceptorClient("favorites", logger)
 
 	grcpConn, err := grpc.Dial(
 		cfg.Addr,
 		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(interseptor.AccessLog),
+		grpc.WithUnaryInterceptor(interceptor.AccessLog),
 	)
 	if err != nil {
 		logger.Error("cant connect to grpc session service")

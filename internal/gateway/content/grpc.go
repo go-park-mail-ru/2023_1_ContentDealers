@@ -10,6 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/selection"
+	interceptorClient "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/client"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"google.golang.org/grpc"
@@ -26,7 +27,13 @@ type Grpc struct {
 }
 
 func NewGateway(cfg ServiceContentConfig, logger logging.Logger) (*Grpc, error) {
-	grpcConn, err := grpc.Dial(cfg.Addr, grpc.WithInsecure())
+	interceptor := interceptorClient.NewInterceptorClient("content", logger)
+
+	grpcConn, err := grpc.Dial(
+		cfg.Addr,
+		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(interceptor.AccessLog),
+	)
 	if err != nil {
 		return &Grpc{}, err
 	}

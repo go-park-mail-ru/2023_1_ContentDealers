@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	interceptorClient "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/client"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/proto/session"
@@ -15,7 +16,6 @@ import (
 type Gateway struct {
 	logger      logging.Logger
 	sessManager session.SessionServiceClient
-	interseptor SessionInterceptor
 }
 
 func pingServer(ctx context.Context, client session.SessionServiceClient) error {
@@ -31,12 +31,12 @@ func pingServer(ctx context.Context, client session.SessionServiceClient) error 
 }
 
 func NewGateway(logger logging.Logger, cfg ServiceSessionConfig) (*Gateway, error) {
-	interseptor := SessionInterceptor{logger: logger}
+	interceptor := interceptorClient.NewInterceptorClient("session", logger)
 
 	grcpConn, err := grpc.Dial(
 		cfg.Addr,
 		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(interseptor.AccessLog),
+		grpc.WithUnaryInterceptor(interceptor.AccessLog),
 	)
 	if err != nil {
 		logger.Error("cant connect to grpc session service")

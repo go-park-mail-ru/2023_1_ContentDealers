@@ -1,15 +1,29 @@
-package user
+package server
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
-func (service *Grpc) LogInterceptor(
+type InterceptorServer struct {
+	logger      logging.Logger
+	serviceName string
+}
+
+func NewInterceptorServer(serviceName string, logger logging.Logger) *InterceptorServer {
+	return &InterceptorServer{
+		logger:      logger,
+		serviceName: serviceName,
+	}
+}
+
+func (inter *InterceptorServer) AccessLog(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -26,20 +40,20 @@ func (service *Grpc) LogInterceptor(
 
 	ctx = context.WithValue(ctx, "requestID", reqID)
 
-	service.logger.WithFields(logrus.Fields{
+	inter.logger.WithFields(logrus.Fields{
 		"info_full_method": info.FullMethod,
 		"request":          req,
 		"request_id":       reqID,
 		"metadata":         md,
-	}).Debug("accepted_by_user_service")
+	}).Debug(fmt.Sprintf("accepted_by_%s_service", inter.serviceName))
 
 	reply, err := handler(ctx, req)
 
-	service.logger.WithFields(logrus.Fields{
-		"reply":      reply,
-		"time":       time.Since(start),
+	inter.logger.WithFields(logrus.Fields{
+		// "reply":      reply,
+		"time":       fmt.Sprintf("%d mcs", time.Since(start).Microseconds()),
 		"request_id": reqID,
 		"err":        err,
-	}).Debug("released_by_user_service")
+	}).Debug(fmt.Sprintf("released_by_%s_service", inter.serviceName))
 	return reply, err
 }

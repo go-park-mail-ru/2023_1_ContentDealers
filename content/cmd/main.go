@@ -34,6 +34,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
+	interceptorServer "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/server"
 	pingDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/proto/ping"
@@ -112,7 +113,10 @@ func Run() error {
 	genreService := genreDelivery.NewGrpc(genreUsecase)
 	pingService := pingDelivery.NewGrpc()
 
-	server := grpc.NewServer()
+	interceptor := interceptorServer.NewInterceptorServer("content", logger)
+	server := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptor.AccessLog),
+	)
 	content.RegisterContentServiceServer(server, contentService)
 	person.RegisterPersonServiceServer(server, personService)
 	selection.RegisterSelectionServiceServer(server, selectionService)

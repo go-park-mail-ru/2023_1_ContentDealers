@@ -15,6 +15,7 @@ import (
 	usecase "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/internal/usecase/content"
 	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/proto/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
+	interceptorServer "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/server"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"google.golang.org/grpc"
 )
@@ -57,8 +58,10 @@ func Run() error {
 	favContentUseCase := usecase.NewUseCase(&favContentRepository, logger)
 	favContentService := delivery.NewGrpc(favContentUseCase, logger)
 
+	interceptor := interceptorServer.NewInterceptorServer("favorites", logger)
+
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(favContentService.LogInterceptor),
+		grpc.UnaryInterceptor(interceptor.AccessLog),
 	)
 
 	favContentProto.RegisterFavoritesContentServiceServer(server, favContentService)

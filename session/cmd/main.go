@@ -11,6 +11,7 @@ import (
 
 	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
+	interceptorServer "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/server"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	delivery "github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/delivery/session"
 	repository "github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/repository/session"
@@ -57,8 +58,10 @@ func Run() error {
 	sessionUseCase := usecase.NewSession(&sessionRepository, logger, cfg.Session.ExpiresAt)
 	sessionService := delivery.NewGrpc(sessionUseCase, logger)
 
+	interceptor := interceptorServer.NewInterceptorServer("session", logger)
+
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(sessionService.LogInterceptor),
+		grpc.UnaryInterceptor(interceptor.AccessLog),
 	)
 
 	session.RegisterSessionServiceServer(server, sessionService)
