@@ -25,18 +25,18 @@ func (mv *GeneralMiddleware) generateRequestID() string {
 	return uuid.New().String()
 }
 
-type loggingResponseWriter struct {
+type ResponseWriter_CaptureStatus struct {
 	http.ResponseWriter
 	statusCode int
 }
 
-func NewLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
-	return &loggingResponseWriter{w, 0}
+func NewResponseWriter_CaptureStatus(w http.ResponseWriter) *ResponseWriter_CaptureStatus {
+	return &ResponseWriter_CaptureStatus{w, 0}
 }
 
-func (lrw *loggingResponseWriter) WriteHeader(code int) {
-	lrw.statusCode = code
-	lrw.ResponseWriter.WriteHeader(code)
+func (rw *ResponseWriter_CaptureStatus) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
 }
 
 func (mv *GeneralMiddleware) AccessLog(next http.Handler) http.Handler {
@@ -53,10 +53,10 @@ func (mv *GeneralMiddleware) AccessLog(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), "requestID", requestID)
 		start := time.Now()
 
-		loggingRW := NewLoggingResponseWriter(w)
-		next.ServeHTTP(loggingRW, r.WithContext(ctx))
+		rw := NewResponseWriter_CaptureStatus(w)
+		next.ServeHTTP(rw, r.WithContext(ctx))
 		mv.logger.WithFields(logrus.Fields{
-			"status_http": loggingRW.statusCode,
+			"status_http": rw.statusCode,
 			"request_id":  requestID,
 			"time":        fmt.Sprintf("%d mcs", time.Since(start).Microseconds()),
 		}).Debug("released_by_api_gateway")

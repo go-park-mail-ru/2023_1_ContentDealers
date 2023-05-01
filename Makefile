@@ -39,12 +39,19 @@ build:
 	go build -o ./build/session/out session/cmd/main.go 		&& \
 	go build -o ./build/user/out user/cmd/main.go 				&& \
 	go build -o ./build/favorites/out favorites/cmd/main.go 	&& \
-	go build -o ./build/api_gateway/out cmd/main.go
 	cp config.yml ./build/content
 	cp config.yml ./build/session
 	cp config.yml ./build/user
 	cp config.yml ./build/favorites
+	
+	go build -o ./build/api_gateway/out cmd/main.go
 	cp config.yml ./build/api_gateway	
+
+build_api:
+	rm -rf ./build/api_gateway && \
+	go build -o ./build/api_gateway/out cmd/main.go
+	cp config.yml ./build/api_gateway
+
 
 move_config:
 	cp config.yml ./build/content

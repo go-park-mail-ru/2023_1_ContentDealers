@@ -19,6 +19,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 )
 
@@ -66,6 +67,8 @@ func Routes(s *SettingsRouter) *mux.Router {
 	router.NotFoundHandler = http.HandlerFunc(NotFound)
 
 	router.Use(generalMiddleware.AccessLog)
+	// после AccessLog, потому что AccessLog навешивает декоратор на ResponseWriter
+	router.Use(generalMiddleware.Metrics)
 	router.Use(generalMiddleware.Panic)
 	router.Use(corsMiddleware.Handler)
 	router.Use(generalMiddleware.SetContentTypeJSON)
@@ -76,6 +79,8 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter.Use(authMiddleware.RequireAuth)
 	authRouter.Use(CSRFMiddleware.RequireCSRF)
 	unAuthRouter.Use(authMiddleware.RequireUnAuth)
+
+	router.Handle("/metrics", promhttp.Handler())
 
 	router.HandleFunc("/selections", s.SelectionHandler.GetAll)
 	router.HandleFunc("/selections/{id:[0-9]+}", s.SelectionHandler.GetByID)

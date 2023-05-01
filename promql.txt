@@ -1,0 +1,12 @@
+sum by (serivce) (rate(grpc_requests_total[1m]))
+sum by (serivce) (increase(grpc_request_duration_seconds_historgram_sum[1m])) / sum by (serivce) (increase(grpc_request_duration_seconds_historgram_count[1m]))
+sum (rate(http_requests_total[1m])) 
+
+
+api
+sum(increase(http_requests_total{path!="/metrics"}[10m])) by (path)
+sum(rate(http_requests_total{path!="/metrics"}[1m])) by (path)
+sum by (path) (rate(http_request_duration_seconds_historgram_sum{path!="/metrics"}[1m])) / sum by (path) (rate(http_request_duration_seconds_historgram_count{path!="/metrics"}[1m])) 
+sum(increase(http_requests_total{dfg!="/metrics", status=~"4.+|5.+"}[1m])) / sum(increase(http_requests_total{dfg!="/metrics"}[1m]))
+sum(increase(http_requests_total{path!="/metrics", status=~"4.+|5.+"}[1m])) by (path, status)
+up

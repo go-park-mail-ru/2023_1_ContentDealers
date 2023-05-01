@@ -76,9 +76,22 @@ func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) 
 		contentIDs = append(contentIDs, fav.ContentID)
 	}
 
-	contentSlice, err := uc.content.GetContentByContentIDs(ctx, contentIDs)
+	contentSliceSorted, err := uc.content.GetContentByContentIDs(ctx, contentIDs)
 	if err != nil {
 		return []domain.Content{}, err
 	}
+
+	// сортировка []domain.Content согласно порядку id-шников в contentIDs
+
+	contentDict := make(map[uint64]domain.Content)
+	for _, item := range contentSliceSorted {
+		contentDict[item.ID] = item
+	}
+
+	contentSlice := make([]domain.Content, len(contentIDs))
+	for i, id := range contentIDs {
+		contentSlice[i] = contentDict[id]
+	}
+
 	return contentSlice, nil
 }

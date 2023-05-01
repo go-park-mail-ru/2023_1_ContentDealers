@@ -115,7 +115,7 @@ func Run() error {
 
 	interceptor := interceptorServer.NewInterceptorServer("content", logger)
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptor.AccessLog),
+		grpc.UnaryInterceptor(interceptor.LogAndMetrics),
 	)
 	content.RegisterContentServiceServer(server, contentService)
 	person.RegisterPersonServiceServer(server, personService)
