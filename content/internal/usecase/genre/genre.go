@@ -24,7 +24,7 @@ func (uc *UseCase) GetAll(ctx context.Context) ([]domain.Genre, error) {
 	return uc.repo.GetAll(ctx)
 }
 
-func (uc *UseCase) GetContentByOptions(ctx context.Context, options domain.ContentFilter) (domain.GenreContent, error) {
+func (uc *UseCase) GetGenreContent(ctx context.Context, options domain.ContentFilter) (domain.GenreContent, error) {
 	result := domain.GenreContent{}
 	var err error
 	result.Content, err = uc.content.GetByGenreOptions(ctx, options)

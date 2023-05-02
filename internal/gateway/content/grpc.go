@@ -144,7 +144,7 @@ func (gateway *Grpc) Search(ctx context.Context, query string) (domain.Search, e
 	return result, nil
 }
 
-func (gateway *Grpc) GetContentByOptions(ctx context.Context,
+func (gateway *Grpc) GetGenreContent(ctx context.Context,
 	options domain.ContentFilter) (domain.GenreContent, error) {
 	contentDTO, err := gateway.genreService.GetContentByOptions(ctx, &genre.Options{
 		ID:     options.ID,

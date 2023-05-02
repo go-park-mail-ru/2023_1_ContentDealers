@@ -48,7 +48,7 @@ func (inter *InterceptorClient) AccessLog(
 
 	inter.logger.WithFields(logrus.Fields{
 		// "reply":      reply,
-		"time":       fmt.Sprintf("%d mcs", time.Since(start).Microseconds()),,
+		"time":       fmt.Sprintf("%d mcs", time.Since(start).Microseconds()),
 		"err":        err,
 		"request_id": reqID,
 	}).Debug(fmt.Sprintf("returned_from_%s_service", inter.serviceName))
