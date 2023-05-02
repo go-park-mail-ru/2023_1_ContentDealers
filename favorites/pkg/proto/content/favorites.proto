@@ -15,10 +15,13 @@ message Favorite {
 message FavoritesOptions {
   uint64 UserID = 1;
   string SortDate = 2;
+  uint32 Limit = 3;
+  uint32 Offset = 4;
 }
 
 message Favorites {
-  repeated Favorite Favorites = 1;
+  bool IsLast = 1;
+  repeated Favorite Favorites = 2;
 }
 
 message Nothing {

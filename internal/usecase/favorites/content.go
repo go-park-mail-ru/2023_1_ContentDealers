@@ -59,29 +59,31 @@ func (uc *UseCase) HasFav(ctx context.Context, favorite domainFav.FavoriteConten
 	return uc.gate.HasFav(ctx, favorite)
 }
 
-func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) ([]domain.Content, error) {
+func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) ([]domain.Content, bool, error) {
 	userID, err := uc.getUserIDByContext(ctx)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
-		return []domain.Content{}, err
+		return []domain.Content{}, false, err
 	}
 	options.UserID = userID
 	favs, err := uc.gate.Get(ctx, options)
 	if err != nil {
-		return []domain.Content{}, err
+		return []domain.Content{}, false, err
 	}
 
 	var contentIDs []uint64
-	for _, fav := range favs {
+	for _, fav := range favs.Favorites {
 		contentIDs = append(contentIDs, fav.ContentID)
 	}
 
+	fmt.Println("\n\n\n", contentIDs, "\n\n\n")
+
 	contentSliceSorted, err := uc.content.GetContentByContentIDs(ctx, contentIDs)
 	if err != nil {
-		return []domain.Content{}, err
+		return []domain.Content{}, false, err
 	}
 
-	// сортировка []domain.Content согласно порядку id-шников в contentIDs
+	// сортировка contentSliceSorted согласно порядку id-шников в contentIDs
 
 	contentDict := make(map[uint64]domain.Content)
 	for _, item := range contentSliceSorted {
@@ -93,5 +95,5 @@ func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) 
 		contentSlice[i] = contentDict[id]
 	}
 
-	return contentSlice, nil
+	return contentSlice, favs.IsLast, nil
 }

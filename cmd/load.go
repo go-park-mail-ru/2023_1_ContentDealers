@@ -8,7 +8,9 @@ import (
 )
 
 var (
-	addr  = "http://172.27.195.147:8080"
+	// addr  = "http://172.27.195.147:8080"
+	addr  = "http://89.208.199.170:8100/api"
+	ms    = 300
 	paths = map[string]string{
 		"/selections":            "GET",
 		"/selections/1":          "GET",
@@ -55,6 +57,6 @@ func main() {
 			fmt.Printf("[%s %s] STATUS: %s\n", method, url, resp.Status)
 			resp.Body.Close()
 		}
-		time.Sleep(700 * time.Millisecond)
+		time.Sleep(time.Duration(ms) * time.Millisecond)
 	}
 }

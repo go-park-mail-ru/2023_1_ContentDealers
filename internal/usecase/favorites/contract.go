@@ -18,7 +18,7 @@ type SessionGateway interface {
 type Gateway interface {
 	Delete(ctx context.Context, favorite domainFav.FavoriteContent) error
 	Add(ctx context.Context, favorite domainFav.FavoriteContent) error
-	Get(ctx context.Context, options domainFav.FavoritesOptions) ([]domainFav.FavoriteContent, error)
+	Get(ctx context.Context, options domainFav.FavoritesOptions) (domainFav.FavoritesContent, error)
 	HasFav(ctx context.Context, favorite domainFav.FavoriteContent) (bool, error)
 }
 

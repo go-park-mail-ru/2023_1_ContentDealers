@@ -111,7 +111,7 @@ func (gate *Gateway) HasFav(ctx context.Context, favorite domain.FavoriteContent
 	return hasFav.HasFav, nil
 }
 
-func (gate *Gateway) Get(ctx context.Context, options domain.FavoritesOptions) ([]domain.FavoriteContent, error) {
+func (gate *Gateway) Get(ctx context.Context, options domain.FavoritesOptions) (domain.FavoritesContent, error) {
 	md := metadata.Pairs(
 		"requestID", ctx.Value("requestID").(string),
 	)
@@ -122,18 +122,18 @@ func (gate *Gateway) Get(ctx context.Context, options domain.FavoritesOptions) (
 
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return []domain.FavoriteContent{}, err
+		return domain.FavoritesContent{}, err
 	}
 	favsResponse, err := gate.favContentManager.GetContent(ctx, &favOptionsRequest)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return []domain.FavoriteContent{}, err
+		return domain.FavoritesContent{}, err
 	}
-	favs := FavoritesContentDTO{}
+	favs := domain.FavoritesContent{}
 	err = dto.Map(&favs, favsResponse)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return []domain.FavoriteContent{}, err
+		return domain.FavoritesContent{}, err
 	}
-	return favs.Favorites, nil
+	return favs, nil
 }

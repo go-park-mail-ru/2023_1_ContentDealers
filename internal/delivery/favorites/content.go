@@ -13,6 +13,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	defaultLimit  = 15
+	defaultOffset = 0
+)
+
 type Handler struct {
 	useCase FavContentUseCase
 	logger  logging.Logger
@@ -120,6 +125,10 @@ func (h *Handler) GetFavContent(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	defer r.Body.Close()
 
+	// query string
+
+	var limit int32 = defaultLimit
+	var offset int32 = defaultOffset
 	var order string
 
 	query, err := url.ParseQuery(r.URL.RawQuery)
@@ -128,14 +137,28 @@ func (h *Handler) GetFavContent(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	limitRaw := query.Get("limit")
+	_, err = fmt.Sscanf(limitRaw, "%d", &limit)
+	if err != nil || limit <= 0 {
+		limit = defaultLimit
+	}
+
+	offsetRaw := query.Get("offset")
+	_, err = fmt.Sscanf(offsetRaw, "%d", &offset)
+	if err != nil || offset < 0 {
+		offset = defaultOffset
+	}
 	// пустая строка будет обработана
 	order = query.Get("order")
 
 	options := domain.FavoritesOptions{
 		SortDate: order,
+		Limit:    uint32(limit),
+		Offset:   uint32(offset),
 	}
 
-	content, err := h.useCase.Get(ctx, options)
+	content, isLast, err := h.useCase.Get(ctx, options)
 	if err != nil {
 		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -152,6 +175,7 @@ func (h *Handler) GetFavContent(w http.ResponseWriter, r *http.Request) {
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
 			"content": contentResponse,
+			"is_last": isLast,
 		},
 	})
 	if err != nil {

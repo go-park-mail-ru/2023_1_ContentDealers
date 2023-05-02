@@ -52,6 +52,11 @@ build_api:
 	go build -o ./build/api_gateway/out cmd/main.go
 	cp config.yml ./build/api_gateway
 
+build_fav:
+	rm -rf ./build/favorites && \
+	go build -o ./build/favorites/out favorites/cmd/main.go
+	cp config.yml ./build/favorites
+
 
 move_config:
 	cp config.yml ./build/content
