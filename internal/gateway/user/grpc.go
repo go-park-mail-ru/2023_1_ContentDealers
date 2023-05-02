@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/dranikpg/dto-mapper"
+	interceptorClient "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/client"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 	userProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/proto/user"
@@ -23,7 +24,6 @@ const (
 type Gateway struct {
 	logger      logging.Logger
 	userManager userProto.UserServiceClient
-	interseptor UserInterceptor
 }
 
 func pingServer(ctx context.Context, client userProto.UserServiceClient) error {
@@ -39,12 +39,12 @@ func pingServer(ctx context.Context, client userProto.UserServiceClient) error {
 }
 
 func NewGateway(logger logging.Logger, cfg ServiceUserConfig) (*Gateway, error) {
-	interseptor := UserInterceptor{logger: logger}
+	interceptor := interceptorClient.NewInterceptorClient("user", logger)
 
 	grcpConn, err := grpc.Dial(
 		cfg.Addr,
 		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(interseptor.AccessLog),
+		grpc.WithUnaryInterceptor(interceptor.AccessLog),
 	)
 	if err != nil {
 		logger.Error("cant connect to grpc session service")

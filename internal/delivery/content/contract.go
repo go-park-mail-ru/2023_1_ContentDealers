@@ -1,4 +1,4 @@
-package film
+package content
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
 )
 
-type ContentGateway interface {
+type UseCase interface {
 	GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error)
+	GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error)
 }

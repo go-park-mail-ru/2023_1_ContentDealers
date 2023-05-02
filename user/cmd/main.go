@@ -11,6 +11,7 @@ import (
 
 	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
+	interceptorServer "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/server"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	delivery "github.com/go-park-mail-ru/2023_1_ContentDealers/user/internal/delivery/user"
 	repository "github.com/go-park-mail-ru/2023_1_ContentDealers/user/internal/repository/user"
@@ -57,8 +58,10 @@ func Run() error {
 	userUseCase := usecase.NewUser(&userRepository, logger)
 	userService := delivery.NewGrpc(userUseCase, logger)
 
+	interceptor := interceptorServer.NewInterceptorServer("user", logger)
+
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(userService.LogInterceptor),
+		grpc.UnaryInterceptor(interceptor.AccessLog),
 	)
 
 	user.RegisterUserServiceServer(server, userService)

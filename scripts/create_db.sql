@@ -22,7 +22,7 @@ create schema if not exists user_schema;
 create schema if not exists favorites_schema;
 set search_path=filmium;
 
-create extension pg_trgm;
+create extension if not exists pg_trgm;
 
 drop domain if exists gender cascade;
 create domain gender char(1)

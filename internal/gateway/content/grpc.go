@@ -5,38 +5,47 @@ import (
 
 	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/film"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/proto/selection"
+	interceptorClient "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/client"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"google.golang.org/grpc"
 )
 
 type Grpc struct {
-	filmService      film.FilmServiceClient
 	personService    person.PersonServiceClient
 	selectionService selection.SelectionServiceClient
 	searchService    search.SearchServiceClient
 	genreService     genre.GenreServiceClient
+	contentService   content.ContentServiceClient
 
 	logger logging.Logger
 }
 
 func NewGateway(cfg ServiceContentConfig, logger logging.Logger) (*Grpc, error) {
-	grpcConn, err := grpc.Dial(cfg.Addr, grpc.WithInsecure())
+	interceptor := interceptorClient.NewInterceptorClient("content", logger)
+
+	grpcConn, err := grpc.Dial(
+		cfg.Addr,
+		grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(interceptor.AccessLog),
+	)
 	if err != nil {
 		return &Grpc{}, err
 	}
 
 	result := Grpc{}
-	result.filmService = film.NewFilmServiceClient(grpcConn)
 	result.personService = person.NewPersonServiceClient(grpcConn)
 	result.selectionService = selection.NewSelectionServiceClient(grpcConn)
 	result.searchService = search.NewSearchServiceClient(grpcConn)
 	result.genreService = genre.NewGenreServiceClient(grpcConn)
+	result.contentService = content.NewContentServiceClient(grpcConn)
+
+	result.logger = logger
 
 	err = ping.Ping(grpcConn)
 	if err != nil {
@@ -80,7 +89,7 @@ func (gateway *Grpc) GetSelectionByID(ctx context.Context, id uint64) (domain.Se
 }
 
 func (gateway *Grpc) GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {
-	filmDTO, err := gateway.filmService.GetByContentID(ctx, &film.ContentID{ID: ContentID})
+	filmDTO, err := gateway.contentService.GetFilmByContentID(ctx, &content.ContentID{ID: ContentID})
 	if err != nil {
 		return domain.Film{}, err
 	}
@@ -89,6 +98,20 @@ func (gateway *Grpc) GetFilmByContentID(ctx context.Context, ContentID uint64) (
 	err = dto.Map(&result, filmDTO)
 	if err != nil {
 		return domain.Film{}, err
+	}
+	return result, nil
+}
+
+func (gateway *Grpc) GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error) {
+	seriesDTO, err := gateway.contentService.GetSeriesByContentID(ctx, &content.ContentID{ID: ContentID})
+	if err != nil {
+		return domain.Series{}, err
+	}
+
+	var result domain.Series
+	err = dto.Map(&result, seriesDTO)
+	if err != nil {
+		return domain.Series{}, err
 	}
 	return result, nil
 }
@@ -137,6 +160,23 @@ func (gateway *Grpc) GetContentByOptions(ctx context.Context,
 		return domain.GenreContent{}, err
 	}
 	return result, nil
+}
+
+func (gateway *Grpc) GetContentByContentIDs(ctx context.Context, ContentIDs []uint64) ([]domain.Content, error) {
+	contentIDs := &content.ContentIDs{}
+	for _, id := range ContentIDs {
+		contentIDs.ContentIDs = append(contentIDs.ContentIDs, &content.ContentID{ID: id})
+	}
+	contentSeq, err := gateway.contentService.GetContentByContentIDs(ctx, contentIDs)
+	if err != nil {
+		return []domain.Content{}, err
+	}
+	var contentSlice []domain.Content
+	err = dto.Map(&contentSlice, contentSeq.Content)
+	if err != nil {
+		return []domain.Content{}, err
+	}
+	return contentSlice, nil
 }
 
 func (gateway *Grpc) GetAllGenres(ctx context.Context) ([]domain.Genre, error) {
