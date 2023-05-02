@@ -3,19 +3,18 @@ package country
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 type Repository struct {
-	DB     *sql.DB
-	logger logging.Logger
+	DB *sql.DB
 }
 
-func NewRepository(db *sql.DB, logger logging.Logger) Repository {
-	return Repository{DB: db, logger: logger}
+func NewRepository(db *sql.DB) Repository {
+	return Repository{DB: db}
 }
 
 const fetchQueryTemplate = `select countries.id, countries.name from countries 
@@ -25,7 +24,9 @@ const fetchQueryTemplate = `select countries.id, countries.name from countries
 func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([]domain.Country, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return []domain.Country{}, nil
+		}
 		return nil, err
 	}
 	defer rows.Close()
@@ -35,7 +36,6 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 		c := domain.Country{}
 		err = rows.Scan(&c.ID, &c.Name)
 		if err != nil {
-			repo.logger.WithRequestID(ctx).Trace(err)
 			return nil, err
 		}
 		result = append(result, c)

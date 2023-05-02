@@ -4,16 +4,14 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 type PersonExtender struct {
-	repo   PersonRepository
-	logger logging.Logger
+	repo PersonRepository
 }
 
-func NewPersonExtender(repo PersonRepository, logger logging.Logger) *PersonExtender {
-	return &PersonExtender{repo: repo, logger: logger}
+func NewPersonExtender(repo PersonRepository) *PersonExtender {
+	return &PersonExtender{repo: repo}
 }
 
 func (extender *PersonExtender) Extend(ctx context.Context, query string) (func(search *domain.Search), error) {

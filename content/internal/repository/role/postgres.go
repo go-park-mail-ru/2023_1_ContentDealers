@@ -3,24 +3,25 @@ package role
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 type Repository struct {
-	DB     *sql.DB
-	logger logging.Logger
+	DB *sql.DB
 }
 
-func NewRepository(db *sql.DB, logger logging.Logger) Repository {
-	return Repository{DB: db, logger: logger}
+func NewRepository(db *sql.DB) Repository {
+	return Repository{DB: db}
 }
 
 func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (map[uint64]domain.Role, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return map[uint64]domain.Role{}, nil
+		}
 		return nil, err
 	}
 	defer rows.Close()
@@ -31,7 +32,6 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) (m
 		r := domain.Role{}
 		err = rows.Scan(&id, &r.ID, &r.Title)
 		if err != nil {
-			repo.logger.WithRequestID(ctx).Trace(err)
 			return nil, err
 		}
 		result[id] = r
@@ -54,7 +54,9 @@ func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]d
 			  order by r.id`
 	rows, err := repo.DB.QueryContext(ctx, query, PersonID)
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return []domain.Role{}, nil
+		}
 		return nil, err
 	}
 	defer rows.Close()
@@ -64,7 +66,6 @@ func (repo *Repository) GetByPersonID(ctx context.Context, PersonID uint64) ([]d
 		r := domain.Role{}
 		err = rows.Scan(&r.ID, &r.Title)
 		if err != nil {
-			repo.logger.WithRequestID(ctx).Trace(err)
 			return nil, err
 		}
 		result = append(result, r)

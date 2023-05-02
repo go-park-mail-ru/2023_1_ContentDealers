@@ -3,22 +3,22 @@ package content
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/sharederrors"
 	"github.com/lib/pq"
 )
 
 const searchLimit = 6
 
 type Repository struct {
-	DB     *sql.DB
-	logger logging.Logger
+	DB *sql.DB
 }
 
-func NewRepository(db *sql.DB, logger logging.Logger) Repository {
-	return Repository{DB: db, logger: logger}
+func NewRepository(db *sql.DB) Repository {
+	return Repository{DB: db}
 }
 
 const fetchQueryTemplate = `select c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
@@ -27,7 +27,9 @@ const fetchQueryTemplate = `select c.id, c.title, c.description, c.rating, c.yea
 func (repo *Repository) fetchByIDs(ctx context.Context, query string, IDs []uint64) ([]domain.Content, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, pq.Array(IDs))
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, sharederrors.ErrRepoNotFound
+		}
 		return nil, err
 	}
 	defer rows.Close()
@@ -38,7 +40,6 @@ func (repo *Repository) fetchByIDs(ctx context.Context, query string, IDs []uint
 		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit, &c.TrailerURL,
 			&c.PreviewURL, &c.Type)
 		if err != nil {
-			repo.logger.WithRequestID(ctx).Trace(err)
 			return nil, err
 		}
 		result = append(result, c)
@@ -55,7 +56,6 @@ func (repo *Repository) GetByIDs(ctx context.Context, ids []uint64) ([]domain.Co
 func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Content, error) {
 	content, err := repo.GetByIDs(ctx, []uint64{id})
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
 		return domain.Content{}, err
 	}
 	return content[0], nil
@@ -69,7 +69,9 @@ func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (ma
        		   where cs.selection_id = any($1)
 			   order by c.rating desc`, pq.Array(IDs))
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return map[uint64][]domain.Content{}, nil
+		}
 		return nil, err
 	}
 	defer rows.Close()
@@ -81,7 +83,6 @@ func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (ma
 		err = rows.Scan(&selectionID, &c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
 			&c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
-			repo.logger.WithRequestID(ctx).Trace(err)
 			return nil, err
 		}
 		result[selectionID] = append(result[selectionID], c)
@@ -97,7 +98,9 @@ func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.
        		   where crp.person_id = $1
 			   order by c.rating desc`, id)
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return []domain.Content{}, nil
+		}
 		return nil, err
 	}
 	defer rows.Close()
@@ -108,7 +111,6 @@ func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.
 		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
 			&c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
-			repo.logger.WithRequestID(ctx).Trace(err)
 			return nil, err
 		}
 		result = append(result, c)
@@ -125,6 +127,9 @@ func (repo *Repository) GetByGenreOptions(ctx context.Context, options domain.Co
 	query := strings.Join([]string{fetchQueryTemplate, joinGenres, filterByGenreID, orderByRating, limitOffset}, " ")
 	rows, err := repo.DB.QueryContext(ctx, query, options.ID, options.Limit, options.Offset)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []domain.Content{}, nil
+		}
 		return nil, err
 	}
 	var result []domain.Content
@@ -133,7 +138,6 @@ func (repo *Repository) GetByGenreOptions(ctx context.Context, options domain.Co
 		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
 			&c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
-			repo.logger.Trace(err)
 			return nil, err
 		}
 		result = append(result, c)
@@ -158,7 +162,9 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
 				order by max(s.sim) desc, s.rating desc
 				limit $3;`, likeQuery, query, searchLimit)
 	if err != nil {
-		repo.logger.Trace(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return []domain.Content{}, nil
+		}
 		return nil, err
 	}
 	defer rows.Close()
@@ -169,7 +175,6 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
 		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
 			&c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
-			repo.logger.Trace(err)
 			return nil, err
 		}
 		result = append(result, c)
@@ -183,7 +188,10 @@ func (repo *Repository) GetFilmByContentID(ctx context.Context, ContentID uint64
 	film := domain.Film{}
 	err := row.Scan(&film.ID, &film.ContentURL)
 	if err != nil {
-		repo.logger.Trace(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.Film{}, sharederrors.ErrRepoNotFound
+		}
+		return domain.Film{}, err
 	}
 	return film, err
 }
@@ -194,6 +202,9 @@ func (repo *Repository) GetSeriesByContentID(ctx context.Context, ContentID uint
          where s.content_id = $1 order by season_num, episode_num`
 	rows, err := repo.DB.QueryContext(ctx, query, ContentID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.Series{}, sharederrors.ErrRepoNotFound
+		}
 		return domain.Series{}, err
 	}
 	defer rows.Close()
@@ -203,6 +214,9 @@ func (repo *Repository) GetSeriesByContentID(ctx context.Context, ContentID uint
 		e := domain.Episode{}
 		err = rows.Scan(&s.ID, &e.ID, &e.SeasonNum, &e.EpisodeNum, &e.ContentURL, &e.ReleaseDate, &e.Title)
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return domain.Series{}, sharederrors.ErrRepoNotFound
+			}
 			return domain.Series{}, err
 		}
 		s.Episodes = append(s.Episodes, e)

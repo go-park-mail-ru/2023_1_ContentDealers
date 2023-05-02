@@ -74,43 +74,41 @@ func Run() error {
 		return err
 	}
 
-	contentRepository := contentRepo.NewRepository(db, logger)
-	genreRepository := genreRepo.NewRepository(db, logger)
-	selectionRepository := selectionRepo.NewRepository(db, logger)
-	countryRepository := country.NewRepository(db, logger)
-	personRepository := personRepo.NewRepository(db, logger)
-	roleRepository := role.NewRepository(db, logger)
+	contentRepository := contentRepo.NewRepository(db)
+	genreRepository := genreRepo.NewRepository(db)
+	selectionRepository := selectionRepo.NewRepository(db)
+	countryRepository := country.NewRepository(db)
+	personRepository := personRepo.NewRepository(db)
+	roleRepository := role.NewRepository(db)
 
-	personRolesUseCase := personrole.NewUseCase(&personRepository, &roleRepository, logger)
+	personRolesUseCase := personrole.NewUseCase(&personRepository, &roleRepository)
 	contentUsecase := contentUseCase.NewUseCase(contentUseCase.Options{
 		ContentRepo:        &contentRepository,
 		GenreRepo:          &genreRepository,
 		SelectionRepo:      &selectionRepository,
 		CountryRepo:        &countryRepository,
 		PersonRolesUseCase: personRolesUseCase,
-		Logger:             logger,
 	})
 	personUsecase := personUseCase.NewUseCase(personUseCase.Options{
 		Repo:    &personRepository,
 		Content: &contentRepository,
 		Role:    &roleRepository,
 		Genre:   &genreRepository,
-		Logger:  logger,
 	})
-	selectionUsecase := selectionUseCase.NewUseCase(&selectionRepository, &contentRepository, logger)
-	genreUsecase := genreUseCase.NewUseCase(&genreRepository, &contentRepository, logger)
+	selectionUsecase := selectionUseCase.NewUseCase(&selectionRepository, &contentRepository)
+	genreUsecase := genreUseCase.NewUseCase(&genreRepository, &contentRepository)
 
 	searchExtenders := []searchUseCase.Extender{
-		extender.NewContentExtender(&contentRepository, logger),
-		extender.NewPersonExtender(&personRepository, logger),
+		extender.NewContentExtender(&contentRepository),
+		extender.NewPersonExtender(&personRepository),
 	}
-	searchUsecase := searchUseCase.NewUseCase(searchExtenders, logger)
+	searchUsecase := searchUseCase.NewUseCase(searchExtenders)
 
-	contentService := contentDelivery.NewGrpc(contentUsecase)
-	personService := personDelivery.NewGrpc(personUsecase)
-	selectionService := selectionDelivery.NewGrpc(selectionUsecase)
-	searchService := searchDelivery.NewGrpc(searchUsecase)
-	genreService := genreDelivery.NewGrpc(genreUsecase)
+	contentService := contentDelivery.NewGrpc(contentUsecase, logger)
+	personService := personDelivery.NewGrpc(personUsecase, logger)
+	selectionService := selectionDelivery.NewGrpc(selectionUsecase, logger)
+	searchService := searchDelivery.NewGrpc(searchUsecase, logger)
+	genreService := genreDelivery.NewGrpc(genreUsecase, logger)
 	pingService := pingDelivery.NewGrpc()
 
 	interceptor := interceptorServer.NewInterceptorServer("content", logger)

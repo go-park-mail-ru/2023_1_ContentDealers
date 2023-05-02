@@ -3,21 +3,21 @@ package person
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/sharederrors"
 )
 
 const searchLimit = 6
 
 type Repository struct {
-	DB     *sql.DB
-	logger logging.Logger
+	DB *sql.DB
 }
 
-func NewRepository(db *sql.DB, logger logging.Logger) Repository {
-	return Repository{DB: db, logger: logger}
+func NewRepository(db *sql.DB) Repository {
+	return Repository{DB: db}
 }
 
 const fetchQueryTemplate = `select p.id, p.name, p.gender, p.growth, p.birthplace, p.avatar_url, p.age from persons p`
@@ -25,7 +25,9 @@ const fetchQueryTemplate = `select p.id, p.name, p.gender, p.growth, p.birthplac
 func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([]domain.Person, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return []domain.Person{}, nil
+		}
 		return nil, err
 	}
 	defer rows.Close()
@@ -35,7 +37,6 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 		p := domain.Person{}
 		err = rows.Scan(&p.ID, &p.Name, &p.Gender, &p.Growth, &p.Birthplace, &p.AvatarURL, &p.Age)
 		if err != nil {
-			repo.logger.WithRequestID(ctx).Trace(err)
 			return nil, err
 		}
 		result = append(result, p)
@@ -49,8 +50,12 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Person, 
 	fullQuery := strings.Join([]string{fetchQueryTemplate, filterByIDQueryPart, orderByID}, " ")
 	persons, err := repo.fetch(ctx, fullQuery, id)
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
-		return domain.Person{}, err
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return domain.Person{}, sharederrors.ErrRepoNotFound
+			}
+			return domain.Person{}, err
+		}
 	}
 	return persons[0], nil
 }

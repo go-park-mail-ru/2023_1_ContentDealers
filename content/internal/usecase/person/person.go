@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 type UseCase struct {
@@ -12,7 +11,6 @@ type UseCase struct {
 	content ContentRepository
 	role    RoleRepository
 	genre   GenreRepository
-	logger  logging.Logger
 }
 
 type Options struct {
@@ -20,7 +18,6 @@ type Options struct {
 	Content ContentRepository
 	Role    RoleRepository
 	Genre   GenreRepository
-	Logger  logging.Logger
 }
 
 func NewUseCase(options Options) *UseCase {
@@ -29,7 +26,6 @@ func NewUseCase(options Options) *UseCase {
 		content: options.Content,
 		role:    options.Role,
 		genre:   options.Genre,
-		logger:  options.Logger,
 	}
 }
 

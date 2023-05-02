@@ -5,16 +5,14 @@ import (
 	"sync"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 )
 
 type UseCase struct {
 	extenders []Extender
-	logger    logging.Logger
 }
 
-func NewUseCase(extenders []Extender, logger logging.Logger) *UseCase {
-	return &UseCase{extenders: extenders, logger: logger}
+func NewUseCase(extenders []Extender) *UseCase {
+	return &UseCase{extenders: extenders}
 }
 
 func (uc *UseCase) Search(ctx context.Context, query string) (domain.Search, error) {
@@ -28,7 +26,6 @@ func (uc *UseCase) Search(ctx context.Context, query string) (domain.Search, err
 			defer wg.Done()
 			applier, err := extender.Extend(ctx, query)
 			if err != nil {
-				uc.logger.Error(err)
 				return
 			}
 

@@ -2,6 +2,7 @@ package content
 
 import (
 	"context"
+	"strings"
 
 	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
@@ -13,6 +14,7 @@ import (
 	interceptorClient "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/client"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/sharederrors"
 	"google.golang.org/grpc"
 )
 
@@ -26,6 +28,15 @@ type Grpc struct {
 	logger logging.Logger
 }
 
+func mapError(err error) error {
+	switch {
+	case strings.Contains(err.Error(), sharederrors.ErrRepoNotFound.Error()):
+		return sharederrors.ErrRepoNotFound
+	default:
+		return err
+	}
+}
+
 func NewGateway(cfg ServiceContentConfig, logger logging.Logger) (*Grpc, error) {
 	interceptor := interceptorClient.NewInterceptorClient("content", logger)
 
@@ -35,7 +46,7 @@ func NewGateway(cfg ServiceContentConfig, logger logging.Logger) (*Grpc, error) 
 		grpc.WithUnaryInterceptor(interceptor.AccessLog),
 	)
 	if err != nil {
-		return &Grpc{}, err
+		return &Grpc{}, mapError(err)
 	}
 
 	result := Grpc{}
@@ -49,7 +60,7 @@ func NewGateway(cfg ServiceContentConfig, logger logging.Logger) (*Grpc, error) 
 
 	err = ping.Ping(grpcConn)
 	if err != nil {
-		return nil, err
+		return nil, mapError(err)
 	}
 
 	return &result, nil
@@ -61,13 +72,13 @@ func (gateway *Grpc) GetAllSelections(ctx context.Context, limit, offset uint32)
 		Offset: offset,
 	})
 	if err != nil {
-		return nil, err
+		return nil, mapError(err)
 	}
 	var result []domain.Selection
 
 	err = dto.Map(&result, selections.GetSelections())
 	if err != nil {
-		return nil, err
+		return nil, mapError(err)
 	}
 
 	return result, nil
@@ -76,13 +87,13 @@ func (gateway *Grpc) GetAllSelections(ctx context.Context, limit, offset uint32)
 func (gateway *Grpc) GetSelectionByID(ctx context.Context, id uint64) (domain.Selection, error) {
 	selectionDTO, err := gateway.selectionService.GetByID(ctx, &selection.ID{ID: id})
 	if err != nil {
-		return domain.Selection{}, err
+		return domain.Selection{}, mapError(err)
 	}
 
 	var result domain.Selection
 	err = dto.Map(&result, selectionDTO)
 	if err != nil {
-		return domain.Selection{}, err
+		return domain.Selection{}, mapError(err)
 	}
 
 	return result, nil
@@ -91,13 +102,13 @@ func (gateway *Grpc) GetSelectionByID(ctx context.Context, id uint64) (domain.Se
 func (gateway *Grpc) GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {
 	filmDTO, err := gateway.contentService.GetFilmByContentID(ctx, &content.ContentID{ID: ContentID})
 	if err != nil {
-		return domain.Film{}, err
+		return domain.Film{}, mapError(err)
 	}
 
 	var result domain.Film
 	err = dto.Map(&result, filmDTO)
 	if err != nil {
-		return domain.Film{}, err
+		return domain.Film{}, mapError(err)
 	}
 	return result, nil
 }
@@ -105,13 +116,13 @@ func (gateway *Grpc) GetFilmByContentID(ctx context.Context, ContentID uint64) (
 func (gateway *Grpc) GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error) {
 	seriesDTO, err := gateway.contentService.GetSeriesByContentID(ctx, &content.ContentID{ID: ContentID})
 	if err != nil {
-		return domain.Series{}, err
+		return domain.Series{}, mapError(err)
 	}
 
 	var result domain.Series
 	err = dto.Map(&result, seriesDTO)
 	if err != nil {
-		return domain.Series{}, err
+		return domain.Series{}, mapError(err)
 	}
 	return result, nil
 }
@@ -119,13 +130,13 @@ func (gateway *Grpc) GetSeriesByContentID(ctx context.Context, ContentID uint64)
 func (gateway *Grpc) GetPersonByID(ctx context.Context, id uint64) (domain.Person, error) {
 	personDTO, err := gateway.personService.GetByID(ctx, &person.ID{ID: id})
 	if err != nil {
-		return domain.Person{}, err
+		return domain.Person{}, mapError(err)
 	}
 
 	var result domain.Person
 	err = dto.Map(&result, personDTO)
 	if err != nil {
-		return domain.Person{}, err
+		return domain.Person{}, mapError(err)
 	}
 	return result, nil
 }
@@ -133,13 +144,13 @@ func (gateway *Grpc) GetPersonByID(ctx context.Context, id uint64) (domain.Perso
 func (gateway *Grpc) Search(ctx context.Context, query string) (domain.Search, error) {
 	searchDTO, err := gateway.searchService.Search(ctx, &search.SearchParams{Query: query})
 	if err != nil {
-		return domain.Search{}, err
+		return domain.Search{}, mapError(err)
 	}
 
 	var result domain.Search
 	err = dto.Map(&result, searchDTO)
 	if err != nil {
-		return domain.Search{}, err
+		return domain.Search{}, mapError(err)
 	}
 	return result, nil
 }
@@ -152,12 +163,12 @@ func (gateway *Grpc) GetGenreContent(ctx context.Context,
 		Offset: options.Offset,
 	})
 	if err != nil {
-		return domain.GenreContent{}, err
+		return domain.GenreContent{}, mapError(err)
 	}
 	result := domain.GenreContent{}
 	err = dto.Map(&result, contentDTO)
 	if err != nil {
-		return domain.GenreContent{}, err
+		return domain.GenreContent{}, mapError(err)
 	}
 	return result, nil
 }
@@ -169,12 +180,12 @@ func (gateway *Grpc) GetContentByContentIDs(ctx context.Context, ContentIDs []ui
 	}
 	contentSeq, err := gateway.contentService.GetContentByContentIDs(ctx, contentIDs)
 	if err != nil {
-		return []domain.Content{}, err
+		return []domain.Content{}, mapError(err)
 	}
 	var contentSlice []domain.Content
 	err = dto.Map(&contentSlice, contentSeq.Content)
 	if err != nil {
-		return []domain.Content{}, err
+		return []domain.Content{}, mapError(err)
 	}
 	return contentSlice, nil
 }
@@ -182,13 +193,13 @@ func (gateway *Grpc) GetContentByContentIDs(ctx context.Context, ContentIDs []ui
 func (gateway *Grpc) GetAllGenres(ctx context.Context) ([]domain.Genre, error) {
 	genresDTO, err := gateway.genreService.GetAllGenres(ctx, &genre.Nothing{})
 	if err != nil {
-		return nil, err
+		return nil, mapError(err)
 	}
 
 	var result []domain.Genre
 	err = dto.Map(&result, genresDTO.Genres)
 	if err != nil {
-		return nil, err
+		return nil, mapError(err)
 	}
 	return result, nil
 }

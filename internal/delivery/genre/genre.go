@@ -11,8 +11,8 @@ import (
 
 	"github.com/dranikpg/dto-mapper"
 	domainContent "github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/sharederrors"
 
 	"github.com/gorilla/mux"
 )
@@ -70,7 +70,7 @@ func (h *Handler) GetContentByID(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrRepoNotFound):
+		case errors.Is(err, sharederrors.ErrRepoNotFound):
 			w.WriteHeader(http.StatusNotFound)
 			io.WriteString(w, `{"message":"film selection not found"}`)
 		default:

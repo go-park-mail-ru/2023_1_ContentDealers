@@ -3,6 +3,7 @@ package selection
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
@@ -14,8 +15,8 @@ type Repository struct {
 	logger logging.Logger
 }
 
-func NewRepository(db *sql.DB, logger logging.Logger) Repository {
-	return Repository{DB: db, logger: logger}
+func NewRepository(db *sql.DB) Repository {
+	return Repository{DB: db}
 }
 
 const queryFetchTemplate = `select s.id, s.title from selections s`
@@ -23,7 +24,9 @@ const queryFetchTemplate = `select s.id, s.title from selections s`
 func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([]domain.Selection, error) {
 	rows, err := repo.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return []domain.Selection{}, nil
+		}
 		return nil, err
 	}
 	defer rows.Close()
@@ -33,7 +36,6 @@ func (repo *Repository) fetch(ctx context.Context, query string, args ...any) ([
 		s := domain.Selection{}
 		err = rows.Scan(&s.ID, &s.Title)
 		if err != nil {
-			repo.logger.WithRequestID(ctx).Trace(err)
 			return nil, err
 		}
 		result = append(result, s)
@@ -53,7 +55,6 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Selectio
 	query := strings.Join([]string{queryFetchTemplate, filterByID}, " ")
 	selections, err := repo.fetch(ctx, query, id)
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
 		return domain.Selection{}, err
 	}
 	return selections[0], nil

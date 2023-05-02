@@ -10,8 +10,8 @@ import (
 	"net/url"
 
 	"github.com/dranikpg/dto-mapper"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/sharederrors"
 
 	"github.com/gorilla/mux"
 )
@@ -99,7 +99,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	selection, err := h.useCase.GetByID(r.Context(), id)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrRepoNotFound):
+		case errors.Is(err, sharederrors.ErrRepoNotFound):
 			w.WriteHeader(http.StatusNotFound)
 			io.WriteString(w, `{"message":"film selection not found"}`)
 		default:

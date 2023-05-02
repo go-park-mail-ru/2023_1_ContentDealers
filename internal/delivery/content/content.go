@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	"github.com/dranikpg/dto-mapper"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/sharederrors"
 
 	"github.com/gorilla/mux"
 )
@@ -42,13 +42,14 @@ func (h *Handler) GetFilmByContentID(w http.ResponseWriter, r *http.Request) {
 	film, err := h.useCase.GetFilmByContentID(r.Context(), id)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrRepoNotFound):
+		case errors.Is(err, sharederrors.ErrRepoNotFound):
 			w.WriteHeader(http.StatusNotFound)
 			io.WriteString(w, `{"message":"film not found"}`)
 		default:
 			log.Println(err)
 			w.WriteHeader(http.StatusBadRequest)
 		}
+		h.logger.WithRequestID(ctx).Trace(err)
 		return
 	}
 
@@ -92,13 +93,14 @@ func (h *Handler) GetSeriesByContentID(w http.ResponseWriter, r *http.Request) {
 	series, err := h.useCase.GetSeriesByContentID(r.Context(), id)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrRepoNotFound):
+		case errors.Is(err, sharederrors.ErrRepoNotFound):
 			w.WriteHeader(http.StatusNotFound)
 			io.WriteString(w, `{"message":"series not found"}`)
 		default:
 			log.Println(err)
 			w.WriteHeader(http.StatusBadRequest)
 		}
+		h.logger.WithRequestID(r.Context()).Trace(err)
 		return
 	}
 

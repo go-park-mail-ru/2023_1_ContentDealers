@@ -22,7 +22,6 @@ type Options struct {
 	SelectionRepo      SelectionRepository
 	CountryRepo        CountryRepository
 	PersonRolesUseCase PersonRolesUseCase
-	Logger             logging.Logger
 }
 
 func NewUseCase(options Options) *UseCase {
@@ -32,7 +31,6 @@ func NewUseCase(options Options) *UseCase {
 		genre:       options.GenreRepo,
 		selection:   options.SelectionRepo,
 		country:     options.CountryRepo,
-		logger:      options.Logger,
 	}
 }
 
