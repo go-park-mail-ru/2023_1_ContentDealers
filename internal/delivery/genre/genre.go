@@ -80,7 +80,7 @@ func (h *Handler) GetContentByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var genreResponse []contentDTO
+	var genreResponse genreContentDTO
 	err = dto.Map(&genreResponse, genre)
 	if err != nil {
 		h.logger.Trace(err)
@@ -89,7 +89,8 @@ func (h *Handler) GetContentByID(w http.ResponseWriter, r *http.Request) {
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"content": genreResponse,
+			"genre":   genreResponse.Genre,
+			"content": genreResponse.Content,
 		},
 	})
 

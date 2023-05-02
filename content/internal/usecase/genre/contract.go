@@ -8,6 +8,7 @@ import (
 
 type Repository interface {
 	GetAll(ctx context.Context) ([]domain.Genre, error)
+	GetByID(ctx context.Context, id uint64) (domain.Genre, error)
 }
 
 type ContentRepository interface {

@@ -14,5 +14,5 @@ type Options struct {
 
 type UseCase interface {
 	GetAll(ctx context.Context) ([]domain.Genre, error)
-	GetContentByOptions(ctx context.Context, options domain.ContentFilter) ([]domain.Content, error)
+	GetGenreContent(ctx context.Context, options domain.ContentFilter) (domain.GenreContent, error)
 }

@@ -24,12 +24,6 @@ message Content {
   string Type = 10;
 }
 
-message GenreContent {
-  repeated Content Content = 1;
-}
-
-message Nothing {}
-
 message Genre {
   uint64 ID = 1;
   string Name = 2;
@@ -38,6 +32,13 @@ message Genre {
 message Genres {
   repeated Genre Genres = 1;
 }
+
+message GenreContent {
+  Genre Genre = 1;
+  repeated Content Content = 2;
+}
+
+message Nothing {}
 
 service GenreService {
   rpc GetContentByOptions (Options) returns (GenreContent) {}

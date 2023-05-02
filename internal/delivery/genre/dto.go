@@ -17,3 +17,8 @@ type genreDTO struct {
 	ID   uint64 `json:"id"`
 	Name string `json:"name"`
 }
+
+type genreContentDTO struct {
+	Genre   genreDTO     `json:"genre"`
+	Content []contentDTO `json:"content"`
+}

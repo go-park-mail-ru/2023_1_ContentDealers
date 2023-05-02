@@ -107,3 +107,12 @@ func (repo *Repository) GetAll(ctx context.Context) ([]domain.Genre, error) {
 	}
 	return result, nil
 }
+
+func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Genre, error) {
+	query := `select id, name from genres where id = $1;`
+	row := repo.DB.QueryRowContext(ctx, query, id)
+
+	result := domain.Genre{}
+	err := row.Scan(&result.ID, &result.Name)
+	return result, err
+}

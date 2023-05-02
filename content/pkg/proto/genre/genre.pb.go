@@ -202,91 +202,6 @@ func (x *Content) GetType() string {
 	return ""
 }
 
-type GenreContent struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Content []*Content `protobuf:"bytes,1,rep,name=Content,proto3" json:"Content,omitempty"`
-}
-
-func (x *GenreContent) Reset() {
-	*x = GenreContent{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_genre_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *GenreContent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GenreContent) ProtoMessage() {}
-
-func (x *GenreContent) ProtoReflect() protoreflect.Message {
-	mi := &file_genre_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GenreContent.ProtoReflect.Descriptor instead.
-func (*GenreContent) Descriptor() ([]byte, []int) {
-	return file_genre_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *GenreContent) GetContent() []*Content {
-	if x != nil {
-		return x.Content
-	}
-	return nil
-}
-
-type Nothing struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *Nothing) Reset() {
-	*x = Nothing{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_genre_proto_msgTypes[3]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Nothing) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Nothing) ProtoMessage() {}
-
-func (x *Nothing) ProtoReflect() protoreflect.Message {
-	mi := &file_genre_proto_msgTypes[3]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Nothing.ProtoReflect.Descriptor instead.
-func (*Nothing) Descriptor() ([]byte, []int) {
-	return file_genre_proto_rawDescGZIP(), []int{3}
-}
-
 type Genre struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -299,7 +214,7 @@ type Genre struct {
 func (x *Genre) Reset() {
 	*x = Genre{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_genre_proto_msgTypes[4]
+		mi := &file_genre_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -312,7 +227,7 @@ func (x *Genre) String() string {
 func (*Genre) ProtoMessage() {}
 
 func (x *Genre) ProtoReflect() protoreflect.Message {
-	mi := &file_genre_proto_msgTypes[4]
+	mi := &file_genre_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -325,7 +240,7 @@ func (x *Genre) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Genre.ProtoReflect.Descriptor instead.
 func (*Genre) Descriptor() ([]byte, []int) {
-	return file_genre_proto_rawDescGZIP(), []int{4}
+	return file_genre_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Genre) GetID() uint64 {
@@ -353,7 +268,7 @@ type Genres struct {
 func (x *Genres) Reset() {
 	*x = Genres{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_genre_proto_msgTypes[5]
+		mi := &file_genre_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -366,7 +281,7 @@ func (x *Genres) String() string {
 func (*Genres) ProtoMessage() {}
 
 func (x *Genres) ProtoReflect() protoreflect.Message {
-	mi := &file_genre_proto_msgTypes[5]
+	mi := &file_genre_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -379,7 +294,7 @@ func (x *Genres) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Genres.ProtoReflect.Descriptor instead.
 func (*Genres) Descriptor() ([]byte, []int) {
-	return file_genre_proto_rawDescGZIP(), []int{5}
+	return file_genre_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Genres) GetGenres() []*Genre {
@@ -387,6 +302,99 @@ func (x *Genres) GetGenres() []*Genre {
 		return x.Genres
 	}
 	return nil
+}
+
+type GenreContent struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Genre   *Genre     `protobuf:"bytes,1,opt,name=Genre,proto3" json:"Genre,omitempty"`
+	Content []*Content `protobuf:"bytes,2,rep,name=Content,proto3" json:"Content,omitempty"`
+}
+
+func (x *GenreContent) Reset() {
+	*x = GenreContent{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_genre_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GenreContent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GenreContent) ProtoMessage() {}
+
+func (x *GenreContent) ProtoReflect() protoreflect.Message {
+	mi := &file_genre_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GenreContent.ProtoReflect.Descriptor instead.
+func (*GenreContent) Descriptor() ([]byte, []int) {
+	return file_genre_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GenreContent) GetGenre() *Genre {
+	if x != nil {
+		return x.Genre
+	}
+	return nil
+}
+
+func (x *GenreContent) GetContent() []*Content {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+type Nothing struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *Nothing) Reset() {
+	*x = Nothing{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_genre_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Nothing) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Nothing) ProtoMessage() {}
+
+func (x *Nothing) ProtoReflect() protoreflect.Message {
+	mi := &file_genre_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Nothing.ProtoReflect.Descriptor instead.
+func (*Nothing) Descriptor() ([]byte, []int) {
+	return file_genre_proto_rawDescGZIP(), []int{5}
 }
 
 var File_genre_proto protoreflect.FileDescriptor
@@ -414,26 +422,28 @@ var file_genre_proto_rawDesc = []byte{
 	0x4c, 0x12, 0x1e, 0x0a, 0x0a, 0x50, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x55, 0x52, 0x4c, 0x18,
 	0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x50, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x55, 0x52,
 	0x4c, 0x12, 0x12, 0x0a, 0x04, 0x54, 0x79, 0x70, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x04, 0x54, 0x79, 0x70, 0x65, 0x22, 0x38, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x43, 0x6f,
-	0x6e, 0x74, 0x65, 0x6e, 0x74, 0x12, 0x28, 0x0a, 0x07, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74,
-	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x67, 0x65, 0x6e, 0x72, 0x65, 0x2e, 0x43,
-	0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x52, 0x07, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x22,
-	0x09, 0x0a, 0x07, 0x4e, 0x6f, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x22, 0x2b, 0x0a, 0x05, 0x47, 0x65,
-	0x6e, 0x72, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52,
-	0x02, 0x49, 0x44, 0x12, 0x12, 0x0a, 0x04, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x04, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x2e, 0x0a, 0x06, 0x47, 0x65, 0x6e, 0x72, 0x65,
-	0x73, 0x12, 0x24, 0x0a, 0x06, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x04, 0x54, 0x79, 0x70, 0x65, 0x22, 0x2b, 0x0a, 0x05, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x12, 0x0e,
+	0x0a, 0x02, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x49, 0x44, 0x12, 0x12,
+	0x0a, 0x04, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x4e, 0x61,
+	0x6d, 0x65, 0x22, 0x2e, 0x0a, 0x06, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x73, 0x12, 0x24, 0x0a, 0x06,
+	0x47, 0x65, 0x6e, 0x72, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0c, 0x2e, 0x67,
+	0x65, 0x6e, 0x72, 0x65, 0x2e, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x52, 0x06, 0x47, 0x65, 0x6e, 0x72,
+	0x65, 0x73, 0x22, 0x5c, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x43, 0x6f, 0x6e, 0x74, 0x65,
+	0x6e, 0x74, 0x12, 0x22, 0x0a, 0x05, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x0b, 0x32, 0x0c, 0x2e, 0x67, 0x65, 0x6e, 0x72, 0x65, 0x2e, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x52,
-	0x06, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x73, 0x32, 0x7d, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x72, 0x65,
-	0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x3c, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x43, 0x6f,
-	0x6e, 0x74, 0x65, 0x6e, 0x74, 0x42, 0x79, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x0e,
-	0x2e, 0x67, 0x65, 0x6e, 0x72, 0x65, 0x2e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x1a, 0x13,
-	0x2e, 0x67, 0x65, 0x6e, 0x72, 0x65, 0x2e, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x43, 0x6f, 0x6e, 0x74,
-	0x65, 0x6e, 0x74, 0x22, 0x00, 0x12, 0x2f, 0x0a, 0x0c, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x47,
-	0x65, 0x6e, 0x72, 0x65, 0x73, 0x12, 0x0e, 0x2e, 0x67, 0x65, 0x6e, 0x72, 0x65, 0x2e, 0x4e, 0x6f,
-	0x74, 0x68, 0x69, 0x6e, 0x67, 0x1a, 0x0d, 0x2e, 0x67, 0x65, 0x6e, 0x72, 0x65, 0x2e, 0x47, 0x65,
-	0x6e, 0x72, 0x65, 0x73, 0x22, 0x00, 0x42, 0x0a, 0x5a, 0x08, 0x2e, 0x2f, 0x3b, 0x67, 0x65, 0x6e,
-	0x72, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x05, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x12, 0x28, 0x0a, 0x07, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e,
+	0x74, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x67, 0x65, 0x6e, 0x72, 0x65, 0x2e,
+	0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x52, 0x07, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74,
+	0x22, 0x09, 0x0a, 0x07, 0x4e, 0x6f, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x32, 0x7d, 0x0a, 0x0c, 0x47,
+	0x65, 0x6e, 0x72, 0x65, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x3c, 0x0a, 0x13, 0x47,
+	0x65, 0x74, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x42, 0x79, 0x4f, 0x70, 0x74, 0x69, 0x6f,
+	0x6e, 0x73, 0x12, 0x0e, 0x2e, 0x67, 0x65, 0x6e, 0x72, 0x65, 0x2e, 0x4f, 0x70, 0x74, 0x69, 0x6f,
+	0x6e, 0x73, 0x1a, 0x13, 0x2e, 0x67, 0x65, 0x6e, 0x72, 0x65, 0x2e, 0x47, 0x65, 0x6e, 0x72, 0x65,
+	0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x22, 0x00, 0x12, 0x2f, 0x0a, 0x0c, 0x47, 0x65, 0x74,
+	0x41, 0x6c, 0x6c, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x73, 0x12, 0x0e, 0x2e, 0x67, 0x65, 0x6e, 0x72,
+	0x65, 0x2e, 0x4e, 0x6f, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x1a, 0x0d, 0x2e, 0x67, 0x65, 0x6e, 0x72,
+	0x65, 0x2e, 0x47, 0x65, 0x6e, 0x72, 0x65, 0x73, 0x22, 0x00, 0x42, 0x0a, 0x5a, 0x08, 0x2e, 0x2f,
+	0x3b, 0x67, 0x65, 0x6e, 0x72, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -452,23 +462,24 @@ var file_genre_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_genre_proto_goTypes = []interface{}{
 	(*Options)(nil),      // 0: genre.Options
 	(*Content)(nil),      // 1: genre.Content
-	(*GenreContent)(nil), // 2: genre.GenreContent
-	(*Nothing)(nil),      // 3: genre.Nothing
-	(*Genre)(nil),        // 4: genre.Genre
-	(*Genres)(nil),       // 5: genre.Genres
+	(*Genre)(nil),        // 2: genre.Genre
+	(*Genres)(nil),       // 3: genre.Genres
+	(*GenreContent)(nil), // 4: genre.GenreContent
+	(*Nothing)(nil),      // 5: genre.Nothing
 }
 var file_genre_proto_depIdxs = []int32{
-	1, // 0: genre.GenreContent.Content:type_name -> genre.Content
-	4, // 1: genre.Genres.Genres:type_name -> genre.Genre
-	0, // 2: genre.GenreService.GetContentByOptions:input_type -> genre.Options
-	3, // 3: genre.GenreService.GetAllGenres:input_type -> genre.Nothing
-	2, // 4: genre.GenreService.GetContentByOptions:output_type -> genre.GenreContent
-	5, // 5: genre.GenreService.GetAllGenres:output_type -> genre.Genres
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	2, // 0: genre.Genres.Genres:type_name -> genre.Genre
+	2, // 1: genre.GenreContent.Genre:type_name -> genre.Genre
+	1, // 2: genre.GenreContent.Content:type_name -> genre.Content
+	0, // 3: genre.GenreService.GetContentByOptions:input_type -> genre.Options
+	5, // 4: genre.GenreService.GetAllGenres:input_type -> genre.Nothing
+	4, // 5: genre.GenreService.GetContentByOptions:output_type -> genre.GenreContent
+	3, // 6: genre.GenreService.GetAllGenres:output_type -> genre.Genres
+	5, // [5:7] is the sub-list for method output_type
+	3, // [3:5] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_genre_proto_init() }
@@ -502,30 +513,6 @@ func file_genre_proto_init() {
 			}
 		}
 		file_genre_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GenreContent); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_genre_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Nothing); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_genre_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Genre); i {
 			case 0:
 				return &v.state
@@ -537,8 +524,32 @@ func file_genre_proto_init() {
 				return nil
 			}
 		}
-		file_genre_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_genre_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Genres); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_genre_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GenreContent); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_genre_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Nothing); i {
 			case 0:
 				return &v.state
 			case 1:

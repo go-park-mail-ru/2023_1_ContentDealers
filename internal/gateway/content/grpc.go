@@ -121,19 +121,20 @@ func (gateway *Grpc) Search(ctx context.Context, query string) (domain.Search, e
 	return result, nil
 }
 
-func (gateway *Grpc) GetContentByOptions(ctx context.Context, options domain.ContentFilter) ([]domain.Content, error) {
+func (gateway *Grpc) GetContentByOptions(ctx context.Context,
+	options domain.ContentFilter) (domain.GenreContent, error) {
 	contentDTO, err := gateway.genreService.GetContentByOptions(ctx, &genre.Options{
 		ID:     options.ID,
 		Limit:  options.Limit,
 		Offset: options.Offset,
 	})
 	if err != nil {
-		return nil, err
+		return domain.GenreContent{}, err
 	}
-	var result []domain.Content
-	err = dto.Map(&result, contentDTO.Content)
+	result := domain.GenreContent{}
+	err = dto.Map(&result, contentDTO)
 	if err != nil {
-		return nil, err
+		return domain.GenreContent{}, err
 	}
 	return result, nil
 }

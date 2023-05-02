@@ -19,7 +19,7 @@ func NewGrpc(useCase UseCase) *Grpc {
 }
 
 func (service *Grpc) GetContentByOptions(ctx context.Context, options *genre.Options) (*genre.GenreContent, error) {
-	content, err := service.useCase.GetContentByOptions(ctx, domain.ContentFilter{
+	genreContent, err := service.useCase.GetGenreContent(ctx, domain.ContentFilter{
 		ID:     options.GetID(),
 		Limit:  options.GetLimit(),
 		Offset: options.GetOffset(),
@@ -29,7 +29,7 @@ func (service *Grpc) GetContentByOptions(ctx context.Context, options *genre.Opt
 	}
 
 	var response genre.GenreContent
-	err = dto.Map(&response.Content, content)
+	err = dto.Map(&response, genreContent)
 	if err != nil {
 		return nil, err
 	}

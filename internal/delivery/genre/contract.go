@@ -7,6 +7,6 @@ import (
 )
 
 type UseCase interface {
-	GetContentByID(ctx context.Context, filter domain.ContentFilter) ([]domain.Content, error)
+	GetContentByID(ctx context.Context, filter domain.ContentFilter) (domain.GenreContent, error)
 	GetAll(ctx context.Context) ([]domain.Genre, error)
 }
