@@ -80,7 +80,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	maxSizeBody := int64(h.avatarCfg.MaxSizeBody) << 20
 	r.Body = http.MaxBytesReader(w, r.Body, maxSizeBody)
-	file, header, err := r.FormFile(h.avatarCfg.NameFormFile)
+	file, _, err := r.FormFile(h.avatarCfg.NameFormFile)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
 			h.logger.WithRequestID(ctx).Tracef("the size exceeded the maximum size equal to %d mb: %w", maxSizeBody, err)
@@ -108,10 +108,11 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	filetype := http.DetectContentType(buff)
 
 	// TODO: можно еще проверить расширение header.filename
-	if header.Header["Content-Type"][0] != "image/jpeg" || filetype != "image/jpeg" {
+	if filetype != "image/jpeg" {
 		h.logger.WithRequestID(ctx).Trace("avatar does not have type: image/jpeg")
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"status": 6, "message":"avatar does not have type: image/jpeg"}`)
+		return
 	}
 
 	file.Seek(0, io.SeekStart)

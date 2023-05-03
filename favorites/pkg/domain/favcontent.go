@@ -5,6 +5,8 @@ import "time"
 type FavoritesOptions struct {
 	UserID   uint64
 	SortDate string
+	Limit    uint32
+	Offset   uint32
 }
 
 type FavoriteContent struct {
@@ -14,5 +16,6 @@ type FavoriteContent struct {
 }
 
 type FavoritesContent struct {
+	IsLast    bool
 	Favorites []FavoriteContent
 }

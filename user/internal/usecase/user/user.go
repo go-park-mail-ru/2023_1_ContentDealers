@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 
@@ -90,7 +89,6 @@ func (uc *User) Update(ctx context.Context, user domain.User) error {
 
 func validateCredentials(credentials domain.User) error {
 	validPass, err := passwordRegexp.MatchString(credentials.PasswordHash)
-	fmt.Println(validPass)
 	if err != nil {
 		return err
 	}
@@ -98,7 +96,6 @@ func validateCredentials(credentials domain.User) error {
 		return domain.ErrNotValidPassword
 	}
 	validEmail, err := emailRegexp.MatchString(credentials.Email)
-	fmt.Println(validEmail)
 	if err != nil {
 		return err
 	}

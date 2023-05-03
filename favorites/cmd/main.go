@@ -61,7 +61,7 @@ func Run() error {
 	interceptor := interceptorServer.NewInterceptorServer("favorites", logger)
 
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptor.AccessLog),
+		grpc.UnaryInterceptor(interceptor.LogAndMetrics),
 	)
 
 	favContentProto.RegisterFavoritesContentServiceServer(server, favContentService)

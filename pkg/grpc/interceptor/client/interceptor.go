@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/metrics"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -46,11 +47,23 @@ func (inter *InterceptorClient) AccessLog(
 
 	err := invoker(ctx, method, req, reply, cc, opts...)
 
+	elapsedSeconds := time.Since(start)
+
 	inter.logger.WithFields(logrus.Fields{
 		// "reply":      reply,
-		"time":       fmt.Sprintf("%d mcs", time.Since(start).Microseconds()),
+		"time":       fmt.Sprintf("%d mcs", elapsedSeconds.Microseconds()),
 		"err":        err,
 		"request_id": reqID,
 	}).Debug(fmt.Sprintf("returned_from_%s_service", inter.serviceName))
+
+	procedure := method
+	status := "OK"
+	if err != nil {
+		status = "FAIL"
+	}
+
+	metrics.GrpcRequestsTotal.WithLabelValues(inter.serviceName, procedure, status).Inc()
+	metrics.GrpcRequestsDurationHistorgram.WithLabelValues(inter.serviceName, procedure).Observe(elapsedSeconds.Seconds())
+
 	return err
 }

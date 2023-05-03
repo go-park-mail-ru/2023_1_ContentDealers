@@ -61,7 +61,7 @@ func Run() error {
 	interceptor := interceptorServer.NewInterceptorServer("session", logger)
 
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptor.AccessLog),
+		grpc.UnaryInterceptor(interceptor.LogAndMetrics),
 	)
 
 	session.RegisterSessionServiceServer(server, sessionService)

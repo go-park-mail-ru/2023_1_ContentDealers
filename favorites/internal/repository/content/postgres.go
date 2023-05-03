@@ -64,20 +64,26 @@ func (repo *Repository) HasFav(ctx context.Context, favorite domain.FavoriteCont
 }
 
 func (repo *Repository) Get(ctx context.Context, options domain.FavoritesOptions) (domain.FavoritesContent, error) {
-	var orderDate string
+	var sortDate string
 	if options.SortDate == "old" {
-		orderDate = "asc"
+		sortDate = "asc"
 	} else {
-		orderDate = "desc"
+		sortDate = "desc"
 	}
+
+	limit := options.Limit
+	offset := options.Offset
 
 	query := `select user_id, content_id, created_at 
 			from users_content_favorites 
 			where user_id = $1`
+	limitOffset := `limit $2 offset $3`
+
 	rows, err := repo.DB.QueryContext(ctx,
-		fmt.Sprintf("%s order by created_at %s;", query, orderDate),
-		options.UserID,
+		fmt.Sprintf("%s order by created_at %s %s;", query, sortDate, limitOffset),
+		options.UserID, limit+1, offset,
 	)
+
 	if err != nil {
 		repo.logger.WithRequestID(ctx).Trace(err)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -95,5 +101,12 @@ func (repo *Repository) Get(ctx context.Context, options domain.FavoritesOptions
 		}
 		result.Favorites = append(result.Favorites, fav)
 	}
+
+	result.IsLast = true
+	if len(result.Favorites) == int(limit+1) {
+		result.Favorites = result.Favorites[:len(result.Favorites)-1]
+		result.IsLast = false
+	}
+
 	return result, nil
 }

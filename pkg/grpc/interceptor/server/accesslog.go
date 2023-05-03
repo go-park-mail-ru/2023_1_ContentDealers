@@ -23,7 +23,7 @@ func NewInterceptorServer(serviceName string, logger logging.Logger) *Intercepto
 	}
 }
 
-func (inter *InterceptorServer) AccessLog(
+func (inter *InterceptorServer) LogAndMetrics(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -48,12 +48,14 @@ func (inter *InterceptorServer) AccessLog(
 	}).Debug(fmt.Sprintf("accepted_by_%s_service", inter.serviceName))
 
 	reply, err := handler(ctx, req)
+	elapsedSeocnds := time.Since(start)
 
 	inter.logger.WithFields(logrus.Fields{
 		// "reply":      reply,
-		"time":       fmt.Sprintf("%d mcs", time.Since(start).Microseconds()),
+		"time":       fmt.Sprintf("%d mcs", elapsedSeocnds.Microseconds()),
 		"request_id": reqID,
 		"err":        err,
 	}).Debug(fmt.Sprintf("released_by_%s_service", inter.serviceName))
+
 	return reply, err
 }

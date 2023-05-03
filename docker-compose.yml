@@ -152,6 +152,32 @@ services:
       net:
         ipv4_address: 192.168.243.10
 
+# -------------------------------------
+# ==========[ METRICS ]================
+# -------------------------------------
+
+  # grafana:
+  #   image: grafana/grafana
+  #   links:
+  #   -  prometheus:prometheus
+  #   ports:
+  #   - 3000:3000
+  #   user: "104"
+  #   networks:
+  #     net:
+  #       ipv4_address: 192.168.243.30
+  # prometheus:
+  #   image: prom/prometheus
+  #   links:
+  #   -  api_gateway:api_gateway
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./metrics:/etc/prometheus
+  #   networks:
+  #     net:
+  #       ipv4_address: 192.168.243.31
+
         
 # -------------------------------------
 # ==========[ NETWORKS ]===============
