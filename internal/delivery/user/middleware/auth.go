@@ -56,6 +56,7 @@ func (mw *Auth) RequireAuth(handler http.Handler) http.Handler {
 		sessionID := sessionIDRaw.Value
 
 		session, err := mw.sessionGateway.Get(r.Context(), sessionID)
+
 		if err != nil || session.ExpiresAt.Before(time.Now()) {
 			mw.logger.WithRequestID(ctx).Trace(err)
 			w.WriteHeader(http.StatusBadRequest)
