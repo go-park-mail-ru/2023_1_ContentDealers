@@ -16,9 +16,13 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/proto/ping"
 	delivery "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/delivery/favcontent"
+	deliveryRating "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/delivery/rating"
 	repository "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/repository/favcontent"
+	repositoryRating "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/repository/rating"
 	usecase "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/usecase/favcontent"
+	usecaseRating "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/usecase/rating"
 	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/favcontent"
+	rateProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/rating"
 	"google.golang.org/grpc"
 )
 
@@ -59,6 +63,11 @@ func Run() error {
 	favContentRepository := repository.NewRepository(db, logger)
 	favContentUseCase := usecase.NewUseCase(&favContentRepository, logger)
 	favContentService := delivery.NewGrpc(favContentUseCase, logger)
+
+	rateRepository := repositoryRating.NewRepository(db, logger)
+	rateUseCase := usecaseRating.NewUseCase(&rateRepository, logger)
+	rateService := deliveryRating.NewGrpc(rateUseCase, logger)
+
 	pingService := pingDelivery.NewGrpc()
 
 	interceptor := interceptorServer.NewInterceptorServer("favorites", logger)
@@ -68,6 +77,7 @@ func Run() error {
 	)
 
 	favContentProto.RegisterFavoritesContentServiceServer(server, favContentService)
+	rateProto.RegisterRatingServiceServer(server, rateService)
 	ping.RegisterPingServiceServer(server, pingService)
 
 	addr := fmt.Sprintf("%s:%s", cfg.Server.BindIP, cfg.Server.Port)

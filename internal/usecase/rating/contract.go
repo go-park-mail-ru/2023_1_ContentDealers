@@ -6,7 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
 	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
-	domainFav "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain"
+	domainRate "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain"
 )
 
 type SessionGateway interface {
@@ -16,10 +16,11 @@ type SessionGateway interface {
 }
 
 type Gateway interface {
-	DeleteFavContent(ctx context.Context, favorite domainFav.FavoriteContent) error
-	AddFavContent(ctx context.Context, favorite domainFav.FavoriteContent) error
-	GetFavContent(ctx context.Context, options domainFav.FavoritesOptions) (domainFav.FavoritesContent, error)
-	HasFavContent(ctx context.Context, favorite domainFav.FavoriteContent) (bool, error)
+	DeleteRating(ctx context.Context, rating domainRate.Rating) error
+	AddRating(ctx context.Context, rating domainRate.Rating) error
+	HasRating(ctx context.Context, rating domainRate.Rating) (domainRate.HasRating, error)
+	GetRatingByUser(ctx context.Context, options domainRate.RatingsOptions) (domainRate.Ratings, error)
+	GetRatingByContent(ctx context.Context, options domainRate.RatingsOptions) (domainRate.Ratings, error)
 }
 
 type ContentGateway interface {

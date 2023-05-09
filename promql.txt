@@ -10,3 +10,10 @@ sum by (path) (rate(http_request_duration_seconds_historgram_sum{path!="/metrics
 sum(increase(http_requests_total{dfg!="/metrics", status=~"4.+|5.+"}[1m])) / sum(increase(http_requests_total{dfg!="/metrics"}[1m]))
 sum(increase(http_requests_total{path!="/metrics", status=~"4.+|5.+"}[1m])) by (path, status)
 up
+
+
+cannot use &rateRepository (value of type *"github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/repository/rating".Repository) as "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/usecase/rating".Repository value in argument to usecaseRating.NewUseCase: *"github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/repository/rating".Repository does not implement "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/usecase/rating".Repository (wrong type for method GetByUser)
+		
+        have GetByUser(ctx context.Context, options "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain".FavoritesOptions) ("github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain".Ratings, error)
+		
+        want GetByUser(ctx context.Context, options "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain".RatingsOptions) ("github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain".Ratings, error)compilerInvalidIfaceAssign

@@ -19,7 +19,7 @@ drop table if exists users_persons_favorites cascade;
 
 create schema if not exists filmium;
 create schema if not exists user_schema;
-create schema if not exists favorites_schema;
+create schema if not exists user_action_shema;
 set search_path=filmium;
 
 create extension if not exists pg_trgm;
@@ -53,18 +53,26 @@ create table user_schema.users (
     updated_at timestamp not null default now()
 );
 
-create table favorites_schema.users_content_favorites (
+create table user_action_shema.users_content_favorites (
     user_id bigint not null,
     content_id bigint not null,
     created_at timestamp not null default now(),
     primary key (user_id, content_id)
 );
 
-create table favorites_schema.users_persons_favorites (
+create table user_action_shema.users_persons_favorites (
     user_id bigint not null,
     person_id bigint not null,
     created_at timestamp not null default now(),
     primary key (user_id, person_id)
+);
+
+create table user_action_shema.ratings (
+    user_id bigint not null,
+    content_id bigint not null,
+    rating numeric(4, 2),
+    created_at timestamp not null default now(),
+    primary key (user_id, content_id)
 );
 
 create table roles (

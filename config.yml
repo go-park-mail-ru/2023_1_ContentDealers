@@ -10,7 +10,7 @@ api_gateway:
     addr: session:80
   service_user:
     addr: user:80
-  service_favorites:
+  service_user_action:
     addr: favorites:80
   service_content:
     addr: content:80
@@ -56,7 +56,7 @@ favorites:
     host: postgres
     port: 5432
     sslmode: disable
-    search_path: favorites_schema
+    search_path: user_action_shema
   logging:
     dir: log
     filename: all.log.json
