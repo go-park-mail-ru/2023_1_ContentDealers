@@ -38,11 +38,11 @@ build:
 	go build -o ./build/content/out content/cmd/main.go 		&& \
 	go build -o ./build/session/out session/cmd/main.go 		&& \
 	go build -o ./build/user/out user/cmd/main.go 				&& \
-	go build -o ./build/favorites/out favorites/cmd/main.go 	&& \
+	go build -o ./build/user_action/out user_action/cmd/main.go 	&& \
 	cp config.yml ./build/content
 	cp config.yml ./build/session
 	cp config.yml ./build/user
-	cp config.yml ./build/favorites
+	cp config.yml ./build/user_action
 	
 	go build -o ./build/api_gateway/out cmd/main.go
 	cp config.yml ./build/api_gateway	
@@ -53,9 +53,9 @@ build_api:
 	cp config.yml ./build/api_gateway
 
 build_fav:
-	rm -rf ./build/favorites && \
-	go build -o ./build/favorites/out favorites/cmd/main.go
-	cp config.yml ./build/favorites
+	rm -rf ./build/user_action && \
+	go build -o ./build/user_action/out user_action/cmd/main.go
+	cp config.yml ./build/user_action
 
 build_user:
 	rm -rf ./build/user && \

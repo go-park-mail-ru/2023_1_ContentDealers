@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
-	domainFav "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
 	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
+	domainFav "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain"
 )
 
 type SessionGateway interface {

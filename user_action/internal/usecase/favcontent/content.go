@@ -3,8 +3,8 @@ package content
 import (
 	"context"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain"
 )
 
 type UseCase struct {

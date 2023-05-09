@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/dranikpg/dto-mapper"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
-	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/proto/content"
 	interceptorClient "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/client"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain"
+	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/favcontent"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )

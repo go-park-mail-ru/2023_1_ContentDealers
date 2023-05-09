@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/dranikpg/dto-mapper"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
-	favProto "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/proto/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain"
+	favProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/favcontent"
 )
 
 type Grpc struct {

@@ -10,15 +10,15 @@ import (
 	"syscall"
 
 	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
-	delivery "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/internal/delivery/content"
-	repository "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/internal/repository/content"
-	usecase "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/internal/usecase/content"
-	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/proto/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
 	interceptorServer "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/server"
 	pingDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/proto/ping"
+	delivery "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/delivery/favcontent"
+	repository "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/repository/favcontent"
+	usecase "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/usecase/favcontent"
+	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/favcontent"
 	"google.golang.org/grpc"
 )
 
