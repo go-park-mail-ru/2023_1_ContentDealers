@@ -159,8 +159,3 @@ func (service *Grpc) DeleteAvatar(ctx context.Context, userRequest *userProto.Us
 	}
 	return &userProto.Nothing{}, nil
 }
-
-func (service *Grpc) Ping(ctx context.Context, req *userProto.PingRequest) (*userProto.PingResponse, error) {
-	service.logger.Info("Ping reached session microservice")
-	return &userProto.PingResponse{}, nil
-}

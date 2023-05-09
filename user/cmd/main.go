@@ -12,7 +12,9 @@ import (
 	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
 	interceptorServer "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/server"
+	pingDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/proto/ping"
 	delivery "github.com/go-park-mail-ru/2023_1_ContentDealers/user/internal/delivery/user"
 	repository "github.com/go-park-mail-ru/2023_1_ContentDealers/user/internal/repository/user"
 	usecase "github.com/go-park-mail-ru/2023_1_ContentDealers/user/internal/usecase/user"
@@ -57,6 +59,7 @@ func Run() error {
 	userRepository := repository.NewRepository(db, logger)
 	userUseCase := usecase.NewUser(&userRepository, logger)
 	userService := delivery.NewGrpc(userUseCase, logger)
+	pingService := pingDelivery.NewGrpc()
 
 	interceptor := interceptorServer.NewInterceptorServer("user", logger)
 
@@ -65,6 +68,7 @@ func Run() error {
 	)
 
 	user.RegisterUserServiceServer(server, userService)
+	ping.RegisterPingServiceServer(server, pingService)
 
 	addr := fmt.Sprintf("%s:%s", cfg.Server.BindIP, cfg.Server.Port)
 

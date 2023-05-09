@@ -54,8 +54,3 @@ func (service *Grpc) Delete(ctx context.Context, sessionID *session.SessionID) (
 	}
 	return &session.Nothing{}, nil
 }
-
-func (service *Grpc) Ping(ctx context.Context, req *session.PingRequest) (*session.PingResponse, error) {
-	service.logger.Info("Ping reached session microservice")
-	return &session.PingResponse{}, nil
-}

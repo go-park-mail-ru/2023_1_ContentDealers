@@ -81,8 +81,3 @@ func (service *Grpc) GetContent(ctx context.Context, favOptionsRequest *favProto
 	}
 	return &favoritesResponse, nil
 }
-
-func (service *Grpc) Ping(ctx context.Context, req *favProto.PingRequest) (*favProto.PingResponse, error) {
-	service.logger.Info("Ping reached favorites microservice for content")
-	return &favProto.PingResponse{}, nil
-}

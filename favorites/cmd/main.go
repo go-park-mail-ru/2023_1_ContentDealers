@@ -16,7 +16,9 @@ import (
 	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/proto/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
 	interceptorServer "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/server"
+	pingDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/proto/ping"
 	"google.golang.org/grpc"
 )
 
@@ -57,6 +59,7 @@ func Run() error {
 	favContentRepository := repository.NewRepository(db, logger)
 	favContentUseCase := usecase.NewUseCase(&favContentRepository, logger)
 	favContentService := delivery.NewGrpc(favContentUseCase, logger)
+	pingService := pingDelivery.NewGrpc()
 
 	interceptor := interceptorServer.NewInterceptorServer("favorites", logger)
 
@@ -65,6 +68,7 @@ func Run() error {
 	)
 
 	favContentProto.RegisterFavoritesContentServiceServer(server, favContentService)
+	ping.RegisterPingServiceServer(server, pingService)
 
 	addr := fmt.Sprintf("%s:%s", cfg.Server.BindIP, cfg.Server.Port)
 

@@ -21,7 +21,6 @@ type SessionServiceClient interface {
 	Create(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Session, error)
 	Get(ctx context.Context, in *SessionID, opts ...grpc.CallOption) (*Session, error)
 	Delete(ctx context.Context, in *SessionID, opts ...grpc.CallOption) (*Nothing, error)
-	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
 type sessionServiceClient struct {
@@ -59,15 +58,6 @@ func (c *sessionServiceClient) Delete(ctx context.Context, in *SessionID, opts .
 	return out, nil
 }
 
-func (c *sessionServiceClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
-	out := new(PingResponse)
-	err := c.cc.Invoke(ctx, "/session.SessionService/Ping", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // SessionServiceServer is the server API for SessionService service.
 // All implementations must embed UnimplementedSessionServiceServer
 // for forward compatibility
@@ -75,7 +65,6 @@ type SessionServiceServer interface {
 	Create(context.Context, *UserID) (*Session, error)
 	Get(context.Context, *SessionID) (*Session, error)
 	Delete(context.Context, *SessionID) (*Nothing, error)
-	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	mustEmbedUnimplementedSessionServiceServer()
 }
 
@@ -91,9 +80,6 @@ func (UnimplementedSessionServiceServer) Get(context.Context, *SessionID) (*Sess
 }
 func (UnimplementedSessionServiceServer) Delete(context.Context, *SessionID) (*Nothing, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-func (UnimplementedSessionServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 func (UnimplementedSessionServiceServer) mustEmbedUnimplementedSessionServiceServer() {}
 
@@ -162,24 +148,6 @@ func _SessionService_Delete_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SessionService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PingRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SessionServiceServer).Ping(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/session.SessionService/Ping",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SessionServiceServer).Ping(ctx, req.(*PingRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // SessionService_ServiceDesc is the grpc.ServiceDesc for SessionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -198,10 +166,6 @@ var SessionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _SessionService_Delete_Handler,
-		},
-		{
-			MethodName: "Ping",
-			Handler:    _SessionService_Ping_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

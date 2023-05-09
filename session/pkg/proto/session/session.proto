@@ -22,14 +22,10 @@ message Nothing {
     bool Dummy = 1;
 }
 
-message PingRequest {}
-message PingResponse {}
-
 
 service SessionService {
     rpc Create(UserID) returns (Session) {}
     rpc Get(SessionID) returns (Session) {}
     rpc Delete(SessionID) returns (Nothing) {}
-    rpc Ping(PingRequest) returns (PingResponse) {}
 }
 

@@ -24,7 +24,6 @@ type UserServiceClient interface {
 	Update(ctx context.Context, in *User, opts ...grpc.CallOption) (*Nothing, error)
 	UpdateAvatar(ctx context.Context, opts ...grpc.CallOption) (UserService_UpdateAvatarClient, error)
 	DeleteAvatar(ctx context.Context, in *User, opts ...grpc.CallOption) (*Nothing, error)
-	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
 type userServiceClient struct {
@@ -114,15 +113,6 @@ func (c *userServiceClient) DeleteAvatar(ctx context.Context, in *User, opts ...
 	return out, nil
 }
 
-func (c *userServiceClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
-	out := new(PingResponse)
-	err := c.cc.Invoke(ctx, "/user.UserService/Ping", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -133,7 +123,6 @@ type UserServiceServer interface {
 	Update(context.Context, *User) (*Nothing, error)
 	UpdateAvatar(UserService_UpdateAvatarServer) error
 	DeleteAvatar(context.Context, *User) (*Nothing, error)
-	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -158,9 +147,6 @@ func (UnimplementedUserServiceServer) UpdateAvatar(UserService_UpdateAvatarServe
 }
 func (UnimplementedUserServiceServer) DeleteAvatar(context.Context, *User) (*Nothing, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteAvatar not implemented")
-}
-func (UnimplementedUserServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -291,24 +277,6 @@ func _UserService_DeleteAvatar_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PingRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).Ping(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/user.UserService/Ping",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).Ping(ctx, req.(*PingRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -335,10 +303,6 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteAvatar",
 			Handler:    _UserService_DeleteAvatar_Handler,
-		},
-		{
-			MethodName: "Ping",
-			Handler:    _UserService_Ping_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

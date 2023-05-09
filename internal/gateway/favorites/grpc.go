@@ -2,12 +2,12 @@ package favorites
 
 import (
 	"context"
-	"time"
 
 	"github.com/dranikpg/dto-mapper"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/domain"
 	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/favorites/pkg/proto/content"
 	interceptorClient "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/client"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -18,22 +18,10 @@ type Gateway struct {
 	favContentManager favContentProto.FavoritesContentServiceClient
 }
 
-func pingServer(ctx context.Context, client favContentProto.FavoritesContentServiceClient) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
-
-	_, err := client.Ping(ctx, &favContentProto.PingRequest{})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func NewGateway(logger logging.Logger, cfg ServiceFavoritesConfig) (*Gateway, error) {
 	interceptor := interceptorClient.NewInterceptorClient("favorites", logger)
 
-	grcpConn, err := grpc.Dial(
+	grpcConn, err := grpc.Dial(
 		cfg.Addr,
 		grpc.WithInsecure(),
 		grpc.WithUnaryInterceptor(interceptor.AccessLog),
@@ -43,9 +31,9 @@ func NewGateway(logger logging.Logger, cfg ServiceFavoritesConfig) (*Gateway, er
 		return nil, err
 	}
 
-	favContentManager := favContentProto.NewFavoritesContentServiceClient(grcpConn)
+	favContentManager := favContentProto.NewFavoritesContentServiceClient(grpcConn)
 
-	err = pingServer(context.Background(), favContentManager)
+	err = ping.Ping(grpcConn)
 	if err != nil {
 		logger.Error(err)
 		return nil, err

@@ -5,10 +5,10 @@ import (
 	"io"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/dranikpg/dto-mapper"
 	interceptorClient "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/client"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 	userProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/proto/user"
@@ -26,22 +26,10 @@ type Gateway struct {
 	userManager userProto.UserServiceClient
 }
 
-func pingServer(ctx context.Context, client userProto.UserServiceClient) error {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
-
-	_, err := client.Ping(ctx, &userProto.PingRequest{})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func NewGateway(logger logging.Logger, cfg ServiceUserConfig) (*Gateway, error) {
 	interceptor := interceptorClient.NewInterceptorClient("user", logger)
 
-	grcpConn, err := grpc.Dial(
+	grpcConn, err := grpc.Dial(
 		cfg.Addr,
 		grpc.WithInsecure(),
 		grpc.WithUnaryInterceptor(interceptor.AccessLog),
@@ -51,9 +39,9 @@ func NewGateway(logger logging.Logger, cfg ServiceUserConfig) (*Gateway, error) 
 		return nil, err
 	}
 
-	userManager := userProto.NewUserServiceClient(grcpConn)
+	userManager := userProto.NewUserServiceClient(grpcConn)
 
-	err = pingServer(context.Background(), userManager)
+	err = ping.Ping(grpcConn)
 	if err != nil {
 		logger.Error(err)
 		return nil, err

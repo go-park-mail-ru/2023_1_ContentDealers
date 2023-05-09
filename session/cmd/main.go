@@ -12,7 +12,9 @@ import (
 	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 	interceptorServer "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/interceptor/server"
+	pingDelivery "github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/grpc/ping"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/proto/ping"
 	delivery "github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/delivery/session"
 	repository "github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/repository/session"
 	usecase "github.com/go-park-mail-ru/2023_1_ContentDealers/session/internal/usecase/session"
@@ -57,6 +59,7 @@ func Run() error {
 	sessionRepository := repository.NewRepository(redisClient, logger)
 	sessionUseCase := usecase.NewSession(&sessionRepository, logger, cfg.Session.ExpiresAt)
 	sessionService := delivery.NewGrpc(sessionUseCase, logger)
+	pingService := pingDelivery.NewGrpc()
 
 	interceptor := interceptorServer.NewInterceptorServer("session", logger)
 
@@ -65,6 +68,7 @@ func Run() error {
 	)
 
 	session.RegisterSessionServiceServer(server, sessionService)
+	ping.RegisterPingServiceServer(server, pingService)
 
 	addr := fmt.Sprintf("%s:%s", cfg.Server.BindIP, cfg.Server.Port)
 
