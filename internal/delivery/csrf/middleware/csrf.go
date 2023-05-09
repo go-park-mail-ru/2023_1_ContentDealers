@@ -39,7 +39,7 @@ func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 			msg := "csrf token was not given in header 'csrf-token'"
 			mc.logger.WithRequestID(ctx).Trace(msg)
 			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, fmt.Sprintf(`{"message": "%s"}`, msg))
+			io.WriteString(w, fmt.Sprintf(`{"status": 10, "message": "%s"}`, msg))
 			return
 		}
 		sessionRaw := r.Context().Value("session")
@@ -53,7 +53,7 @@ func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 		if err != nil || !isValid {
 			mc.logger.WithRequestID(ctx).Tracef("csrf token is invalid: %w, isValid: %d", err, isValid)
 			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, `{"message": "csrf token is invalid"}`)
+			io.WriteString(w, `{"status": 11, "message": "csrf token is invalid"}`)
 			return
 		}
 		handler.ServeHTTP(w, r)
