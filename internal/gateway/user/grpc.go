@@ -222,7 +222,7 @@ func (gate *Gateway) DeleteAvatar(ctx context.Context, user domain.User) error {
 	ctx = metadata.NewOutgoingContext(ctx, md)
 	userRequest := userProto.User{}
 	dto.Map(&userRequest, user)
-	_, err := gate.userManager.Update(ctx, &userRequest)
+	_, err := gate.userManager.DeleteAvatar(ctx, &userRequest)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
 		return err

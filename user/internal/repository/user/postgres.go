@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
+	"github.com/google/uuid"
 )
 
 const (
@@ -97,34 +98,23 @@ func getDirByDate(date time.Time) string {
 
 func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) error {
 	repo.logger.WithRequestID(ctx).Tracef("input params DeleteAvatar(): %#v", user)
-	var updateDate time.Time
 	// 1. удаление из локальной директории
-	if user.AvatarURL == "" {
+	if user.AvatarURL == "" || user.AvatarURL == "media/avatars/default_avatar.jpg" {
 		repo.logger.WithRequestID(ctx).Trace("delete avatar, but it is empty")
 		return nil
 	}
-	err := repo.DB.
-		QueryRowContext(ctx, `select updated_at FROM users WHERE id = $1`, user.ID).
-		Scan(&updateDate)
-	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
-		if errors.Is(err, sql.ErrNoRows) {
-			return domain.ErrUserNotFound
-		}
-		return err
-	}
 
-	filepathForDelete := fmt.Sprintf("%s/%s/%d.jpg", dirAvatars, getDirByDate(updateDate), user.ID)
-	// TODO: сомнительная логика
-	if _, err = os.Stat(filepathForDelete); !errors.Is(err, os.ErrNotExist) {
-		err = os.Remove(filepathForDelete)
+	if _, err := os.Stat(user.AvatarURL); !errors.Is(err, os.ErrNotExist) {
+		err = os.Remove(user.AvatarURL)
 		if err != nil {
 			repo.logger.WithRequestID(ctx).Trace(err)
 			return err
 		}
+	} else {
+		fmt.Println("notExit ???")
 	}
 
-	_, err = repo.DB.ExecContext(ctx,
+	_, err := repo.DB.ExecContext(ctx,
 		`update users 
 		set avatar_url = 'media/avatars/default_avatar.jpg'
 		where id = $1;`,
@@ -154,7 +144,10 @@ func (repo *Repository) UpdateAvatar(ctx context.Context, user domain.User, file
 		repo.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, fmt.Errorf("failed to create folder for avatar")
 	}
-	filepath := fmt.Sprintf("%s/%d.jpg", dir, user.ID)
+
+	avatarUUID := uuid.New().String()
+
+	filepath := fmt.Sprintf("%s/%d_%s.jpg", dir, user.ID, avatarUUID)
 
 	outAvatar, err := os.Create(filepath)
 	defer outAvatar.Close()

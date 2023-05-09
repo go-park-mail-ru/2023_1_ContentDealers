@@ -57,6 +57,10 @@ build_fav:
 	go build -o ./build/favorites/out favorites/cmd/main.go
 	cp config.yml ./build/favorites
 
+build_user:
+	rm -rf ./build/user && \
+	go build -o ./build/user/out user/cmd/main.go
+	cp config.yml ./build/user
 
 move_config:
 	cp config.yml ./build/content
