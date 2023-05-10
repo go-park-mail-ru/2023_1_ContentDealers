@@ -94,7 +94,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build/favorites:/build/
+    - ./build/user_action:/build/
     - ./log:/log
     networks:
       net:
