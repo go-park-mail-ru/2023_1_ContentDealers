@@ -12,11 +12,17 @@ drop table if exists series cascade;
 drop table if exists episodes cascade;
 drop table if exists selections cascade;
 drop table if exists content_selections cascade;
+drop table if exists users_content_favorites cascade;
+drop table if exists users_persons_favorites cascade;
 
 -- namespace, gender, function set_timestamp
 
 create schema if not exists filmium;
+create schema if not exists user_schema;
+create schema if not exists favorites_schema;
 set search_path=filmium;
+
+create extension if not exists pg_trgm;
 
 drop domain if exists gender cascade;
 create domain gender char(1)
@@ -38,14 +44,27 @@ $$ language plpgsql;
 
 -- tables
 
-create table users (
+create table user_schema.users (
     id bigserial primary key,
     email text not null unique,
     password_hash text not null,
-    date_birth date not null,
     avatar_url text not null default 'media/avatars/default_avatar.jpg',
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
+);
+
+create table favorites_schema.users_content_favorites (
+    user_id bigint not null,
+    content_id bigint not null,
+    created_at timestamp not null default now(),
+    primary key (user_id, content_id)
+);
+
+create table favorites_schema.users_persons_favorites (
+    user_id bigint not null,
+    person_id bigint not null,
+    created_at timestamp not null default now(),
+    primary key (user_id, person_id)
 );
 
 create table roles (
@@ -131,12 +150,15 @@ create table episodes (
     id bigserial primary key,
     series_id bigint not null references series(id) on delete cascade,
     season_num integer not null,
+    episode_num integer not null,
     content_url text not null,
-    title text not null
+    release_date date,
+    title text 
 );
 
 -- trigger
 create trigger set_timestamp_users
-before update on users
+before update on user_schema.users
 for each row
 execute procedure set_timestamp();
+

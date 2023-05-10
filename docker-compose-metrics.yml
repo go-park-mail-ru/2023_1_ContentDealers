@@ -1,0 +1,224 @@
+version: '3'
+
+# sudo docker-compose -f docker-compose-metrics.yml up
+
+services:
+
+# -------------------------------------
+# ===========[ STORAGES ]==============
+# -------------------------------------
+  postgres:
+    build:
+      context: .
+      dockerfile: postgres-dockerfile
+    restart: always
+    environment: 
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    # command: ["postgres", "-c", "log_statement=all"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      net:
+        ipv4_address: 192.168.243.20
+        
+# -------------------------------------
+
+  redis:
+    image: 'redis'
+    restart: always
+    volumes:
+      - redis-data:/data
+    networks:
+      net:
+        ipv4_address: 192.168.243.21
+      
+# -------------------------------------
+# ==========[ SERVICES ]===============
+# -------------------------------------
+
+  content:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    environment: 
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+    - ./build/content:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.11
+
+
+# -------------------------------------
+
+  user:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    environment: 
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+    - ./build/user:/build/
+    - ./media:/media/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.12
+
+# -------------------------------------
+
+  favorites:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    environment: 
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+    - ./build/favorites:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.13
+
+# -------------------------------------
+
+  session:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
+    links:
+      - redis:redis
+    depends_on:
+      - redis
+    volumes:
+    - ./build/session:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.14
+
+# -------------------------------------
+# ========[ API-GATEWAY ]==============
+# -------------------------------------
+
+  api_gateway:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
+    ports:
+      - 8080:80
+    links:
+      - session:session
+      - user:user
+      - favorites:favorites
+      - content:content
+    depends_on:
+      - session
+      - user
+      - favorites
+      - content
+    environment: 
+      - CSRF_TOKEN=${CSRF_TOKEN}
+    volumes:
+    - ./build/api_gateway:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.10
+
+# -------------------------------------
+# ==========[ METRICS ]================
+# -------------------------------------
+  grafana:
+    image: grafana/grafana
+    links:
+    -  prometheus:prometheus
+    ports:
+    - 3000:3000
+    user: "104"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - grafana-configs:/etc/grafana
+    networks:
+      net:
+        ipv4_address: 192.168.243.30
+        
+  prometheus:
+    image: prom/prometheus
+    links:
+    -  api_gateway:api_gateway
+    -  node-exporter:node-exporter
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./metrics:/etc/prometheus
+      - prom-data:/prometheus
+    networks:
+      net:
+        ipv4_address: 192.168.243.31
+
+  node-exporter:
+    image: prom/node-exporter:v1.3.1
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude'
+      - '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
+    networks:
+      net:
+        ipv4_address: 192.168.243.32
+
+# -------------------------------------
+# ===========[ VOLUMES ]===============
+# -------------------------------------
+
+volumes:
+  grafana-data:
+  grafana-configs:
+  prom-data:
+  prom-configs:
+  redis-data:
+  postgres-data:
+
+        
+# -------------------------------------
+# ==========[ NETWORKS ]===============
+# -------------------------------------
+
+
+networks:
+  net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.243.0/24

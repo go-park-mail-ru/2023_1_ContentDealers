@@ -37,6 +37,7 @@ func NewClientPostgres(cfg StorageConfig) (*sql.DB, error) {
 		cfg.SSLmode,
 		cfg.SearchPath)
 
+	log.Println(dsn)
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, err

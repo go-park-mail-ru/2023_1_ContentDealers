@@ -11,25 +11,23 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/film"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/content"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
-	contentRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/content"
-	countryRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/country"
-	filmRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/film"
-	genreRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/genre"
-	personRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/person"
-	roleRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/role"
-	selectionRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/selection"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/session"
-	userRepo "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/repository/user"
-	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/film"
-	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
-	personRoleUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/personRole"
-
+	contentGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
+	favGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/favorites"
+	sessGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
+	userGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
-	contentUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
+	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
+	favUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/favorites"
+	genreUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/genre"
+	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
+	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/search"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/joho/godotenv"
@@ -37,23 +35,8 @@ import (
 	config "github.com/go-park-mail-ru/2023_1_ContentDealers/config"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf"
 	csrfUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/csrf"
-	sessionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/session"
-	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/redis"
 )
 
-const (
-	ReadHeaderTimeout = 5 * time.Second
-	shutdownTimeout   = 5 * time.Second
-)
-
-// @title Filmium Backend API
-// @version 1.0
-// @description API Server for Filmium Application
-
-// @host localhost:8080
-// @BasePath /
 func main() {
 	if err := Run(); err != nil {
 		log.Fatal(err)
@@ -71,96 +54,94 @@ func Run() error {
 		return fmt.Errorf("Needed to pass config file")
 	}
 
-	cfg, err := config.GetCfg(*configPtr)
+	cfgGeneral, err := config.GetCfg(*configPtr)
 	if err != nil {
 		return fmt.Errorf("Fail to parse config yml file: %w", err)
 	}
 
-	logger, err := logging.NewLogger(cfg.Logging)
+	cfg := cfgGeneral.ApiGateway
+
+	logger, err := logging.NewLogger(cfg.Logging, "api-gateway")
 	if err != nil {
 		return fmt.Errorf("Fail to initialization logger: %w", err)
 	}
 
-	db, err := postgresql.NewClientPostgres(cfg.Storage)
+	userGateway, err := userGate.NewGateway(logger, cfg.ServiceUser)
+	if err != nil {
+		return err
+	}
+
+	sessionGateway, err := sessGate.NewGateway(logger, cfg.ServiceSession)
+	if err != nil {
+		return err
+	}
+
+	favGateway, err := favGate.NewGateway(logger, cfg.ServiceFavorites)
+	if err != nil {
+		return err
+	}
+
+	contentGateway, err := contentGate.NewGateway(cfg.ServiceContent, logger)
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
 
-	redisClient, err := redis.NewClientRedis(cfg.Redis)
-	if err != nil {
-		logger.Error(err)
-		return err
-	}
+	selectionUsecase := selectionUseCase.NewUseCase(contentGateway, logger)
+	filmUsecase := filmUseCase.NewUseCase(contentGateway, logger)
+	personUsecase := personUseCase.NewUseCase(contentGateway, logger)
+	searchUsecase := searchUseCase.NewUseCase(contentGateway, logger)
+	genreUsecase := genreUseCase.NewUseCase(contentGateway, logger)
 
-	userRepository := userRepo.NewRepository(db, logger)
-	sessionRepository := session.NewRepository(redisClient, logger)
-	selectionRepository := selectionRepo.NewRepository(db, logger)
-	contentRepository := contentRepo.NewRepository(db, logger)
-	filmRepository := filmRepo.NewRepository(db, logger)
-	genreRepository := genreRepo.NewRepository(db, logger)
-	roleRepository := roleRepo.NewRepository(db, logger)
-	countryRepository := countryRepo.NewRepository(db, logger)
-	personRepository := personRepo.NewRepository(db, logger)
-
-	userUseCase := userUseCase.NewUser(&userRepository, logger)
-	sessionUseCase := sessionUseCase.NewSession(&sessionRepository, logger)
-	selectionUseCase := selectionUseCase.NewSelection(&selectionRepository, &contentRepository, logger)
-	personRolesUseCase := personRoleUseCase.NewPersonRole(&personRepository, &roleRepository, logger)
-
-	contentUseCase := contentUseCase.NewContent(contentUseCase.Options{
-		ContentRepo:        &contentRepository,
-		GenreRepo:          &genreRepository,
-		SelectionRepo:      &selectionRepository,
-		CountryRepo:        &countryRepository,
-		PersonRolesUseCase: personRolesUseCase,
-	}, logger)
-	filmUseCase := filmUseCase.NewFilm(&filmRepository, contentUseCase, logger)
-	personUseCase := personUseCase.NewPerson(personUseCase.Options{
-		Repo:    &personRepository,
-		Content: &contentRepository,
-		Role:    &roleRepository,
-		Genre:   &genreRepository,
-	}, logger)
+	favUseCase := favUseCase.NewUseCase(favGateway, sessionGateway, contentGateway, logger)
 
 	err = godotenv.Load()
 	if err != nil {
 		logger.Error(err)
-		return err
 	}
-	csrfUseCase, err := csrfUseCase.NewCSRF(os.Getenv("CSRF_TOKEN"), logger)
+
+	csrfUseCase, err := csrfUseCase.NewUseCase(os.Getenv("CSRF_TOKEN"), logger)
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
 
-	selectionHandler := selection.NewHandler(selectionUseCase, logger)
-	filmHandler := film.NewHandler(filmUseCase, logger)
-	personHandler := person.NewHandler(personUseCase, logger)
-	userHandler := user.NewHandler(userUseCase, sessionUseCase, logger)
-	csrfHandler := csrf.NewHandler(csrfUseCase, logger)
+	userHandler := user.NewHandler(userGateway, sessionGateway, logger, cfg.Avatar)
+	favHandler := favorites.NewHandler(favUseCase, logger)
+	selectionHandler := selection.NewHandler(selectionUsecase, logger)
+	contentHandler := content.NewHandler(filmUsecase, logger)
+	personHandler := person.NewHandler(personUsecase, logger)
+	csrfHandler := csrf.NewHandler(csrfUseCase, logger, cfg.CSRF)
+	searchHandler := search.NewHandler(searchUsecase, logger)
+	genreHandler := genre.NewHandler(genreUsecase, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
-		UserHandler:      userHandler,
-		CSRFHandler:      csrfHandler,
+		UserHandler:      *userHandler,
+		FavHandler:       *favHandler,
+		CSRFHandler:      *csrfHandler,
 		SelectionHandler: selectionHandler,
-		FilmHandler:      filmHandler,
+		ContentHandler:   contentHandler,
 		PersonHandler:    personHandler,
-		SessionUseCase:   sessionUseCase,
+		SessionGateway:   sessionGateway,
+		SearchHandler:    searchHandler,
+		GenreHandler:     genreHandler,
 		AllowedOrigins:   []string{cfg.CORS.AllowedOrigins},
 		CSRFUseCase:      *csrfUseCase,
 		Logger:           logger,
+		CSRFConfig:       cfg.CSRF,
 	})
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	addr := fmt.Sprintf("%s:%s", cfg.Listen.BindIP, cfg.Listen.Port)
+	addr := fmt.Sprintf("%s:%s", cfg.Server.BindIP, cfg.Server.Port)
 
 	server := http.Server{
 		Addr:              addr,
 		Handler:           router,
-		ReadHeaderTimeout: ReadHeaderTimeout,
+		ReadHeaderTimeout: time.Second * time.Duration(cfg.Server.ReadHeaderTimeout),
+		WriteTimeout:      time.Second * time.Duration(cfg.Server.WriteTimeout),
+		ReadTimeout:       time.Second * time.Duration(cfg.Server.ReadTimeout),
 	}
 
 	go func() {
@@ -175,7 +156,8 @@ func Run() error {
 
 	logger.Infoln("server shutdown")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(),
+		time.Second*time.Duration(cfg.Server.ShutdownTimeout))
 	defer cancel()
 
 	err = server.Shutdown(shutdownCtx)

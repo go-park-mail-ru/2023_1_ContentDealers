@@ -22,6 +22,7 @@ type personDTO struct {
 	Growth         *int         `json:"growth"`
 	Birthplace     string       `json:"birthplace"`
 	AvatarURL      string       `json:"avatar_url"`
+	Age            int          `json:"age"`
 	ParticipatedIn []contentDTO `json:"participated_in"`
 	Roles          []roleDTO    `json:"roles"`
 	Genres         []genreDTO   `json:"genres"`

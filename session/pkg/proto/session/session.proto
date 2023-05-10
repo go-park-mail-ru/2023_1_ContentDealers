@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option go_package = "./;session";
+
+package session;
+
+message SessionID {
+  string ID = 1;
+}
+
+message UserID {
+  uint64 ID = 1;
+}
+
+message Session {
+    string ID = 1;
+    uint64 UserID = 2;
+    string ExpiresAt = 3;
+}
+
+message Nothing {
+    bool Dummy = 1;
+}
+
+
+service SessionService {
+    rpc Create(UserID) returns (Session) {}
+    rpc Get(SessionID) returns (Session) {}
+    rpc Delete(SessionID) returns (Nothing) {}
+}
+
