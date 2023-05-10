@@ -36,7 +36,17 @@ func (uc *UseCase) Delete(ctx context.Context, rating domainRate.Rating) error {
 		return err
 	}
 	rating.UserID = userID
-	return uc.gate.DeleteRating(ctx, rating)
+	deletedRating, err := uc.gate.DeleteRating(ctx, rating)
+	if err != nil {
+		uc.logger.WithRequestID(ctx).Trace(err)
+		return err
+	}
+	err = uc.content.DeleteRating(ctx, deletedRating.ContentID, deletedRating.Rating)
+	if err != nil {
+		uc.logger.WithRequestID(ctx).Trace(err)
+		return err
+	}
+	return nil
 }
 
 func (uc *UseCase) Add(ctx context.Context, rating domainRate.Rating) error {
@@ -46,7 +56,17 @@ func (uc *UseCase) Add(ctx context.Context, rating domainRate.Rating) error {
 		return err
 	}
 	rating.UserID = userID
-	return uc.gate.AddRating(ctx, rating)
+	err = uc.gate.AddRating(ctx, rating)
+	if err != nil {
+		uc.logger.WithRequestID(ctx).Trace(err)
+		return err
+	}
+	err = uc.content.AddRating(ctx, rating.ContentID, rating.Rating)
+	if err != nil {
+		uc.logger.WithRequestID(ctx).Trace(err)
+		return err
+	}
+	return nil
 }
 
 func (uc *UseCase) Has(ctx context.Context, rating domainRate.Rating) (domainRate.HasRating, error) {

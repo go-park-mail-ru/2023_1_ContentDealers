@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
@@ -222,4 +223,30 @@ func (repo *Repository) GetSeriesByContentID(ctx context.Context, ContentID uint
 		s.Episodes = append(s.Episodes, e)
 	}
 	return s, err
+}
+
+func (repo *Repository) AddRating(ctx context.Context, ContentID uint64, rating float32) error {
+	_, err := repo.DB.ExecContext(ctx,
+		`UPDATE content 
+		SET sum_ratings = sum_ratings + $1, count_ratings = count_ratings + 1 
+		WHERE id = $2;`,
+		rating, ContentID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
+func (repo *Repository) DeleteRating(ctx context.Context, ContentID uint64, rating float32) error {
+	_, err := repo.DB.ExecContext(ctx,
+		`UPDATE content 
+		SET sum_ratings = sum_ratings - $1, count_ratings = count_ratings - 1 
+		WHERE id = $2;`,
+		rating, ContentID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
 }

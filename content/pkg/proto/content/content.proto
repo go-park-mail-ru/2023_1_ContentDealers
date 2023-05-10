@@ -87,7 +87,16 @@ message Series {
   repeated Episode Episodes = 3;
 }
 
+message Rating {
+  uint64 ContentID = 1;
+  float Rating = 2;
+}
+
+message Nothing {}
+
 service ContentService {
+  rpc AddRating (Rating) returns (Nothing) {}
+  rpc DeleteRating (Rating) returns (Nothing) {}
   rpc GetFilmByContentID (ContentID) returns (Film) {}
   rpc GetSeriesByContentID (ContentID) returns (Series) {}
   rpc GetContentByContentIDs (ContentIDs) returns (ContentSeq) {}

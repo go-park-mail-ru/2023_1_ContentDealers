@@ -19,18 +19,25 @@ func NewGrpc(ratingUseCase RatingUseCase, logger logging.Logger) *Grpc {
 	return &Grpc{ratingUseCase: ratingUseCase, logger: logger}
 }
 
-func (service *Grpc) DeleteRating(ctx context.Context, rateRequest *ratingProto.Rating) (*ratingProto.Nothing, error) {
+func (service *Grpc) DeleteRating(ctx context.Context, rateRequest *ratingProto.Rating) (*ratingProto.Rating, error) {
 	rate := domain.Rating{}
 	err := dto.Map(&rate, rateRequest)
 	if err != nil {
 		service.logger.WithRequestID(ctx).Trace(err)
 		return nil, err
 	}
-	err = service.ratingUseCase.Delete(ctx, rate)
+	deletedRating, err := service.ratingUseCase.Delete(ctx, rate)
 	if err != nil {
+		service.logger.WithRequestID(ctx).Trace(err)
 		return nil, err
 	}
-	return &ratingProto.Nothing{}, nil
+	ratingResponse := ratingProto.Rating{}
+	err = dto.Map(&ratingResponse, deletedRating)
+	if err != nil {
+		service.logger.WithRequestID(ctx).Trace(err)
+		return nil, err
+	}
+	return &ratingResponse, nil
 }
 
 func (service *Grpc) AddRating(ctx context.Context, rateRequest *ratingProto.Rating) (*ratingProto.Nothing, error) {
@@ -42,6 +49,7 @@ func (service *Grpc) AddRating(ctx context.Context, rateRequest *ratingProto.Rat
 	}
 	err = service.ratingUseCase.Add(ctx, rate)
 	if err != nil {
+		service.logger.WithRequestID(ctx).Trace(err)
 		return nil, err
 	}
 	return &ratingProto.Nothing{}, nil

@@ -22,7 +22,7 @@ func NewUseCase(repo Repository, logger logging.Logger) *UseCase {
 	return &UseCase{repo: repo, logger: logger}
 }
 
-func (uc *UseCase) Delete(ctx context.Context, rating domain.Rating) error {
+func (uc *UseCase) Delete(ctx context.Context, rating domain.Rating) (domain.Rating, error) {
 	return uc.repo.Delete(ctx, rating)
 }
 

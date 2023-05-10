@@ -20,18 +20,19 @@ func NewRepository(db *sql.DB, logger logging.Logger) Repository {
 	return Repository{DB: db, logger: logger}
 }
 
-func (repo *Repository) Delete(ctx context.Context, rating domain.Rating) error {
-	_, err := repo.DB.ExecContext(ctx,
+func (repo *Repository) Delete(ctx context.Context, rating domain.Rating) (domain.Rating, error) {
+	var rate float32
+	err := repo.DB.QueryRowContext(ctx,
 		`delete from ratings 
 		where user_id = $1 and
-		content_id = $2;`,
-		rating.UserID,
-		rating.ContentID,
-	)
+		content_id = $2
+		RETURNING rating;`, rating.UserID, rating.ContentID).Scan(&rate)
 	if err != nil {
 		repo.logger.WithRequestID(ctx).Trace(err)
+		return rating, err
 	}
-	return err
+	rating.Rating = rate
+	return rating, nil
 }
 
 // numeric(4,2) <-> float32 ???

@@ -7,7 +7,7 @@ import (
 )
 
 type Repository interface {
-	Delete(ctx context.Context, rating domain.Rating) error
+	Delete(ctx context.Context, rating domain.Rating) (domain.Rating, error)
 	Add(ctx context.Context, rating domain.Rating) error
 	Has(ctx context.Context, rating domain.Rating) (domain.HasRating, error)
 	GetByUser(ctx context.Context, options domain.RatingsOptions) (domain.Ratings, error)

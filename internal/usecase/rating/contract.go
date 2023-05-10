@@ -16,7 +16,7 @@ type SessionGateway interface {
 }
 
 type Gateway interface {
-	DeleteRating(ctx context.Context, rating domainRate.Rating) error
+	DeleteRating(ctx context.Context, rating domainRate.Rating) (domainRate.Rating, error)
 	AddRating(ctx context.Context, rating domainRate.Rating) error
 	HasRating(ctx context.Context, rating domainRate.Rating) (domainRate.HasRating, error)
 	GetRatingByUser(ctx context.Context, options domainRate.RatingsOptions) (domainRate.Ratings, error)
@@ -25,4 +25,6 @@ type Gateway interface {
 
 type ContentGateway interface {
 	GetContentByContentIDs(ctx context.Context, ContentIDs []uint64) ([]domain.Content, error)
+	AddRating(ctx context.Context, ContentID uint64, rating float32) error
+	DeleteRating(ctx context.Context, ContentID uint64, rating float32) error
 }

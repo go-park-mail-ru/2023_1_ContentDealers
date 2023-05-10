@@ -203,3 +203,27 @@ func (gateway *Grpc) GetAllGenres(ctx context.Context) ([]domain.Genre, error) {
 	}
 	return result, nil
 }
+
+func (gateway *Grpc) AddRating(ctx context.Context, ContentID uint64, rating float32) error {
+	ratingRequest := content.Rating{
+		Rating:    rating,
+		ContentID: ContentID,
+	}
+	_, err := gateway.contentService.AddRating(ctx, &ratingRequest)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (gateway *Grpc) DeleteRating(ctx context.Context, ContentID uint64, rating float32) error {
+	ratingRequest := content.Rating{
+		Rating:    rating,
+		ContentID: ContentID,
+	}
+	_, err := gateway.contentService.DeleteRating(ctx, &ratingRequest)
+	if err != nil {
+		return err
+	}
+	return nil
+}

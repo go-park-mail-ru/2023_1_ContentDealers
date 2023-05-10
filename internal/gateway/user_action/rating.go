@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func (gate *Gateway) DeleteRating(ctx context.Context, rating domain.Rating) error {
+func (gate *Gateway) DeleteRating(ctx context.Context, rating domain.Rating) (domain.Rating, error) {
 	md := metadata.Pairs(
 		"requestID", ctx.Value("requestID").(string),
 	)
@@ -18,14 +18,19 @@ func (gate *Gateway) DeleteRating(ctx context.Context, rating domain.Rating) err
 	err := dto.Map(&rateRequest, rating)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return err
+		return rating, err
 	}
-	_, err = gate.ratingManager.DeleteRating(ctx, &rateRequest)
+	ratingResponse, err := gate.ratingManager.DeleteRating(ctx, &rateRequest)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return err
+		return rating, err
 	}
-	return nil
+	err = dto.Map(&rating, ratingResponse)
+	if err != nil {
+		gate.logger.WithRequestID(ctx).Trace(err)
+		return rating, err
+	}
+	return rating, nil
 }
 
 func (gate *Gateway) AddRating(ctx context.Context, rating domain.Rating) error {

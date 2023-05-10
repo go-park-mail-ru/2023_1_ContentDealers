@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RatingServiceClient interface {
-	DeleteRating(ctx context.Context, in *Rating, opts ...grpc.CallOption) (*Nothing, error)
+	DeleteRating(ctx context.Context, in *Rating, opts ...grpc.CallOption) (*Rating, error)
 	AddRating(ctx context.Context, in *Rating, opts ...grpc.CallOption) (*Nothing, error)
 	GetRatingByUser(ctx context.Context, in *RatingsOptions, opts ...grpc.CallOption) (*Ratings, error)
 	GetRatingByContent(ctx context.Context, in *RatingsOptions, opts ...grpc.CallOption) (*Ratings, error)
@@ -33,8 +33,8 @@ func NewRatingServiceClient(cc grpc.ClientConnInterface) RatingServiceClient {
 	return &ratingServiceClient{cc}
 }
 
-func (c *ratingServiceClient) DeleteRating(ctx context.Context, in *Rating, opts ...grpc.CallOption) (*Nothing, error) {
-	out := new(Nothing)
+func (c *ratingServiceClient) DeleteRating(ctx context.Context, in *Rating, opts ...grpc.CallOption) (*Rating, error) {
+	out := new(Rating)
 	err := c.cc.Invoke(ctx, "/rating.RatingService/DeleteRating", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (c *ratingServiceClient) HasRating(ctx context.Context, in *Rating, opts ..
 // All implementations must embed UnimplementedRatingServiceServer
 // for forward compatibility
 type RatingServiceServer interface {
-	DeleteRating(context.Context, *Rating) (*Nothing, error)
+	DeleteRating(context.Context, *Rating) (*Rating, error)
 	AddRating(context.Context, *Rating) (*Nothing, error)
 	GetRatingByUser(context.Context, *RatingsOptions) (*Ratings, error)
 	GetRatingByContent(context.Context, *RatingsOptions) (*Ratings, error)
@@ -94,7 +94,7 @@ type RatingServiceServer interface {
 type UnimplementedRatingServiceServer struct {
 }
 
-func (UnimplementedRatingServiceServer) DeleteRating(context.Context, *Rating) (*Nothing, error) {
+func (UnimplementedRatingServiceServer) DeleteRating(context.Context, *Rating) (*Rating, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRating not implemented")
 }
 func (UnimplementedRatingServiceServer) AddRating(context.Context, *Rating) (*Nothing, error) {
