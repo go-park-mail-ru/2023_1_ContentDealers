@@ -16,12 +16,14 @@ message Content {
   string Title = 2;
   string Description = 3;
   double Rating = 4;
-  int32 Year = 5;
-  bool IsFree = 6;
-  int32 AgeLimit = 7;
-  string TrailerURL = 8;
-  string PreviewURL = 9;
-  string Type = 10;
+  double SumRatings = 5;
+  uint64 CountRatings = 6;
+  int32 Year = 7;
+  bool IsFree = 8;
+  int32 AgeLimit = 9;
+  string TrailerURL = 10;
+  string PreviewURL = 11;
+  string Type = 12;
 }
 
 message Genre {
