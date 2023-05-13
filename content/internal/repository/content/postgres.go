@@ -203,7 +203,7 @@ func (repo *Repository) GetFilmByContentID(ctx context.Context, ContentID uint64
 }
 
 func (repo *Repository) GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error) {
-	query := `select s.id, e.id, e.season_num, e.episode_num, e.content_url, e.release_date, e.title
+	query := `select s.id, e.id, e.season_num, e.episode_num, e.content_url, e.preview_url, e.release_date, e.title
 		 from series s join episodes e on s.id = e.series_id
          where s.content_id = $1 order by season_num, episode_num`
 	rows, err := repo.DB.QueryContext(ctx, query, ContentID)
@@ -218,7 +218,8 @@ func (repo *Repository) GetSeriesByContentID(ctx context.Context, ContentID uint
 	var s domain.Series
 	for rows.Next() {
 		e := domain.Episode{}
-		err = rows.Scan(&s.ID, &e.ID, &e.SeasonNum, &e.EpisodeNum, &e.ContentURL, &e.ReleaseDate, &e.Title)
+		err = rows.Scan(&s.ID, &e.ID, &e.SeasonNum, &e.EpisodeNum, &e.ContentURL, &e.PreviewURL,
+			&e.ReleaseDate, &e.Title)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return domain.Series{}, sharederrors.ErrRepoNotFound

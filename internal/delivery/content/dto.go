@@ -62,6 +62,7 @@ type episodeDTO struct {
 	SeasonNum   uint32     `json:"season_num"`
 	EpisodeNum  uint32     `json:"episode_num"`
 	ContentURL  string     `json:"content_url"`
+	PreviewURL  string     `json:"preview_url"`
 	Title       *string    `json:"title"`
 	ReleaseDate *time.Time `json:"release_date"`
 }
