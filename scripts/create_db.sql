@@ -163,6 +163,7 @@ create table series (
 create table episodes (
     id bigserial primary key,
     series_id bigint not null references series(id) on delete cascade,
+    preview_url text default 'previews_episodes/default_preview.jpg',
     season_num integer not null,
     episode_num integer not null,
     content_url text not null,
