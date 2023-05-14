@@ -9,6 +9,7 @@ import (
 	middlewareCSRF "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf/middleware"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/payment"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
@@ -41,6 +42,7 @@ type SettingsRouter struct {
 	CSRFUseCase      csrfUseCase.UseCase
 	SearchHandler    search.Handler
 	GenreHandler     genre.Handler
+	PaymentHandler   payment.Handler
 	Logger           logging.Logger
 	CSRFConfig       csrf.CSRFConfig
 }
@@ -107,6 +109,9 @@ func Routes(s *SettingsRouter) *mux.Router {
 
 	authRouter.HandleFunc("/user/avatar/update", s.UserHandler.UpdateAvatar).Methods("POST")
 	authRouter.HandleFunc("/user/avatar/delete", s.UserHandler.DeleteAvatar).Methods("POST")
+
+	authRouter.HandleFunc("/payment/accept", s.PaymentHandler.Accept).Methods("POST")
+	authRouter.HandleFunc("/payment/link", s.PaymentHandler.GetPaymentLink).Methods("GET")
 
 	return router
 }

@@ -87,6 +87,10 @@ func (uc *User) Update(ctx context.Context, user domain.User) error {
 	return uc.repo.Update(ctx, user)
 }
 
+func (uc *User) Subscribe(ctx context.Context, user domain.User) error {
+	return uc.repo.Subscribe(ctx, user)
+}
+
 func validateCredentials(credentials domain.User) error {
 	validPass, err := passwordRegexp.MatchString(credentials.PasswordHash)
 	if err != nil {

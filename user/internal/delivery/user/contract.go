@@ -14,4 +14,5 @@ type UserUseCase interface {
 	Update(ctx context.Context, user domain.User) error
 	UpdateAvatar(context.Context, domain.User, io.Reader) (domain.User, error)
 	DeleteAvatar(context.Context, domain.User) error
+	Subscribe(context.Context, domain.User) error
 }

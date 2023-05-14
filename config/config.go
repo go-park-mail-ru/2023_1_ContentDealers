@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	contentGateway "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
 	favGateway "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/favorites"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/payment"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
 	userGateway "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/client/postgresql"
@@ -26,6 +27,7 @@ type Config struct {
 		ServiceUser      userGateway.ServiceUserConfig       `yaml:"service_user"`
 		ServiceFavorites favGateway.ServiceFavoritesConfig   `yaml:"service_favorites"`
 		ServiceContent   contentGateway.ServiceContentConfig `yaml:"service_content"`
+		ServicePayment   payment.ServicePaymentConfig        `yaml:"service_payment"`
 		Server           struct {
 			BindIP            string `yaml:"bind_ip"`
 			Port              string `yaml:"port" env-default:"8080"`
@@ -73,6 +75,19 @@ type Config struct {
 		Postgres postgresql.StorageConfig `yaml:"postgres"`
 		Logging  logging.LoggingConfig    `yaml:"logging"`
 	} `yaml:"user"`
+	Payment struct {
+		Server struct {
+			BindIP string `yaml:"bind_ip"`
+			Port   string `yaml:"port" env-default:"8080"`
+		} `yaml:"server"`
+		ServiceUser       userGateway.ServiceUserConfig `yaml:"service_user"`
+		Logging           logging.LoggingConfig         `yaml:"logging"`
+		MerchantID        string                        `yaml:"merchant_id"`
+		Currency          string                        `yaml:"currency"`
+		Secret            string                        `env:"PAYMENT_SECRET"`
+		Secret2           string                        `env:"PAYMENT_SECRET2"`
+		SubscriptionPrice uint32                        `yaml:"subscription_price"`
+	}
 }
 
 var instance *Config

@@ -49,6 +49,7 @@ create table user_schema.users (
     email text not null unique,
     password_hash text not null,
     avatar_url text not null default 'media/avatars/default_avatar.jpg',
+    sub_expiration date not null default date('1970-01-01'),
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
 );

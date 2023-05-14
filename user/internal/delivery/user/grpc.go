@@ -159,3 +159,16 @@ func (service *Grpc) DeleteAvatar(ctx context.Context, userRequest *userProto.Us
 	}
 	return &userProto.Nothing{}, nil
 }
+
+func (service *Grpc) Subscribe(ctx context.Context, userRequest *userProto.User) (*userProto.Nothing, error) {
+	user := domain.User{}
+	err := dto.Map(&user, userRequest)
+	if err != nil {
+		return nil, err
+	}
+	err = service.userUseCase.Subscribe(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	return &userProto.Nothing{}, nil
+}

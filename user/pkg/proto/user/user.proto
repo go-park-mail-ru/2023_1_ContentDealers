@@ -28,7 +28,6 @@ message UserAvatar {
     bytes chunk = 2;
 }
 
-
 service UserService {
     rpc Register(User) returns (User) {}
     rpc Auth(User) returns (User) {}
@@ -36,5 +35,5 @@ service UserService {
     rpc Update(User) returns (Nothing) {}
     rpc UpdateAvatar(stream UserAvatar) returns (User) {}
     rpc DeleteAvatar(User) returns (Nothing) {}
+    rpc Subscribe(User) returns (Nothing) {}
 }
-

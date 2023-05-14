@@ -14,4 +14,5 @@ type Repository interface {
 	Update(ctx context.Context, user domain.User) error
 	UpdateAvatar(context.Context, domain.User, io.Reader) (domain.User, error)
 	DeleteAvatar(ctx context.Context, user domain.User) error
+	Subscribe(ctx context.Context, user domain.User) error
 }

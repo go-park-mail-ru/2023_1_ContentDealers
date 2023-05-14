@@ -14,12 +14,14 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/payment"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/user"
 	contentGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/content"
 	favGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/favorites"
+	paymentGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/payment"
 	sessGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/session"
 	userGate "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/gateway/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/setup"
@@ -87,6 +89,12 @@ func Run() error {
 		return err
 	}
 
+	paymentGateway, err := paymentGate.NewGateway(logger, cfg.ServicePayment)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
 	selectionUsecase := selectionUseCase.NewUseCase(contentGateway, logger)
 	filmUsecase := filmUseCase.NewUseCase(contentGateway, logger)
 	personUsecase := personUseCase.NewUseCase(contentGateway, logger)
@@ -114,8 +122,10 @@ func Run() error {
 	csrfHandler := csrf.NewHandler(csrfUseCase, logger, cfg.CSRF)
 	searchHandler := search.NewHandler(searchUsecase, logger)
 	genreHandler := genre.NewHandler(genreUsecase, logger)
+	paymentHandler := payment.NewHandler(paymentGateway, logger)
 
 	router := setup.Routes(&setup.SettingsRouter{
+		PaymentHandler:   paymentHandler,
 		UserHandler:      *userHandler,
 		FavHandler:       *favHandler,
 		CSRFHandler:      *csrfHandler,

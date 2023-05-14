@@ -198,3 +198,15 @@ func (repo *Repository) Update(ctx context.Context, user domain.User) error {
 	}
 	return nil
 }
+
+func (repo *Repository) Subscribe(ctx context.Context, user domain.User) error {
+	repo.logger.WithRequestID(ctx).Tracef("input params Update(): %#v", user)
+	_, err := repo.DB.ExecContext(ctx,
+		`update users set sub_expiration = current_date + interval '1 month'
+				where id = $1`, user.ID)
+	if err != nil {
+		repo.logger.WithRequestID(ctx).Trace(err)
+		return err
+	}
+	return nil
+}
