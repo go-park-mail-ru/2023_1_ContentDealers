@@ -13,7 +13,7 @@ import (
 )
 
 const searchLimit = 6
-const simThreshold = 0.1
+const simThreshold = 0.2
 
 type Repository struct {
 	DB *sql.DB
@@ -157,13 +157,19 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
        			s.year, s.is_free, s.age_limit,
        			s.trailer_url, s.preview_url, s.type from (
 				(select id, 1 sim, title, description, rating, sum_ratings, count_ratings, year, is_free, age_limit,
-					trailer_url, preview_url, type from content
-				 where lower(title) like $1)
+					trailer_url, preview_url, type 
+					from content
+				 	where lower(title) like $1)
+					
 				union all
+				
 				(select id, SIMILARITY($2, title) sim, title, description, rating, sum_ratings, count_ratings,
-				year, is_free, age_limit, trailer_url, preview_url, type from content where SIMILARITY($2, title) > $3)
+					year, is_free, age_limit, trailer_url, preview_url, type 
+					from content
+					where SIMILARITY($2, title) > $3)
 				) s
-				group by s.id, s.title, s.description, s.rating, s.year, s.is_free, s.age_limit,
+
+				group by s.id, s.title, s.description, s.rating, s.sum_ratings, s.count_ratings, s.year, s.is_free, s.age_limit,
 				s.trailer_url, s.preview_url, s.type
 				order by max(s.sim) desc, s.rating desc
 				limit $4;`, likeQuery, query, simThreshold, searchLimit)
@@ -185,6 +191,7 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
 		}
 		result = append(result, c)
 	}
+
 	return result, nil
 }
 
