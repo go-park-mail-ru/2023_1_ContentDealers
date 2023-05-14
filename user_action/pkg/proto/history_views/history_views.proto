@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+option go_package = "./;history_views";
+
+package history_views;
+
+message View {
+  uint64 UserID = 1;
+  uint64 ContentID = 2;
+  google.protobuf.Duration StopView = 3;
+  google.protobuf.Duration Duration = 4;
+  google.protobuf.Timestamp DateAdding = 5;
+}
+
+message ViewsOptions {
+  uint64 UserID = 1;
+  string SortDate = 2;
+  uint32 Limit = 3;
+  uint32 Offset = 4;
+}
+
+message Views {
+  bool IsLast = 1;
+  repeated View Views = 2;
+}
+
+message Nothing {
+    bool Dummy = 1;
+}
+
+message HasViewMessage {
+    bool HasView = 1;
+    View View = 2;
+}
+
+service HistoryViewsService {
+    rpc UpdateProgressView(View) returns (Nothing) {}
+    rpc GetPartiallyViewsByUser(ViewsOptions) returns (Views) {}
+    rpc GetAllViewsByUser(ViewsOptions) returns (Views) {}
+    rpc HasView(View) returns (HasViewMessage) {}
+}
+

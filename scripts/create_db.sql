@@ -78,6 +78,15 @@ create table user_action_shema.ratings (
     primary key (user_id, content_id)
 );
 
+create table user_action_shema.history_views (
+    user_id bigint not null,
+    content_id bigint not null,
+    stop_view bigint not null,
+    duration bigint not null,
+    created_at timestamp not null default now(),
+    primary key (user_id, content_id)
+);
+
 create table roles (
     id bigserial primary key,
     title text unique not null

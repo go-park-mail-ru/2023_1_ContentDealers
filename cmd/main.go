@@ -14,6 +14,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/content"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/history_views"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/rating"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
@@ -27,8 +28,9 @@ import (
 	filmUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/content"
 	favUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/favorites"
 	genreUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/genre"
+	viewsUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/history_views"
 	personUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/person"
-	ratingCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/rating"
+	rateUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/rating"
 	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/search"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
@@ -96,7 +98,8 @@ func Run() error {
 	genreUsecase := genreUseCase.NewUseCase(contentGateway, logger)
 
 	favUseCase := favUseCase.NewUseCase(userActionGateway, sessionGateway, contentGateway, logger)
-	ratingUseCase := ratingCase.NewUseCase(userActionGateway, sessionGateway, contentGateway, logger)
+	ratingUseCase := rateUseCase.NewUseCase(userActionGateway, sessionGateway, contentGateway, logger)
+	viewsUseCase := viewsUseCase.NewUseCase(userActionGateway, sessionGateway, contentGateway, logger)
 
 	err = godotenv.Load()
 	if err != nil {
@@ -111,6 +114,7 @@ func Run() error {
 
 	userHandler := user.NewHandler(userGateway, sessionGateway, logger, cfg.Avatar)
 	favHandler := favorites.NewHandler(favUseCase, logger)
+	viewsHandler := history_views.NewHandler(viewsUseCase, logger)
 	rateHandler := rating.NewHandler(ratingUseCase, logger)
 	selectionHandler := selection.NewHandler(selectionUsecase, logger)
 	contentHandler := content.NewHandler(filmUsecase, logger)
@@ -123,6 +127,7 @@ func Run() error {
 		UserHandler:      *userHandler,
 		FavHandler:       *favHandler,
 		RateHandler:      *rateHandler,
+		ViewsHandler:     *viewsHandler,
 		CSRFHandler:      *csrfHandler,
 		SelectionHandler: selectionHandler,
 		ContentHandler:   contentHandler,

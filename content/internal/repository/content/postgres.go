@@ -13,7 +13,7 @@ import (
 )
 
 const searchLimit = 6
-const simThreshold = 0.2
+const simThreshold = 0.14
 
 type Repository struct {
 	DB *sql.DB

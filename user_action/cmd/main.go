@@ -16,12 +16,16 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/proto/ping"
 	delivery "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/delivery/favcontent"
+	deliveryViews "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/delivery/history_views"
 	deliveryRating "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/delivery/rating"
 	repository "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/repository/favcontent"
+	repositoryViews "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/repository/history_views"
 	repositoryRating "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/repository/rating"
 	usecase "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/usecase/favcontent"
+	usecaseViews "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/usecase/history_views"
 	usecaseRating "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/internal/usecase/rating"
 	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/favcontent"
+	viewsProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/history_views"
 	rateProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/rating"
 	"google.golang.org/grpc"
 )
@@ -68,6 +72,10 @@ func Run() error {
 	rateUseCase := usecaseRating.NewUseCase(&rateRepository, logger)
 	rateService := deliveryRating.NewGrpc(rateUseCase, logger)
 
+	viewsRepository := repositoryViews.NewRepository(db, logger)
+	viewsUseCase := usecaseViews.NewUseCase(&viewsRepository, logger)
+	viewsService := deliveryViews.NewGrpc(viewsUseCase, logger)
+
 	pingService := pingDelivery.NewGrpc()
 
 	interceptor := interceptorServer.NewInterceptorServer("favorites", logger)
@@ -78,6 +86,7 @@ func Run() error {
 
 	favContentProto.RegisterFavoritesContentServiceServer(server, favContentService)
 	rateProto.RegisterRatingServiceServer(server, rateService)
+	viewsProto.RegisterHistoryViewsServiceServer(server, viewsService)
 	ping.RegisterPingServiceServer(server, pingService)
 
 	addr := fmt.Sprintf("%s:%s", cfg.Server.BindIP, cfg.Server.Port)

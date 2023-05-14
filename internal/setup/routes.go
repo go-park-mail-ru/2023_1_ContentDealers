@@ -9,6 +9,7 @@ import (
 	middlewareCSRF "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/csrf/middleware"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/favorites"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/genre"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/history_views"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/person"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/rating"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/delivery/search"
@@ -34,6 +35,7 @@ type SettingsRouter struct {
 	AllowedOrigins   []string
 	FavHandler       favorites.Handler
 	RateHandler      rating.Handler
+	ViewsHandler     history_views.Handler
 	UserHandler      user.Handler
 	CSRFHandler      csrf.Handler
 	SelectionHandler selection.Handler
@@ -111,6 +113,11 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter.HandleFunc("/rating/content/{id:[0-9]+}/has", s.RateHandler.HasRating).Methods("GET")
 	authRouter.HandleFunc("/rating/add", s.RateHandler.AddRating).Methods("POST")
 	authRouter.HandleFunc("/rating/delete", s.RateHandler.DeleteRating).Methods("POST")
+
+	// ?type=all|part (вся история просмотров | только недосмотренные)
+	authRouter.HandleFunc("/views", s.ViewsHandler.GetViewsByUser).Methods("GET")
+	authRouter.HandleFunc("/views/content/{id:[0-9]+}/has", s.ViewsHandler.HasView).Methods("GET")
+	authRouter.HandleFunc("/views/update", s.ViewsHandler.UpdateProgressView).Methods("POST")
 
 	authRouter.HandleFunc("/user/avatar/update", s.UserHandler.UpdateAvatar).Methods("POST")
 	authRouter.HandleFunc("/user/avatar/delete", s.UserHandler.DeleteAvatar).Methods("POST")
