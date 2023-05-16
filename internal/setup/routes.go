@@ -72,26 +72,28 @@ func Routes(s *SettingsRouter) *mux.Router {
 	// после AccessLog, потому что AccessLog навешивает декоратор на ResponseWriter
 	router.Use(generalMiddleware.Metrics)
 	router.Use(generalMiddleware.Panic)
-	router.Use(corsMiddleware.Handler)
 	router.Use(generalMiddleware.SetContentTypeJSON)
 
-	authRouter := router.Methods("GET", "POST").Subrouter()
-	unAuthRouter := router.Methods("GET", "POST").Subrouter()
+	corsRouter := router.Methods("GET", "POST").Subrouter()
+	corsRouter.Use(corsMiddleware.Handler)
+
+	authRouter := corsRouter.Methods("GET", "POST").Subrouter()
+	unAuthRouter := corsRouter.Methods("GET", "POST").Subrouter()
 
 	authRouter.Use(authMiddleware.RequireAuth)
 	authRouter.Use(CSRFMiddleware.RequireCSRF)
 	unAuthRouter.Use(authMiddleware.RequireUnAuth)
 
-	router.Handle("/metrics", promhttp.Handler())
+	corsRouter.Handle("/metrics", promhttp.Handler())
 
-	router.HandleFunc("/selections", s.SelectionHandler.GetAll)
-	router.HandleFunc("/selections/{id:[0-9]+}", s.SelectionHandler.GetByID)
-	router.HandleFunc("/persons/{id:[0-9]+}", s.PersonHandler.GetByID)
-	router.HandleFunc("/films/{content_id:[0-9]+}", s.ContentHandler.GetFilmByContentID)
-	router.HandleFunc("/series/{content_id:[0-9]+}", s.ContentHandler.GetSeriesByContentID)
-	router.HandleFunc("/search", s.SearchHandler.Search)
-	router.HandleFunc("/genres", s.GenreHandler.GetAll)
-	router.HandleFunc("/genres/{id:[0-9]+}", s.GenreHandler.GetContentByID)
+	corsRouter.HandleFunc("/selections", s.SelectionHandler.GetAll)
+	corsRouter.HandleFunc("/selections/{id:[0-9]+}", s.SelectionHandler.GetByID)
+	corsRouter.HandleFunc("/persons/{id:[0-9]+}", s.PersonHandler.GetByID)
+	corsRouter.HandleFunc("/films/{content_id:[0-9]+}", s.ContentHandler.GetFilmByContentID)
+	corsRouter.HandleFunc("/series/{content_id:[0-9]+}", s.ContentHandler.GetSeriesByContentID)
+	corsRouter.HandleFunc("/search", s.SearchHandler.Search)
+	corsRouter.HandleFunc("/genres", s.GenreHandler.GetAll)
+	corsRouter.HandleFunc("/genres/{id:[0-9]+}", s.GenreHandler.GetContentByID)
 
 	unAuthRouter.HandleFunc("/user/signin", s.UserHandler.SignIn).Methods("POST")
 	unAuthRouter.HandleFunc("/user/signup", s.UserHandler.SignUp).Methods("POST")
@@ -110,7 +112,7 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter.HandleFunc("/user/avatar/update", s.UserHandler.UpdateAvatar).Methods("POST")
 	authRouter.HandleFunc("/user/avatar/delete", s.UserHandler.DeleteAvatar).Methods("POST")
 
-	authRouter.HandleFunc("/payment/accept", s.PaymentHandler.Accept).Methods("POST")
+	router.HandleFunc("/payment/accept", s.PaymentHandler.Accept).Methods("POST")
 	authRouter.HandleFunc("/payment/link", s.PaymentHandler.GetPaymentLink).Methods("GET")
 
 	return router

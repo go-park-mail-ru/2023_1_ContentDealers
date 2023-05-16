@@ -33,7 +33,7 @@ func (uc *UseCase) Accept(ctx context.Context, payment domain.Payment) error {
 	if payment.Amount < uc.cfg.SubscriptionPrice {
 		return ErrIncorrectPaymentAmount
 	}
-
+	fmt.Println(payment)
 	sign := md5.Sum([]byte(fmt.Sprintf("%s:%d:%s:%s", uc.cfg.MerchantID, payment.Amount, uc.cfg.Secret2,
 		payment.OrderID)))
 	if fmt.Sprintf("%x", sign) != payment.Sign {

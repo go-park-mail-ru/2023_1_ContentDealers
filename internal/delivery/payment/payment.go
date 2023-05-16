@@ -30,8 +30,7 @@ func (h *Handler) Accept(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payment := domain.Payment{}
-
-	_, err = fmt.Sscanf(r.Form.Get("AMOUNT"), "%d", &payment.Amount)
+	_, err = fmt.Sscanf(r.PostForm.Get("AMOUNT"), "%d", &payment.Amount)
 	if err != nil {
 		h.logger.WithRequestID(r.Context()).Trace(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -47,6 +46,7 @@ func (h *Handler) Accept(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.logger.Trace("payment accepted")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("YES"))
 }
