@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain"
 	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/favcontent"
+	viewsProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/history_views"
 	rateProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/rating"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -18,6 +19,7 @@ type Gateway struct {
 	logger            logging.Logger
 	favContentManager favContentProto.FavoritesContentServiceClient
 	ratingManager     rateProto.RatingServiceClient
+	viewsManager      viewsProto.HistoryViewsServiceClient
 }
 
 func NewGateway(logger logging.Logger, cfg ServiceUserActionConfig) (*Gateway, error) {
@@ -35,6 +37,7 @@ func NewGateway(logger logging.Logger, cfg ServiceUserActionConfig) (*Gateway, e
 
 	favContentManager := favContentProto.NewFavoritesContentServiceClient(grpcConn)
 	ratingManager := rateProto.NewRatingServiceClient(grpcConn)
+	viewsManager := viewsProto.NewHistoryViewsServiceClient(grpcConn)
 
 	err = ping.Ping(grpcConn)
 	if err != nil {
@@ -46,6 +49,7 @@ func NewGateway(logger logging.Logger, cfg ServiceUserActionConfig) (*Gateway, e
 		logger:            logger,
 		favContentManager: favContentManager,
 		ratingManager:     ratingManager,
+		viewsManager:      viewsManager,
 	}, nil
 }
 

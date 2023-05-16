@@ -64,6 +64,8 @@ favorites:
     filename: all.log.json
     levels: 
       - all
+  views:
+    threshold_view_progress: 0.9
 session:
   server:
     bind_id: 0.0.0.0
