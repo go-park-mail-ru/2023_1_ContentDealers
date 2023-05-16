@@ -1,9 +1,9 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
-option go_package = "./;content";
+option go_package = "./;favcontent";
 
-package content;
+package favcontent;
 
 message Favorite {
   uint64 UserID = 1;

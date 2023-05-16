@@ -1,4 +1,4 @@
-package content
+package favcontent
 
 import (
 	"context"

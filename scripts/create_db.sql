@@ -1,25 +1,28 @@
-drop table if exists users cascade;
-drop table if exists roles cascade;
-drop table if exists persons cascade;
-drop table if exists content_roles_persons cascade;
-drop table if exists content cascade;
-drop table if exists films cascade;
-drop table if exists countries cascade;
-drop table if exists genres cascade;
-drop table if exists content_countries cascade;
-drop table if exists content_genres cascade;
-drop table if exists series cascade;
-drop table if exists episodes cascade;
-drop table if exists selections cascade;
-drop table if exists content_selections cascade;
-drop table if exists users_content_favorites cascade;
-drop table if exists users_persons_favorites cascade;
+drop table if exists user_schema.users cascade;
+
+drop table if exists filmium.roles cascade;
+drop table if exists filmium.persons cascade;
+drop table if exists filmium.content_roles_persons cascade;
+drop table if exists filmium.content cascade;
+drop table if exists filmium.films cascade;
+drop table if exists filmium.countries cascade;
+drop table if exists filmium.genres cascade;
+drop table if exists filmium.content_countries cascade;
+drop table if exists filmium.content_genres cascade;
+drop table if exists filmium.series cascade;
+drop table if exists filmium.episodes cascade;
+drop table if exists filmium.selections cascade;
+drop table if exists filmium.content_selections cascade;
+
+drop table if exists user_action_shema.users_content_favorites cascade;
+drop table if exists user_action_shema.users_persons_favorites cascade;
+drop table if exists user_action_shema.ratings cascade;
 
 -- namespace, gender, function set_timestamp
 
 create schema if not exists filmium;
 create schema if not exists user_schema;
-create schema if not exists favorites_schema;
+create schema if not exists user_action_shema;
 set search_path=filmium;
 
 create extension if not exists pg_trgm;
@@ -53,18 +56,26 @@ create table user_schema.users (
     updated_at timestamp not null default now()
 );
 
-create table favorites_schema.users_content_favorites (
+create table user_action_shema.users_content_favorites (
     user_id bigint not null,
     content_id bigint not null,
     created_at timestamp not null default now(),
     primary key (user_id, content_id)
 );
 
-create table favorites_schema.users_persons_favorites (
+create table user_action_shema.users_persons_favorites (
     user_id bigint not null,
     person_id bigint not null,
     created_at timestamp not null default now(),
     primary key (user_id, person_id)
+);
+
+create table user_action_shema.ratings (
+    user_id bigint not null,
+    content_id bigint not null,
+    rating numeric(4, 2),
+    created_at timestamp not null default now(),
+    primary key (user_id, content_id)
 );
 
 create table roles (
@@ -92,7 +103,10 @@ create table content (
     age_limit integer not null default 0,
     preview_url text not null,
     trailer_url text not null,
-    type content_type not null
+    type content_type not null,
+
+    sum_ratings numeric(12, 2) not null default 0,
+    count_ratings bigint not null default 0
 );
 
 create table films (
@@ -149,6 +163,7 @@ create table series (
 create table episodes (
     id bigserial primary key,
     series_id bigint not null references series(id) on delete cascade,
+    preview_url text default 'previews_episodes/default_preview.jpg',
     season_num integer not null,
     episode_num integer not null,
     content_url text not null,
@@ -161,4 +176,18 @@ create trigger set_timestamp_users
 before update on user_schema.users
 for each row
 execute procedure set_timestamp();
+
+create or replace function update_rating()
+returns trigger as $$
+begin
+    new.rating = new.sum_ratings / new.count_ratings;
+    return new;
+end;
+$$ language plpgsql;
+
+create trigger update_rating_trigger
+before update of sum_ratings, count_ratings on filmium.content
+for each row
+execute function update_rating();
+
 

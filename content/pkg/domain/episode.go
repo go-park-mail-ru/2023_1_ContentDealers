@@ -7,6 +7,7 @@ type Episode struct {
 	SeasonNum   uint32
 	EpisodeNum  uint32
 	ContentURL  string
+	PreviewURL  string
 	Title       *string
 	ReleaseDate *time.Time
 }

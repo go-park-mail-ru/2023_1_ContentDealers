@@ -74,11 +74,11 @@ func Run() error {
 		return err
 	}
 
-	contentRepository := contentRepo.NewRepository(db)
+	contentRepository := contentRepo.NewRepository(db, cfg.Search.ThresholdSimilarity)
 	genreRepository := genreRepo.NewRepository(db)
 	selectionRepository := selectionRepo.NewRepository(db)
 	countryRepository := country.NewRepository(db)
-	personRepository := personRepo.NewRepository(db)
+	personRepository := personRepo.NewRepository(db, cfg.Search.ThresholdSimilarity)
 	roleRepository := role.NewRepository(db)
 
 	personRolesUseCase := personrole.NewUseCase(&personRepository, &roleRepository)

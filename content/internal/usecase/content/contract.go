@@ -11,6 +11,8 @@ type Repository interface {
 	GetFilmByContentID(ctx context.Context, id uint64) (domain.Film, error)
 	GetSeriesByContentID(ctx context.Context, id uint64) (domain.Series, error)
 	GetByIDs(ctx context.Context, ids []uint64) ([]domain.Content, error)
+	AddRating(ctx context.Context, ContentID uint64, rating float32) error
+	DeleteRating(ctx context.Context, ContentID uint64, rating float32) error
 }
 
 type PersonRolesUseCase interface {

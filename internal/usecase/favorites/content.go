@@ -36,7 +36,7 @@ func (uc *UseCase) Delete(ctx context.Context, favorite domainFav.FavoriteConten
 		return err
 	}
 	favorite.UserID = userID
-	return uc.gate.Delete(ctx, favorite)
+	return uc.gate.DeleteFavContent(ctx, favorite)
 }
 
 func (uc *UseCase) Add(ctx context.Context, favorite domainFav.FavoriteContent) error {
@@ -46,7 +46,7 @@ func (uc *UseCase) Add(ctx context.Context, favorite domainFav.FavoriteContent) 
 		return err
 	}
 	favorite.UserID = userID
-	return uc.gate.Add(ctx, favorite)
+	return uc.gate.AddFavContent(ctx, favorite)
 }
 
 func (uc *UseCase) HasFav(ctx context.Context, favorite domainFav.FavoriteContent) (bool, error) {
@@ -56,7 +56,7 @@ func (uc *UseCase) HasFav(ctx context.Context, favorite domainFav.FavoriteConten
 		return false, err
 	}
 	favorite.UserID = userID
-	return uc.gate.HasFav(ctx, favorite)
+	return uc.gate.HasFavContent(ctx, favorite)
 }
 
 func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) ([]domain.Content, bool, error) {
@@ -66,7 +66,7 @@ func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) 
 		return []domain.Content{}, false, err
 	}
 	options.UserID = userID
-	favs, err := uc.gate.Get(ctx, options)
+	favs, err := uc.gate.GetFavContent(ctx, options)
 	if err != nil {
 		return []domain.Content{}, false, err
 	}
@@ -75,8 +75,6 @@ func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) 
 	for _, fav := range favs.Favorites {
 		contentIDs = append(contentIDs, fav.ContentID)
 	}
-
-	fmt.Println("\n\n\n", contentIDs, "\n\n\n")
 
 	contentSliceSorted, err := uc.content.GetContentByContentIDs(ctx, contentIDs)
 	if err != nil {

@@ -62,6 +62,11 @@ build_user:
 	go build -o ./build/user/out user/cmd/main.go
 	cp config.yml ./build/user
 
+build_content:
+	rm -rf ./build/content && \
+	go build -o ./build/content/out content/cmd/main.go
+	cp config.yml ./build/content
+
 move_config:
 	cp config.yml ./build/content
 	cp config.yml ./build/session

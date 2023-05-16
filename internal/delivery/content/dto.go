@@ -37,6 +37,8 @@ type contentDTO struct {
 	Title        string           `json:"title"`
 	Description  string           `json:"description"`
 	Rating       float64          `json:"rating"`
+	SumRatings   float64          `json:"sum_ratings"`
+	CountRatings uint64           `json:"count_ratings"`
 	Year         int              `json:"year"`
 	IsFree       bool             `json:"is_free"`
 	AgeLimit     int              `json:"age_limit"`
@@ -60,6 +62,7 @@ type episodeDTO struct {
 	SeasonNum   uint32     `json:"season_num"`
 	EpisodeNum  uint32     `json:"episode_num"`
 	ContentURL  string     `json:"content_url"`
+	PreviewURL  string     `json:"preview_url"`
 	Title       *string    `json:"title"`
 	ReleaseDate *time.Time `json:"release_date"`
 }

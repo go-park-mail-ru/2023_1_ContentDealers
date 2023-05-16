@@ -22,6 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ContentServiceClient interface {
+	AddRating(ctx context.Context, in *Rating, opts ...grpc.CallOption) (*Nothing, error)
+	DeleteRating(ctx context.Context, in *Rating, opts ...grpc.CallOption) (*Nothing, error)
 	GetFilmByContentID(ctx context.Context, in *ContentID, opts ...grpc.CallOption) (*Film, error)
 	GetSeriesByContentID(ctx context.Context, in *ContentID, opts ...grpc.CallOption) (*Series, error)
 	GetContentByContentIDs(ctx context.Context, in *ContentIDs, opts ...grpc.CallOption) (*ContentSeq, error)
@@ -33,6 +35,24 @@ type contentServiceClient struct {
 
 func NewContentServiceClient(cc grpc.ClientConnInterface) ContentServiceClient {
 	return &contentServiceClient{cc}
+}
+
+func (c *contentServiceClient) AddRating(ctx context.Context, in *Rating, opts ...grpc.CallOption) (*Nothing, error) {
+	out := new(Nothing)
+	err := c.cc.Invoke(ctx, "/content.ContentService/AddRating", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contentServiceClient) DeleteRating(ctx context.Context, in *Rating, opts ...grpc.CallOption) (*Nothing, error) {
+	out := new(Nothing)
+	err := c.cc.Invoke(ctx, "/content.ContentService/DeleteRating", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *contentServiceClient) GetFilmByContentID(ctx context.Context, in *ContentID, opts ...grpc.CallOption) (*Film, error) {
@@ -66,6 +86,8 @@ func (c *contentServiceClient) GetContentByContentIDs(ctx context.Context, in *C
 // All implementations must embed UnimplementedContentServiceServer
 // for forward compatibility
 type ContentServiceServer interface {
+	AddRating(context.Context, *Rating) (*Nothing, error)
+	DeleteRating(context.Context, *Rating) (*Nothing, error)
 	GetFilmByContentID(context.Context, *ContentID) (*Film, error)
 	GetSeriesByContentID(context.Context, *ContentID) (*Series, error)
 	GetContentByContentIDs(context.Context, *ContentIDs) (*ContentSeq, error)
@@ -76,6 +98,12 @@ type ContentServiceServer interface {
 type UnimplementedContentServiceServer struct {
 }
 
+func (UnimplementedContentServiceServer) AddRating(context.Context, *Rating) (*Nothing, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddRating not implemented")
+}
+func (UnimplementedContentServiceServer) DeleteRating(context.Context, *Rating) (*Nothing, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRating not implemented")
+}
 func (UnimplementedContentServiceServer) GetFilmByContentID(context.Context, *ContentID) (*Film, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFilmByContentID not implemented")
 }
@@ -96,6 +124,42 @@ type UnsafeContentServiceServer interface {
 
 func RegisterContentServiceServer(s grpc.ServiceRegistrar, srv ContentServiceServer) {
 	s.RegisterService(&ContentService_ServiceDesc, srv)
+}
+
+func _ContentService_AddRating_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Rating)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServiceServer).AddRating(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/content.ContentService/AddRating",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServiceServer).AddRating(ctx, req.(*Rating))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContentService_DeleteRating_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Rating)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServiceServer).DeleteRating(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/content.ContentService/DeleteRating",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServiceServer).DeleteRating(ctx, req.(*Rating))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ContentService_GetFilmByContentID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -159,6 +223,14 @@ var ContentService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "content.ContentService",
 	HandlerType: (*ContentServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AddRating",
+			Handler:    _ContentService_AddRating_Handler,
+		},
+		{
+			MethodName: "DeleteRating",
+			Handler:    _ContentService_DeleteRating_Handler,
+		},
 		{
 			MethodName: "GetFilmByContentID",
 			Handler:    _ContentService_GetFilmByContentID_Handler,

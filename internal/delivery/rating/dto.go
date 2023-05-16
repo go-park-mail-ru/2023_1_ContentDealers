@@ -1,8 +1,14 @@
-package favorites
+package rating
 
-type FavoriteContentDTO struct {
-	UserID    uint64 `json:"user_id"`
-	ContentID uint64 `json:"content_id"`
+type RatingDTO struct {
+	UserID    uint64  `json:"user_id"`
+	ContentID uint64  `json:"content_id"`
+	Rating    float32 `json:"rating"`
+}
+
+type contentRatingDTO struct {
+	Content contentDTO `json:"content"`
+	Rating  float32    `json:"rating"`
 }
 
 type contentDTO struct {
