@@ -1,13 +1,12 @@
 package redis
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
 )
-
-// const redisAddr = "redis://user:@localhost:6379/0"
 
 func NewClientRedis(cfg RedisConfig) (*redis.Pool, error) {
 	dsn := fmt.Sprintf("redis://%s:@%s:%s/%s", cfg.User, cfg.Host, cfg.Port, cfg.DBNum)
@@ -17,8 +16,8 @@ func NewClientRedis(cfg RedisConfig) (*redis.Pool, error) {
 	redisPool = &redis.Pool{
 		MaxIdle:     4,
 		IdleTimeout: 120 * time.Second,
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.DialURL(dsn)
+		DialContext: func(ctx context.Context) (redis.Conn, error) {
+			c, err := redis.DialURLContext(ctx, dsn)
 			if err != nil {
 				return nil, err
 			}

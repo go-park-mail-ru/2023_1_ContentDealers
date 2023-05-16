@@ -1,43 +1,171 @@
 version: '3'
 
-# для того, чтобы скрипт инициализации отработал, БД должна быть пуста
-  # 1. sudo rm -rf tmp_persist/pgdata/*
-  # 2. sudo -i && rm -rf tmp_persist/pgdata/*
-
-# docker compose up --build 
-  # если произошли изменения в Dockerfile
-  # или есть скрипт заполнения бд, скачиваемый по ссылке, изменился
-
-# docker compose config - подставляет переменные окружения из .env в ${POSTGRES_PASSWORD} и показывает итоговый конфиг 
-
 services:
-  # зайти в контейнере в бд "psql -U postgres"
+
+# -------------------------------------
+# ===========[ STORAGES ]==============
+# -------------------------------------
   postgres:
-    build: .
+    build:
+      context: .
+      dockerfile: postgres-dockerfile
     restart: always
     environment: 
       - PGDATA=/var/lib/postgresql/data/pgdata
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}  # from .env
     logging:
       options:
         max-size: 10m
         max-file: "3"
-    ports:
-      - '5432:5432'
+    # command: ["postgres", "-c", "log_statement=all"]
     volumes:
-      # локальная директория для хранения данных бд
-      - ./tmp_persist:/var/lib/postgresql/data
-  adminer:
-    image: adminer
-    restart: always
-    links:
-        - "postgres:postgres"
-    ports:
-      - 8090:8080
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      net:
+        ipv4_address: 192.168.243.20
+        
+# -------------------------------------
+
   redis:
     image: 'redis'
+    restart: always
     volumes:
-      - ./tmp_persist/redis_data:/data
+      - redis-data:/data
+    networks:
+      net:
+        ipv4_address: 192.168.243.21
+      
+# -------------------------------------
+# ==========[ SERVICES ]===============
+# -------------------------------------
+
+  content:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    environment: 
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+    - ./build/content:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.11
+
+
+# -------------------------------------
+
+  user:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    environment: 
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+    - ./build/user:/build/
+    - ./media:/media/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.12
+
+# -------------------------------------
+
+  favorites:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    environment: 
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+    - ./build/user_action:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.13
+
+# -------------------------------------
+
+  session:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
+    links:
+      - redis:redis
+    depends_on:
+      - redis
+    volumes:
+    - ./build/session:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.14
+
+# -------------------------------------
+# ========[ API-GATEWAY ]==============
+# -------------------------------------
+
+  api_gateway:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
     ports:
-      - '6379:6379'
+      - 8080:80
+    links:
+      - session:session
+      - user:user
+      - favorites:favorites
+      - content:content
+    depends_on:
+      - session
+      - user
+      - favorites
+      - content
+    environment: 
+      - CSRF_TOKEN=${CSRF_TOKEN}
+    volumes:
+    - ./build/api_gateway:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.10
+
+
+# -------------------------------------
+# ===========[ VOLUMES ]===============
+# -------------------------------------
+
+volumes:
+  redis-data:
+  postgres-data:
+
+        
+# -------------------------------------
+# ==========[ NETWORKS ]===============
+# -------------------------------------
+
+
+networks:
+  net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.243.0/24

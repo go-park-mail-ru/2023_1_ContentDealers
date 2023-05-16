@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	"github.com/dranikpg/dto-mapper"
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/sharederrors"
 	"github.com/gorilla/mux"
 )
 
@@ -24,6 +24,7 @@ func NewHandler(useCase UseCase, logger logging.Logger) Handler {
 }
 
 func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	idRaw := mux.Vars(r)["id"]
@@ -31,7 +32,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	_, err := fmt.Sscanf(idRaw, "%d", &id)
 	if err != nil {
-		h.logger.Trace("person id is not numeric: %w", err)
+		h.logger.WithRequestID(ctx).Trace("person id is not numeric: %w", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"person id is not numeric"}`)
 		return
@@ -40,7 +41,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	person, err := h.useCase.GetByID(r.Context(), id)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrRepoNotFound):
+		case errors.Is(err, sharederrors.ErrRepoNotFound):
 			w.WriteHeader(http.StatusNotFound)
 			io.WriteString(w, `{"message":"person not found"}`)
 		default:
@@ -53,7 +54,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	personResponse := personDTO{}
 	err = dto.Map(&personResponse, person)
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -64,7 +65,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

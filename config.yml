@@ -1,23 +1,109 @@
-is_debug: true
-listen:
-  port: 8080
-cors:
-  allowed_origins: filmium.ru
-storage:
-  # password from env
-  user: postgres
-  dbname: postgres
-  host: 127.0.0.1
-  port: 5432
-  sslmode: disable
-  search_path: filmium
-redis:
-  user: user
-  host: localhost
-  port: 6379
-  dbnum: 0
-logging:
-  dir: log
-  filename: all.log.json
-  # если пусто, то в логируется директория от корня
-  project_dir: 2023_1_ContentDealers 
+api_gateway:
+  server:
+    bind_id: 0.0.0.0
+    port: 80
+    read_timeout: 10 # seconds
+    write_timeout: 10
+    read_header_timeout: 5
+    shutdown_timeout: 5
+  service_session:
+    addr: session:80
+  service_user:
+    addr: user:80
+  service_user_action:
+    addr: favorites:80
+  service_content:
+    addr: content:80
+  csrf:
+    header: csrf-token
+    expires_at: 7200 # seconds
+  cors:
+    allowed_origins: filmium.ru
+  avatar:
+    name_form_file: avatar
+    max_size_body: 10 # mb
+  logging:
+    dir: log
+    filename: all.log.json
+    levels: 
+      - all
+    project_dir: 2023_1_ContentDealers 
+content:
+  server:
+    bind_id: 0.0.0.0 # 172.27.195.147 и 127.0.0.1
+    port: 80
+  search:
+    threshold_similarity: 0.2
+  postgres:
+    # password from env
+    user: postgres
+    dbname: postgres
+    host: postgres
+    port: 5432
+    sslmode: disable
+    search_path: filmium
+  logging:
+    dir: log
+    filename: all.log.json
+    levels: 
+      - all
+favorites:
+  server:
+    bind_id: 0.0.0.0
+    port: 80
+  postgres:
+    # password from env
+    user: postgres
+    dbname: postgres
+    host: postgres
+    port: 5432
+    sslmode: disable
+    search_path: user_action_shema
+  logging:
+    dir: log
+    filename: all.log.json
+    levels: 
+      - all
+session:
+  server:
+    bind_id: 0.0.0.0
+    port: 80
+  redis:
+    user: user
+    host: redis
+    port: 6379
+    dbnum: 0
+  session:
+    # seconds
+    expires_at: 43200 
+  logging:
+    dir: log
+    filename: all.log.json
+    levels: 
+      - all
+user:
+  server:
+    bind_id: 0.0.0.0
+    port: 80
+  postgres:
+    # password from env
+    user: postgres
+    dbname: postgres
+    host: postgres
+    port: 5432
+    sslmode: disable
+    search_path: user_schema
+  logging:
+    dir: log
+    filename: all.log.json
+    levels: 
+      - all
+# levels
+  # - all
+  # - panic
+  # - fatal
+  # - error
+  # - warn
+  # - info
+  # - debug
+  # - trace

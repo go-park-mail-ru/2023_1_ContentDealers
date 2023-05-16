@@ -3,25 +3,10 @@ package content
 import (
 	"context"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
 )
 
-type Repository interface {
-	GetByID(ctx context.Context, id uint64) (domain.Content, error)
-}
-
-type PersonRolesUseCase interface {
-	GetByContentID(ctx context.Context, ContentID uint64) ([]domain.PersonRoles, error)
-}
-
-type GenreRepository interface {
-	GetByContentID(ctx context.Context, ContentID uint64) ([]domain.Genre, error)
-}
-
-type SelectionRepository interface {
-	GetByContentID(ctx context.Context, ContentID uint64) ([]domain.Selection, error)
-}
-
-type CountryRepository interface {
-	GetByContentID(ctx context.Context, ContentID uint64) ([]domain.Country, error)
+type Gateway interface {
+	GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error)
+	GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error)
 }
