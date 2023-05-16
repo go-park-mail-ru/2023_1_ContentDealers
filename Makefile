@@ -33,16 +33,19 @@ run_bin:
 	./build/api_gateway/out -c 	./build/api_gateway/config.yml & \
 
 # make -B build
+.PHONY:
 build:
 	rm -rf ./build && \
 	go build -o ./build/content/out content/cmd/main.go 		&& \
 	go build -o ./build/session/out session/cmd/main.go 		&& \
 	go build -o ./build/user/out user/cmd/main.go 				&& \
 	go build -o ./build/user_action/out user_action/cmd/main.go 	&& \
+	go build -o ./build/payment/out payment/cmd/main.go && \
 	cp config.yml ./build/content
 	cp config.yml ./build/session
 	cp config.yml ./build/user
 	cp config.yml ./build/user_action
+	cp config.yml ./build/payment
 	
 	go build -o ./build/api_gateway/out cmd/main.go
 	cp config.yml ./build/api_gateway	

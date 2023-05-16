@@ -117,6 +117,25 @@ services:
     networks:
       net:
         ipv4_address: 192.168.243.14
+  
+  payment:
+    build:
+      context: .
+      dockerfile: services-dockerfile
+    restart: always
+    links:
+      - user:user
+    depends_on:
+      - user
+    environment: 
+      - PAYMENT_SECRET=${PAYMENT_SECRET}
+      - PAYMENT_SECRET2=${PAYMENT_SECRET2}
+    volumes:
+    - ./build/payment:/build/
+    - ./log:/log
+    networks:
+      net:
+        ipv4_address: 192.168.243.15
 
 # -------------------------------------
 # ========[ API-GATEWAY ]==============
@@ -134,11 +153,13 @@ services:
       - user:user
       - favorites:favorites
       - content:content
+      - payment:payment
     depends_on:
       - session
       - user
       - favorites
       - content
+      - payment
     environment: 
       - CSRF_TOKEN=${CSRF_TOKEN}
     volumes:
