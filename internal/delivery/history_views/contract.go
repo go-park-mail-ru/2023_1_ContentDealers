@@ -9,7 +9,6 @@ import (
 
 type ViewsUseCase interface {
 	UpdateProgressView(context.Context, domain.View) error
-	GetPartiallyViewsByUser(context.Context, domain.ViewsOptions) ([]domainContent.Content, bool, error)
-	GetAllViewsByUser(context.Context, domain.ViewsOptions) ([]domainContent.Content, bool, error)
+	GetViewsByUser(context.Context, domain.ViewsOptions) ([]domainContent.Content, bool, error)
 	HasView(context.Context, domain.View) (domain.HasView, error)
 }

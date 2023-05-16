@@ -56,7 +56,7 @@ func (service *Grpc) HasView(ctx context.Context, viewRequest *viewsProto.View) 
 	return &hasViewResponse, nil
 }
 
-func (service *Grpc) GetPartiallyViewsByUser(ctx context.Context, viewsOptionsRequest *viewsProto.ViewsOptions) (*viewsProto.Views, error) {
+func (service *Grpc) GetViewsByUser(ctx context.Context, viewsOptionsRequest *viewsProto.ViewsOptions) (*viewsProto.Views, error) {
 	viewsOptions := domain.ViewsOptions{}
 	err := dto.Map(&viewsOptions, viewsOptionsRequest)
 	if err != nil {
@@ -64,31 +64,7 @@ func (service *Grpc) GetPartiallyViewsByUser(ctx context.Context, viewsOptionsRe
 		return nil, err
 	}
 
-	views, err := service.viewsUseCase.GetPartiallyViewsByUser(ctx, viewsOptions)
-	if err != nil {
-		return nil, err
-	}
-	viewsResponse := viewsProto.Views{}
-	for _, view := range views.Views {
-		viewsResponse.Views = append(viewsResponse.Views, &viewsProto.View{
-			UserID:    view.UserID,
-			ContentID: view.ContentID,
-		})
-	}
-	viewsResponse.IsLast = views.IsLast
-
-	return &viewsResponse, nil
-}
-
-func (service *Grpc) GetAllViewsByUser(ctx context.Context, viewsOptionsRequest *viewsProto.ViewsOptions) (*viewsProto.Views, error) {
-	viewsOptions := domain.ViewsOptions{}
-	err := dto.Map(&viewsOptions, viewsOptionsRequest)
-	if err != nil {
-		service.logger.WithRequestID(ctx).Trace(err)
-		return nil, err
-	}
-
-	views, err := service.viewsUseCase.GetAllViewsByUser(ctx, viewsOptions)
+	views, err := service.viewsUseCase.GetViewsByUser(ctx, viewsOptions)
 	if err != nil {
 		return nil, err
 	}

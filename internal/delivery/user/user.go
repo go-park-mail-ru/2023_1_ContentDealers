@@ -185,7 +185,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	decoder := json.NewDecoder(r.Body)
-	userUpdate := userUpdateDTO{}
+	userUpdate := userDTO{}
 	err = decoder.Decode(&userUpdate)
 	if err != nil {
 		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %w", err)

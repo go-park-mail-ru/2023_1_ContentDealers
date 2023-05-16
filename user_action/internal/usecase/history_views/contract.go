@@ -8,7 +8,6 @@ import (
 
 type Repository interface {
 	UpdateProgressView(context.Context, domain.View) error
-	GetPartiallyViewsByUser(context.Context, domain.ViewsOptions) (domain.Views, error)
-	GetAllViewsByUser(context.Context, domain.ViewsOptions) (domain.Views, error)
+	GetViewsByUser(context.Context, domain.ViewsOptions) (domain.Views, error)
 	HasView(context.Context, domain.View) (domain.HasView, error)
 }

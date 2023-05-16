@@ -3,10 +3,12 @@ package domain
 import "time"
 
 type ViewsOptions struct {
-	UserID   uint64
-	SortDate string
-	Limit    uint32
-	Offset   uint32
+	UserID       uint64
+	SortDate     string
+	Limit        uint32
+	Offset       uint32
+	TypeView     string
+	ViewProgress float32
 }
 
 type View struct {

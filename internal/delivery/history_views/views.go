@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/dranikpg/dto-mapper"
-	contentDomain "github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain"
 	"github.com/gorilla/mux"
@@ -158,15 +157,10 @@ func (h *Handler) GetViewsByUser(w http.ResponseWriter, r *http.Request) {
 		SortDate: order,
 		Limit:    uint32(limit),
 		Offset:   uint32(offset),
+		TypeView: typeReq,
 	}
 
-	var content []contentDomain.Content
-	var isLast bool
-	if typeReq == "" || typeReq == "all" {
-		content, isLast, err = h.useCase.GetAllViewsByUser(ctx, options)
-	} else if typeReq == "part" {
-		content, isLast, err = h.useCase.GetPartiallyViewsByUser(ctx, options)
-	}
+	content, isLast, err := h.useCase.GetViewsByUser(ctx, options)
 	if err != nil {
 		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusBadRequest)

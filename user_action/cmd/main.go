@@ -73,7 +73,7 @@ func Run() error {
 	rateService := deliveryRating.NewGrpc(rateUseCase, logger)
 
 	viewsRepository := repositoryViews.NewRepository(db, logger)
-	viewsUseCase := usecaseViews.NewUseCase(&viewsRepository, logger)
+	viewsUseCase := usecaseViews.NewUseCase(&viewsRepository, cfg.Views.ThresholdViewProgress, logger)
 	viewsService := deliveryViews.NewGrpc(viewsUseCase, logger)
 
 	pingService := pingDelivery.NewGrpc()

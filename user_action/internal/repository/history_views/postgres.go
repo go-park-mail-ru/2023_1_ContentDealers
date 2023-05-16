@@ -21,6 +21,7 @@ func NewRepository(db *sql.DB, logger logging.Logger) Repository {
 	return Repository{DB: db, logger: logger}
 }
 
+// postgred::bigint -> golang::time.Duration
 type Duration time.Duration
 
 func (d Duration) Value() (driver.Value, error) {
@@ -71,10 +72,10 @@ func (repo *Repository) HasView(ctx context.Context, view domain.View) (domain.H
 		}
 		return domain.HasView{}, err
 	}
-	// view.StopView, _ = time.ParseDuration(fmt.Sprintf("%dns", stopView))
 	view.StopView = time.Duration(stopView)
 	view.Duration = time.Duration(duration)
 	view.DateAdding = createdAt
+
 	hasView := domain.HasView{
 		HasView: true,
 		View:    view,
@@ -82,7 +83,16 @@ func (repo *Repository) HasView(ctx context.Context, view domain.View) (domain.H
 	return hasView, nil
 }
 
-func (repo *Repository) GetAllViewsByUser(ctx context.Context, options domain.ViewsOptions) (domain.Views, error) {
+func (repo *Repository) GetViewsByUser(ctx context.Context, options domain.ViewsOptions) (domain.Views, error) {
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+	fmt.Println(options.ViewProgress)
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+
 	var sortDate string
 	if options.SortDate == "old" {
 		sortDate = "asc"
@@ -98,65 +108,21 @@ func (repo *Repository) GetAllViewsByUser(ctx context.Context, options domain.Vi
 			where user_id = $1`
 	limitOffset := `limit $2 offset $3`
 
-	rows, err := repo.DB.QueryContext(ctx,
-		fmt.Sprintf("%s order by created_at %s %s;", query, sortDate, limitOffset),
-		options.UserID, limit+1, offset,
-	)
+	var rows *sql.Rows
+	var err error
 
-	if err != nil {
-		repo.logger.WithRequestID(ctx).Trace(err)
-		if errors.Is(err, sql.ErrNoRows) {
-			return domain.Views{}, nil
-		}
-		return domain.Views{}, err
-	}
-	result := domain.Views{}
-	for rows.Next() {
-		view := domain.View{}
-		var stopView Duration
-		var duration Duration
-		err := rows.Scan(&view.UserID, &view.ContentID, &stopView, &duration, &view.DateAdding)
-		if err != nil {
-			repo.logger.WithRequestID(ctx).Trace(err)
-			return domain.Views{}, err
-		}
-
-		view.StopView = time.Duration(stopView)
-		view.Duration = time.Duration(duration)
-		result.Views = append(result.Views, view)
-	}
-
-	result.IsLast = true
-	if len(result.Views) == int(limit+1) {
-		result.Views = result.Views[:len(result.Views)-1]
-		result.IsLast = false
-	}
-
-	return result, nil
-}
-
-// FIXME: копипаст с доп условием в запросе...
-func (repo *Repository) GetPartiallyViewsByUser(ctx context.Context, options domain.ViewsOptions) (domain.Views, error) {
-	var sortDate string
-	if options.SortDate == "old" {
-		sortDate = "asc"
+	if options.TypeView == "part" {
+		query += " and stop_view::float / duration < $4"
+		rows, err = repo.DB.QueryContext(ctx,
+			fmt.Sprintf("%s order by created_at %s %s;", query, sortDate, limitOffset),
+			options.UserID, limit+1, offset, options.ViewProgress,
+		)
 	} else {
-		sortDate = "desc"
+		rows, err = repo.DB.QueryContext(ctx,
+			fmt.Sprintf("%s order by created_at %s %s;", query, sortDate, limitOffset),
+			options.UserID, limit+1, offset,
+		)
 	}
-
-	limit := options.Limit
-	offset := options.Offset
-
-	query := `select user_id, content_id, stop_view, duration, created_at 
-			from history_views 
-			where user_id = $1
-			and stop_view::float / duration < 0.9`
-	limitOffset := `limit $2 offset $3`
-
-	rows, err := repo.DB.QueryContext(ctx,
-		fmt.Sprintf("%s order by created_at %s %s;", query, sortDate, limitOffset),
-		options.UserID, limit+1, offset,
-	)
 
 	if err != nil {
 		repo.logger.WithRequestID(ctx).Trace(err)

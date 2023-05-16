@@ -19,6 +19,7 @@ message ViewsOptions {
   string SortDate = 2;
   uint32 Limit = 3;
   uint32 Offset = 4;
+  string typeView = 5;
 }
 
 message Views {
@@ -37,8 +38,7 @@ message HasViewMessage {
 
 service HistoryViewsService {
     rpc UpdateProgressView(View) returns (Nothing) {}
-    rpc GetPartiallyViewsByUser(ViewsOptions) returns (Views) {}
-    rpc GetAllViewsByUser(ViewsOptions) returns (Views) {}
+    rpc GetViewsByUser(ViewsOptions) returns (Views) {}
     rpc HasView(View) returns (HasViewMessage) {}
 }
 

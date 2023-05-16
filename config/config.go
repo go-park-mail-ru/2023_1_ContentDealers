@@ -53,6 +53,9 @@ type Config struct {
 		} `yaml:"server"`
 		Postgres postgresql.StorageConfig `yaml:"postgres"`
 		Logging  logging.LoggingConfig    `yaml:"logging"`
+		Views    struct {
+			ThresholdViewProgress float32 `yaml:"threshold_view_progress"`
+		} `yaml:"views"`
 	} `yaml:"favorites"`
 	Session struct {
 		Server struct {

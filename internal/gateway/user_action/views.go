@@ -54,7 +54,7 @@ func (gate *Gateway) HasView(ctx context.Context, view domain.View) (domain.HasV
 	return hasViewResponse, nil
 }
 
-func (gate *Gateway) GetPartiallyViewsByUser(ctx context.Context, options domain.ViewsOptions) (domain.Views, error) {
+func (gate *Gateway) GetViewsByUser(ctx context.Context, options domain.ViewsOptions) (domain.Views, error) {
 	md := metadata.Pairs(
 		"requestID", ctx.Value("requestID").(string),
 	)
@@ -67,34 +67,7 @@ func (gate *Gateway) GetPartiallyViewsByUser(ctx context.Context, options domain
 		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.Views{}, err
 	}
-	viewsResponse, err := gate.viewsManager.GetPartiallyViewsByUser(ctx, &viewsOptionsRequest)
-	if err != nil {
-		gate.logger.WithRequestID(ctx).Trace(err)
-		return domain.Views{}, err
-	}
-	views := domain.Views{}
-	err = dto.Map(&views, viewsResponse)
-	if err != nil {
-		gate.logger.WithRequestID(ctx).Trace(err)
-		// return domain.Views{}, err
-	}
-	return views, nil
-}
-
-func (gate *Gateway) GetAllViewsByUser(ctx context.Context, options domain.ViewsOptions) (domain.Views, error) {
-	md := metadata.Pairs(
-		"requestID", ctx.Value("requestID").(string),
-	)
-	ctx = metadata.NewOutgoingContext(ctx, md)
-
-	viewsOptionsRequest := viewsProto.ViewsOptions{}
-	err := dto.Map(&viewsOptionsRequest, options)
-
-	if err != nil {
-		gate.logger.WithRequestID(ctx).Trace(err)
-		return domain.Views{}, err
-	}
-	viewsResponse, err := gate.viewsManager.GetAllViewsByUser(ctx, &viewsOptionsRequest)
+	viewsResponse, err := gate.viewsManager.GetViewsByUser(ctx, &viewsOptionsRequest)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.Views{}, err

@@ -19,8 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type HistoryViewsServiceClient interface {
 	UpdateProgressView(ctx context.Context, in *View, opts ...grpc.CallOption) (*Nothing, error)
-	GetPartiallyViewsByUser(ctx context.Context, in *ViewsOptions, opts ...grpc.CallOption) (*Views, error)
-	GetAllViewsByUser(ctx context.Context, in *ViewsOptions, opts ...grpc.CallOption) (*Views, error)
+	GetViewsByUser(ctx context.Context, in *ViewsOptions, opts ...grpc.CallOption) (*Views, error)
 	HasView(ctx context.Context, in *View, opts ...grpc.CallOption) (*HasViewMessage, error)
 }
 
@@ -41,18 +40,9 @@ func (c *historyViewsServiceClient) UpdateProgressView(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *historyViewsServiceClient) GetPartiallyViewsByUser(ctx context.Context, in *ViewsOptions, opts ...grpc.CallOption) (*Views, error) {
+func (c *historyViewsServiceClient) GetViewsByUser(ctx context.Context, in *ViewsOptions, opts ...grpc.CallOption) (*Views, error) {
 	out := new(Views)
-	err := c.cc.Invoke(ctx, "/history_views.HistoryViewsService/GetPartiallyViewsByUser", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *historyViewsServiceClient) GetAllViewsByUser(ctx context.Context, in *ViewsOptions, opts ...grpc.CallOption) (*Views, error) {
-	out := new(Views)
-	err := c.cc.Invoke(ctx, "/history_views.HistoryViewsService/GetAllViewsByUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/history_views.HistoryViewsService/GetViewsByUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +63,7 @@ func (c *historyViewsServiceClient) HasView(ctx context.Context, in *View, opts 
 // for forward compatibility
 type HistoryViewsServiceServer interface {
 	UpdateProgressView(context.Context, *View) (*Nothing, error)
-	GetPartiallyViewsByUser(context.Context, *ViewsOptions) (*Views, error)
-	GetAllViewsByUser(context.Context, *ViewsOptions) (*Views, error)
+	GetViewsByUser(context.Context, *ViewsOptions) (*Views, error)
 	HasView(context.Context, *View) (*HasViewMessage, error)
 	mustEmbedUnimplementedHistoryViewsServiceServer()
 }
@@ -86,11 +75,8 @@ type UnimplementedHistoryViewsServiceServer struct {
 func (UnimplementedHistoryViewsServiceServer) UpdateProgressView(context.Context, *View) (*Nothing, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProgressView not implemented")
 }
-func (UnimplementedHistoryViewsServiceServer) GetPartiallyViewsByUser(context.Context, *ViewsOptions) (*Views, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPartiallyViewsByUser not implemented")
-}
-func (UnimplementedHistoryViewsServiceServer) GetAllViewsByUser(context.Context, *ViewsOptions) (*Views, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllViewsByUser not implemented")
+func (UnimplementedHistoryViewsServiceServer) GetViewsByUser(context.Context, *ViewsOptions) (*Views, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetViewsByUser not implemented")
 }
 func (UnimplementedHistoryViewsServiceServer) HasView(context.Context, *View) (*HasViewMessage, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HasView not implemented")
@@ -126,38 +112,20 @@ func _HistoryViewsService_UpdateProgressView_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _HistoryViewsService_GetPartiallyViewsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _HistoryViewsService_GetViewsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ViewsOptions)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(HistoryViewsServiceServer).GetPartiallyViewsByUser(ctx, in)
+		return srv.(HistoryViewsServiceServer).GetViewsByUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/history_views.HistoryViewsService/GetPartiallyViewsByUser",
+		FullMethod: "/history_views.HistoryViewsService/GetViewsByUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HistoryViewsServiceServer).GetPartiallyViewsByUser(ctx, req.(*ViewsOptions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _HistoryViewsService_GetAllViewsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ViewsOptions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(HistoryViewsServiceServer).GetAllViewsByUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/history_views.HistoryViewsService/GetAllViewsByUser",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HistoryViewsServiceServer).GetAllViewsByUser(ctx, req.(*ViewsOptions))
+		return srv.(HistoryViewsServiceServer).GetViewsByUser(ctx, req.(*ViewsOptions))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -192,12 +160,8 @@ var HistoryViewsService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _HistoryViewsService_UpdateProgressView_Handler,
 		},
 		{
-			MethodName: "GetPartiallyViewsByUser",
-			Handler:    _HistoryViewsService_GetPartiallyViewsByUser_Handler,
-		},
-		{
-			MethodName: "GetAllViewsByUser",
-			Handler:    _HistoryViewsService_GetAllViewsByUser_Handler,
+			MethodName: "GetViewsByUser",
+			Handler:    _HistoryViewsService_GetViewsByUser_Handler,
 		},
 		{
 			MethodName: "HasView",

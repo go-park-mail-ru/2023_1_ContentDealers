@@ -55,58 +55,17 @@ func (uc *UseCase) HasView(ctx context.Context, view domainView.View) (domainVie
 	return uc.gate.HasView(ctx, view)
 }
 
-func (uc *UseCase) GetPartiallyViewsByUser(ctx context.Context, options domainView.ViewsOptions) ([]domainContent.Content, bool, error) {
+func (uc *UseCase) GetViewsByUser(ctx context.Context, options domainView.ViewsOptions) ([]domainContent.Content, bool, error) {
 	userID, err := uc.getUserIDByContext(ctx)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
 		return []domain.Content{}, false, err
 	}
 	options.UserID = userID
-	views, err := uc.gate.GetPartiallyViewsByUser(ctx, options)
+	views, err := uc.gate.GetViewsByUser(ctx, options)
 	if err != nil {
 		return []domain.Content{}, false, err
 	}
-
-	fmt.Printf("==\n\n  %#v  \n\n==", views)
-
-	var contentIDs []uint64
-	for _, view := range views.Views {
-		contentIDs = append(contentIDs, view.ContentID)
-	}
-
-	contentSliceSorted, err := uc.content.GetContentByContentIDs(ctx, contentIDs)
-	if err != nil {
-		return []domain.Content{}, false, err
-	}
-
-	// сортировка contentSliceSorted согласно порядку id-шников в contentIDs
-
-	contentDict := make(map[uint64]domain.Content)
-	for _, item := range contentSliceSorted {
-		contentDict[item.ID] = item
-	}
-
-	contentSlice := make([]domain.Content, len(contentIDs))
-	for i, id := range contentIDs {
-		contentSlice[i] = contentDict[id]
-	}
-
-	return contentSlice, views.IsLast, nil
-}
-
-func (uc *UseCase) GetAllViewsByUser(ctx context.Context, options domainView.ViewsOptions) ([]domainContent.Content, bool, error) {
-	userID, err := uc.getUserIDByContext(ctx)
-	if err != nil {
-		uc.logger.WithRequestID(ctx).Trace(err)
-		return []domain.Content{}, false, err
-	}
-	options.UserID = userID
-	views, err := uc.gate.GetAllViewsByUser(ctx, options)
-	if err != nil {
-		return []domain.Content{}, false, err
-	}
-
-	fmt.Printf("==\n\n  %#v  \n\n==", views)
 
 	var contentIDs []uint64
 	for _, view := range views.Views {
