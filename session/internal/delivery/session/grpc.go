@@ -8,8 +8,6 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/proto/session"
 )
 
-const SessionTimeout = time.Hour * 12
-
 type Grpc struct {
 	session.UnimplementedSessionServiceServer
 	sessionUseCase SessionUseCase

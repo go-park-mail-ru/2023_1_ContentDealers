@@ -32,6 +32,8 @@ content:
   server:
     bind_id: 0.0.0.0 # 172.27.195.147 и 127.0.0.1
     port: 80
+  search:
+    threshold_similarity: 0.2
   postgres:
     # password from env
     user: postgres

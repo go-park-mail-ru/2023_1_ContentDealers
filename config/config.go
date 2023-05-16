@@ -43,6 +43,9 @@ type Config struct {
 			BindIP string `yaml:"bind_ip"`
 			Port   string `yaml:"port" env-default:"8080"`
 		} `yaml:"server"`
+		Search struct {
+			ThresholdSimilarity float32 `yaml:"threshold_similarity"`
+		} `yaml:"search"`
 		Postgres postgresql.StorageConfig `yaml:"postgres"`
 		Logging  logging.LoggingConfig    `yaml:"logging"`
 	} `yaml:"content"`

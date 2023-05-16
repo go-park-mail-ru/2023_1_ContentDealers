@@ -13,14 +13,14 @@ import (
 )
 
 const searchLimit = 6
-const simThreshold = 0.2
 
 type Repository struct {
-	DB *sql.DB
+	DB           *sql.DB
+	simThreshold float32
 }
 
-func NewRepository(db *sql.DB) Repository {
-	return Repository{DB: db}
+func NewRepository(db *sql.DB, simThreshold float32) Repository {
+	return Repository{DB: db, simThreshold: simThreshold}
 }
 
 const fetchQueryTemplate = `select c.id, c.title, c.description, c.rating, c.sum_ratings, c.count_ratings,
@@ -172,7 +172,7 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
 				group by s.id, s.title, s.description, s.rating, s.sum_ratings, s.count_ratings, s.year, s.is_free, s.age_limit,
 				s.trailer_url, s.preview_url, s.type
 				order by max(s.sim) desc, s.rating desc
-				limit $4;`, likeQuery, query, simThreshold, searchLimit)
+				limit $4;`, likeQuery, query, repo.simThreshold, searchLimit)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []domain.Content{}, nil
