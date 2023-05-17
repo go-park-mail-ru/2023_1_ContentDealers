@@ -7,6 +7,7 @@ mocks: $(FILES_TO_MOCK)
 	@rm -rf $(MOCKS)
 	@for file in $^; do mockgen -source=$$file -destination=$${file//contract.go/mock.go}; done
 
+
 DATE := $(shell date +'%Y%m%d_%H%M%S')
 
 HASH_COMMIT := $(shell git rev-parse --short=8 HEAD)
@@ -19,6 +20,7 @@ BUILD_DIR_0 := $(shell find . -maxdepth 1 -type d -name 'build_0_*' -print -quit
 
 # make -B build
 
+# ======[ СБОРКА ]======
 # 1. икремент версии директорий build_(version)_(date)_(hashcommit)
 # 2. сборка бинарников и сохранение в build_0_...
 # 3. если сборка завершилась в ошибкой
@@ -43,6 +45,7 @@ build:
 
 	sed 's/build_dir/.\/${BUILD_DIR}/ig' docker-compose-template.yml > docker-compose.yml
 
+# ======[ ОТКАТ ]======
 # 1. удаляется старая актуальная директория
 # 2. декремент версий в названиях директорий (build_1 -> build_0)
 # 3. обновляется директория в docker-compose.yml в volume с учетом отката
@@ -77,10 +80,10 @@ decrement_versions:
         fi \
     done
 
-
+# ======[ СБОРКА ОТДЕЛЬНЫХ СЕРВИСОВ ]======
 # измененные бинарники попадают в директорию с актуальными версиями бинарников build_0_...
 build_api: 
-	rm -rf "${BUILD_DIR_0}/api_gateway"
+	rm -rf ${BUILD_DIR_0}/api_gateway
 	go build -o ${BUILD_DIR_0}/api_gateway/out cmd/main.go
 	cp config.yml ${BUILD_DIR_0}/api_gateway
 
