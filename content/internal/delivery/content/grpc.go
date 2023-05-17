@@ -79,3 +79,23 @@ func (service *Grpc) GetContentByContentIDs(ctx context.Context,
 
 	return &response, nil
 }
+
+func (service *Grpc) AddRating(ctx context.Context,
+	rating *content.Rating) (*content.Nothing, error) {
+	err := service.useCase.AddRating(ctx, rating.ContentID, rating.Rating)
+	if err != nil {
+		service.logger.WithRequestID(ctx).Error(err)
+		return nil, err
+	}
+	return &content.Nothing{}, nil
+}
+
+func (service *Grpc) DeleteRating(ctx context.Context,
+	rating *content.Rating) (*content.Nothing, error) {
+	err := service.useCase.DeleteRating(ctx, rating.ContentID, rating.Rating)
+	if err != nil {
+		service.logger.WithRequestID(ctx).Error(err)
+		return nil, err
+	}
+	return &content.Nothing{}, nil
+}

@@ -13,11 +13,12 @@ import (
 const searchLimit = 6
 
 type Repository struct {
-	DB *sql.DB
+	DB           *sql.DB
+	simThreshold float32
 }
 
-func NewRepository(db *sql.DB) Repository {
-	return Repository{DB: db}
+func NewRepository(db *sql.DB, simThreshold float32) Repository {
+	return Repository{DB: db, simThreshold: simThreshold}
 }
 
 const fetchQueryTemplate = `select p.id, p.name, p.gender, p.growth, p.birthplace, p.avatar_url, p.age from persons p`
@@ -74,11 +75,13 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Pers
 				(select id, 1 sim, name, gender, growth, birthplace, avatar_url, age from persons
 				 where lower(name) like $1)
 				union all
-				(select id, SIMILARITY($2, name) sim, name, gender, growth, birthplace, avatar_url, age from persons)
+				(select id, SIMILARITY($2, name) sim, name, gender, growth, birthplace, avatar_url, age 
+					from persons
+					where SIMILARITY($2, name) > $3)
 				) s
 				group by s.id, s.name, s.gender, s.growth, s.birthplace, s.avatar_url, s.age
 				order by max(s.sim) desc
-				limit $3;`
+				limit $4;`
 
-	return repo.fetch(ctx, fullQuery, likeQuery, query, searchLimit)
+	return repo.fetch(ctx, fullQuery, likeQuery, query, repo.simThreshold, searchLimit)
 }

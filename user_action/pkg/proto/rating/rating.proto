@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+option go_package = "./;rating";
+
+package rating;
+
+message Rating {
+  uint64 UserID = 1;
+  uint64 ContentID = 2;
+  float Rating = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message RatingsOptions {
+  uint64 UserID = 1;
+  uint64 ContentID = 2;
+  string SortDate = 3;
+  uint32 Limit = 4;
+  uint32 Offset = 5;
+}
+
+message Ratings {
+  bool IsLast = 1;
+  repeated Rating Ratings = 2;
+}
+
+message Nothing {
+    bool Dummy = 1;
+}
+
+message HasRate {
+    bool HasRating = 1;
+    Rating Rating = 2;
+}
+
+service RatingService {
+    rpc DeleteRating(Rating) returns (Rating) {}
+    rpc AddRating(Rating) returns (Nothing) {}
+    rpc GetRatingByUser(RatingsOptions) returns (Ratings) {}
+    rpc GetRatingByContent(RatingsOptions) returns (Ratings) {}
+    rpc HasRating(Rating) returns (HasRate) {}
+}
+

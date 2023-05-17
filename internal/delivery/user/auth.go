@@ -16,7 +16,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
-	userCreate := userCreateDTO{}
+	userCreate := userDTO{}
 	err := decoder.Decode(&userCreate)
 	if err != nil {
 		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %w", err)
@@ -61,7 +61,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
-	credentials := userCredentialsDTO{}
+	credentials := userDTO{}
 	err := decoder.Decode(&credentials)
 	if err != nil {
 		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %w", err)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"strings"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/content/pkg/domain"
@@ -14,14 +15,16 @@ import (
 const searchLimit = 6
 
 type Repository struct {
-	DB *sql.DB
+	DB           *sql.DB
+	simThreshold float32
 }
 
-func NewRepository(db *sql.DB) Repository {
-	return Repository{DB: db}
+func NewRepository(db *sql.DB, simThreshold float32) Repository {
+	return Repository{DB: db, simThreshold: simThreshold}
 }
 
-const fetchQueryTemplate = `select c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
+const fetchQueryTemplate = `select c.id, c.title, c.description, c.rating, c.sum_ratings, c.count_ratings,
+ 							c.year, c.is_free, c.age_limit,
        						c.trailer_url, c.preview_url, c.type from content c`
 
 func (repo *Repository) fetchByIDs(ctx context.Context, query string, IDs []uint64) ([]domain.Content, error) {
@@ -37,8 +40,8 @@ func (repo *Repository) fetchByIDs(ctx context.Context, query string, IDs []uint
 	var result []domain.Content
 	for rows.Next() {
 		c := domain.Content{}
-		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit, &c.TrailerURL,
-			&c.PreviewURL, &c.Type)
+		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.SumRatings, &c.CountRatings,
+			&c.Year, &c.IsFree, &c.AgeLimit, &c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -63,7 +66,8 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Content,
 
 func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (map[uint64][]domain.Content, error) {
 	rows, err := repo.DB.QueryContext(ctx,
-		`select cs.selection_id, c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
+		`select cs.selection_id, c.id, c.title, c.description, c.rating, c.sum_ratings, c.count_ratings,
+       		   c.year, c.is_free, c.age_limit,
        		   c.trailer_url, c.preview_url, c.type from content c 
        		   join content_selections cs on c.id = cs.content_id
        		   where cs.selection_id = any($1)
@@ -80,8 +84,8 @@ func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (ma
 	for rows.Next() {
 		var selectionID uint64
 		c := domain.Content{}
-		err = rows.Scan(&selectionID, &c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
-			&c.TrailerURL, &c.PreviewURL, &c.Type)
+		err = rows.Scan(&selectionID, &c.ID, &c.Title, &c.Description, &c.Rating, &c.SumRatings, &c.CountRatings,
+			&c.Year, &c.IsFree, &c.AgeLimit, &c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +96,8 @@ func (repo *Repository) GetBySelectionIDs(ctx context.Context, IDs []uint64) (ma
 
 func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.Content, error) {
 	rows, err := repo.DB.QueryContext(ctx,
-		`select c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
+		`select c.id, c.title, c.description, c.rating, c.sum_ratings, c.count_ratings,
+       		   c.year, c.is_free, c.age_limit,
        		   c.trailer_url, c.preview_url, c.type from content c 
        		   join content_roles_persons crp on c.id = crp.content_id
        		   where crp.person_id = $1
@@ -108,8 +113,8 @@ func (repo *Repository) GetByPersonID(ctx context.Context, id uint64) ([]domain.
 	var result []domain.Content
 	for rows.Next() {
 		c := domain.Content{}
-		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
-			&c.TrailerURL, &c.PreviewURL, &c.Type)
+		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.SumRatings, &c.CountRatings,
+			&c.Year, &c.IsFree, &c.AgeLimit, &c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -135,8 +140,8 @@ func (repo *Repository) GetByGenreOptions(ctx context.Context, options domain.Co
 	var result []domain.Content
 	for rows.Next() {
 		c := domain.Content{}
-		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
-			&c.TrailerURL, &c.PreviewURL, &c.Type)
+		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.SumRatings, &c.CountRatings,
+			&c.Year, &c.IsFree, &c.AgeLimit, &c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -148,19 +153,26 @@ func (repo *Repository) GetByGenreOptions(ctx context.Context, options domain.Co
 func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Content, error) {
 	likeQuery := "%" + query + "%"
 	rows, err := repo.DB.QueryContext(ctx,
-		`select s.id, s.title, s.description, s.rating, s.year, s.is_free, s.age_limit,
+		`select s.id, s.title, s.description, s.rating, s.sum_ratings, s.count_ratings,
+       			s.year, s.is_free, s.age_limit,
        			s.trailer_url, s.preview_url, s.type from (
-				(select id, 1 sim, title, description, rating, year, is_free, age_limit,
-					trailer_url, preview_url, type from content
-				 where lower(title) like $1)
+				(select id, 1 sim, title, description, rating, sum_ratings, count_ratings, year, is_free, age_limit,
+					trailer_url, preview_url, type 
+					from content
+				 	where lower(title) like $1)
+					
 				union all
-				(select id, SIMILARITY($2, title) sim, title, description, rating, year, is_free, age_limit,
-				trailer_url, preview_url, type from content)
+				
+				(select id, SIMILARITY($2, title) sim, title, description, rating, sum_ratings, count_ratings,
+					year, is_free, age_limit, trailer_url, preview_url, type 
+					from content
+					where SIMILARITY($2, title) > $3)
 				) s
-				group by s.id, s.title, s.description, s.rating, s.year, s.is_free, s.age_limit,
+
+				group by s.id, s.title, s.description, s.rating, s.sum_ratings, s.count_ratings, s.year, s.is_free, s.age_limit,
 				s.trailer_url, s.preview_url, s.type
 				order by max(s.sim) desc, s.rating desc
-				limit $3;`, likeQuery, query, searchLimit)
+				limit $4;`, likeQuery, query, repo.simThreshold, searchLimit)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []domain.Content{}, nil
@@ -172,13 +184,14 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
 	var result []domain.Content
 	for rows.Next() {
 		c := domain.Content{}
-		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.Year, &c.IsFree, &c.AgeLimit,
-			&c.TrailerURL, &c.PreviewURL, &c.Type)
+		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.SumRatings, &c.CountRatings, &c.Year, &c.IsFree,
+			&c.AgeLimit, &c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
 			return nil, err
 		}
 		result = append(result, c)
 	}
+
 	return result, nil
 }
 
@@ -197,7 +210,7 @@ func (repo *Repository) GetFilmByContentID(ctx context.Context, ContentID uint64
 }
 
 func (repo *Repository) GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error) {
-	query := `select s.id, e.id, e.season_num, e.episode_num, e.content_url, e.release_date, e.title
+	query := `select s.id, e.id, e.season_num, e.episode_num, e.content_url, e.preview_url, e.release_date, e.title
 		 from series s join episodes e on s.id = e.series_id
          where s.content_id = $1 order by season_num, episode_num`
 	rows, err := repo.DB.QueryContext(ctx, query, ContentID)
@@ -212,7 +225,8 @@ func (repo *Repository) GetSeriesByContentID(ctx context.Context, ContentID uint
 	var s domain.Series
 	for rows.Next() {
 		e := domain.Episode{}
-		err = rows.Scan(&s.ID, &e.ID, &e.SeasonNum, &e.EpisodeNum, &e.ContentURL, &e.ReleaseDate, &e.Title)
+		err = rows.Scan(&s.ID, &e.ID, &e.SeasonNum, &e.EpisodeNum, &e.ContentURL, &e.PreviewURL,
+			&e.ReleaseDate, &e.Title)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return domain.Series{}, sharederrors.ErrRepoNotFound
@@ -222,4 +236,30 @@ func (repo *Repository) GetSeriesByContentID(ctx context.Context, ContentID uint
 		s.Episodes = append(s.Episodes, e)
 	}
 	return s, err
+}
+
+func (repo *Repository) AddRating(ctx context.Context, ContentID uint64, rating float32) error {
+	_, err := repo.DB.ExecContext(ctx,
+		`UPDATE content 
+		SET sum_ratings = sum_ratings + $1, count_ratings = count_ratings + 1 
+		WHERE id = $2;`,
+		rating, ContentID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
+func (repo *Repository) DeleteRating(ctx context.Context, ContentID uint64, rating float32) error {
+	_, err := repo.DB.ExecContext(ctx,
+		`UPDATE content 
+		SET sum_ratings = sum_ratings - $1, count_ratings = count_ratings - 1 
+		WHERE id = $2;`,
+		rating, ContentID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
 }

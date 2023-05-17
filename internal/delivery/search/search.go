@@ -39,6 +39,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		h.logger.Trace(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+
 	searchResponse := searchDTO{}
 	err = dto.Map(&searchResponse, search)
 	if err != nil {

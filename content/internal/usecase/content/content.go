@@ -79,3 +79,11 @@ func (uc *UseCase) GetSeriesByContentID(ctx context.Context, ContentID uint64) (
 func (uc *UseCase) GetContentByContentIDs(ctx context.Context, ContentIDs []uint64) ([]domain.Content, error) {
 	return uc.repo.GetByIDs(ctx, ContentIDs)
 }
+
+func (uc *UseCase) AddRating(ctx context.Context, ContentID uint64, rating float32) error {
+	return uc.repo.AddRating(ctx, ContentID, rating)
+}
+
+func (uc *UseCase) DeleteRating(ctx context.Context, ContentID uint64, rating float32) error {
+	return uc.repo.DeleteRating(ctx, ContentID, rating)
+}

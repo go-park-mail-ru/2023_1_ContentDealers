@@ -16,10 +16,10 @@ type SessionGateway interface {
 }
 
 type Gateway interface {
-	Delete(ctx context.Context, favorite domainFav.FavoriteContent) error
-	Add(ctx context.Context, favorite domainFav.FavoriteContent) error
-	Get(ctx context.Context, options domainFav.FavoritesOptions) (domainFav.FavoritesContent, error)
-	HasFav(ctx context.Context, favorite domainFav.FavoriteContent) (bool, error)
+	DeleteFavContent(ctx context.Context, favorite domainFav.FavoriteContent) error
+	AddFavContent(ctx context.Context, favorite domainFav.FavoriteContent) error
+	GetFavContent(ctx context.Context, options domainFav.FavoritesOptions) (domainFav.FavoritesContent, error)
+	HasFavContent(ctx context.Context, favorite domainFav.FavoriteContent) (bool, error)
 }
 
 type ContentGateway interface {

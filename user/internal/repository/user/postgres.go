@@ -110,8 +110,6 @@ func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) erro
 			repo.logger.WithRequestID(ctx).Trace(err)
 			return err
 		}
-	} else {
-		fmt.Println("notExit ???")
 	}
 
 	_, err := repo.DB.ExecContext(ctx,

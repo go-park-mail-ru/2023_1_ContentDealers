@@ -1,4 +1,4 @@
-package favorites
+package user_action
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/domain"
 	favContentProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/favcontent"
+	viewsProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/history_views"
+	rateProto "github.com/go-park-mail-ru/2023_1_ContentDealers/user_action/pkg/proto/rating"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -16,9 +18,11 @@ import (
 type Gateway struct {
 	logger            logging.Logger
 	favContentManager favContentProto.FavoritesContentServiceClient
+	ratingManager     rateProto.RatingServiceClient
+	viewsManager      viewsProto.HistoryViewsServiceClient
 }
 
-func NewGateway(logger logging.Logger, cfg ServiceFavoritesConfig) (*Gateway, error) {
+func NewGateway(logger logging.Logger, cfg ServiceUserActionConfig) (*Gateway, error) {
 	interceptor := interceptorClient.NewInterceptorClient("favorites", logger)
 
 	grpcConn, err := grpc.Dial(
@@ -32,6 +36,8 @@ func NewGateway(logger logging.Logger, cfg ServiceFavoritesConfig) (*Gateway, er
 	}
 
 	favContentManager := favContentProto.NewFavoritesContentServiceClient(grpcConn)
+	ratingManager := rateProto.NewRatingServiceClient(grpcConn)
+	viewsManager := viewsProto.NewHistoryViewsServiceClient(grpcConn)
 
 	err = ping.Ping(grpcConn)
 	if err != nil {
@@ -39,10 +45,15 @@ func NewGateway(logger logging.Logger, cfg ServiceFavoritesConfig) (*Gateway, er
 		return nil, err
 	}
 
-	return &Gateway{logger: logger, favContentManager: favContentManager}, nil
+	return &Gateway{
+		logger:            logger,
+		favContentManager: favContentManager,
+		ratingManager:     ratingManager,
+		viewsManager:      viewsManager,
+	}, nil
 }
 
-func (gate *Gateway) Delete(ctx context.Context, favorite domain.FavoriteContent) error {
+func (gate *Gateway) DeleteFavContent(ctx context.Context, favorite domain.FavoriteContent) error {
 	md := metadata.Pairs(
 		"requestID", ctx.Value("requestID").(string),
 	)
@@ -61,7 +72,7 @@ func (gate *Gateway) Delete(ctx context.Context, favorite domain.FavoriteContent
 	return nil
 }
 
-func (gate *Gateway) Add(ctx context.Context, favorite domain.FavoriteContent) error {
+func (gate *Gateway) AddFavContent(ctx context.Context, favorite domain.FavoriteContent) error {
 	md := metadata.Pairs(
 		"requestID", ctx.Value("requestID").(string),
 	)
@@ -80,7 +91,7 @@ func (gate *Gateway) Add(ctx context.Context, favorite domain.FavoriteContent) e
 	return nil
 }
 
-func (gate *Gateway) HasFav(ctx context.Context, favorite domain.FavoriteContent) (bool, error) {
+func (gate *Gateway) HasFavContent(ctx context.Context, favorite domain.FavoriteContent) (bool, error) {
 	md := metadata.Pairs(
 		"requestID", ctx.Value("requestID").(string),
 	)
@@ -99,7 +110,7 @@ func (gate *Gateway) HasFav(ctx context.Context, favorite domain.FavoriteContent
 	return hasFav.HasFav, nil
 }
 
-func (gate *Gateway) Get(ctx context.Context, options domain.FavoritesOptions) (domain.FavoritesContent, error) {
+func (gate *Gateway) GetFavContent(ctx context.Context, options domain.FavoritesOptions) (domain.FavoritesContent, error) {
 	md := metadata.Pairs(
 		"requestID", ctx.Value("requestID").(string),
 	)
