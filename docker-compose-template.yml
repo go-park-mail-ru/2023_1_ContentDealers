@@ -1,6 +1,5 @@
 version: '3'
 
-# sed 's/build_dir/.\/build_hash/ig' docker-compose-template.yml > docker-compose-new.yml
 
 services:
 

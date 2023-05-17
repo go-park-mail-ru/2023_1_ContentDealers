@@ -2,7 +2,7 @@ name: Go
 
 on:
   push:
-    branches: [ "deploy_FILM-20" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -19,12 +19,13 @@ jobs:
 
     - name: Build
       run: make -B build 
+      # make -B build HASH_COMMIT=${GITHUB_SHA::8}
 
     - name: Upload build result
       uses: actions/upload-artifact@v1
       with:
         name: build_dir
-        path: ./build_0_*
+        path: ./build_*
 
   deploy:
     runs-on: ubuntu-latest
@@ -34,21 +35,13 @@ jobs:
         with:
           name: build_dir
 
-      - name: Version increment on server
-        uses: appleboy/ssh-action@master
-        with:
-          envs: GITHUB_SHA
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
-          script: cd filmium-new && make increment_versions && make update_docker_compose_volumes
-
       - name: Transfer build dir to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
+          # source: "build_dir/build_*/"
           source: "build_dir"
           target: "/home/ubuntu/filmium-new/back"
 
@@ -59,5 +52,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
-          script: cd filmium-new && sudo docker compose restart
+          script: cd filmium-new && make update_docker_compose_volumes && sudo docker compose restart
+
 

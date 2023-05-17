@@ -1,6 +1,5 @@
 version: '3'
 
-# sed 's/./build_0_20230517_132049_4b3e5eb2/.\/build_hash/ig' docker-compose-template.yml > docker-compose-new.yml
 
 services:
 
@@ -54,7 +53,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build_0_20230517_132049_4b3e5eb2/content:/build/
+    - ./build_2023_05_17__21_38_01_2bf949a3/content:/build/
     - ./log:/log
     networks:
       net:
@@ -75,7 +74,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build_0_20230517_132049_4b3e5eb2/user:/build/
+    - ./build_2023_05_17__21_38_01_2bf949a3/user:/build/
     - ./media:/media/
     - ./log:/log
     networks:
@@ -96,7 +95,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build_0_20230517_132049_4b3e5eb2/user_action:/build/
+    - ./build_2023_05_17__21_38_01_2bf949a3/user_action:/build/
     - ./log:/log
     networks:
       net:
@@ -114,7 +113,7 @@ services:
     depends_on:
       - redis
     volumes:
-    - ./build_0_20230517_132049_4b3e5eb2/session:/build/
+    - ./build_2023_05_17__21_38_01_2bf949a3/session:/build/
     - ./log:/log
     networks:
       net:
@@ -144,7 +143,7 @@ services:
     environment: 
       - CSRF_TOKEN=${CSRF_TOKEN}
     volumes:
-    - ./build_0_20230517_132049_4b3e5eb2/api_gateway:/build/
+    - ./build_2023_05_17__21_38_01_2bf949a3/api_gateway:/build/
     - ./log:/log
     networks:
       net:
