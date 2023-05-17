@@ -1,5 +1,7 @@
 version: '3'
 
+# sed 's/./build_0_20230517_121410_/.\/build_hash/ig' docker-compose-template.yml > docker-compose-new.yml
+
 services:
 
 # -------------------------------------
@@ -52,7 +54,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build/content:/build/
+    - ./build_0_20230517_121410_/content:/build/
     - ./log:/log
     networks:
       net:
@@ -73,7 +75,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build/user:/build/
+    - ./build_0_20230517_121410_/user:/build/
     - ./media:/media/
     - ./log:/log
     networks:
@@ -94,7 +96,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build/user_action:/build/
+    - ./build_0_20230517_121410_/user_action:/build/
     - ./log:/log
     networks:
       net:
@@ -112,7 +114,7 @@ services:
     depends_on:
       - redis
     volumes:
-    - ./build/session:/build/
+    - ./build_0_20230517_121410_/session:/build/
     - ./log:/log
     networks:
       net:
@@ -142,7 +144,7 @@ services:
     environment: 
       - CSRF_TOKEN=${CSRF_TOKEN}
     volumes:
-    - ./build/api_gateway:/build/
+    - ./build_0_20230517_121410_/api_gateway:/build/
     - ./log:/log
     networks:
       net:
