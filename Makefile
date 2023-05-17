@@ -7,41 +7,25 @@ mocks: $(FILES_TO_MOCK)
 	@rm -rf $(MOCKS)
 	@for file in $^; do mockgen -source=$$file -destination=$${file//contract.go/mock.go}; done
 
-# netstat -tulpn - проверка  
-# ctrl C останавливает все
-run:
-	go run content/cmd/main.go -c config.yml & \
-	sleep 0.5 ; \
-	go run session/cmd/main.go -c config.yml & \
-	sleep 0.5 ; \
-	go run user/cmd/main.go -c config.yml & \
-	sleep 0.5 ; \
-	go run favorites/cmd/main.go -c config.yml & \
-	sleep 0.5 ; \
-	go run cmd/main.go -c config.yml
-
-# ctrl C ничего не останавливает, далее kill -9
-run_bin:
-	./build/content/out -c 		./build/content/config.yml & \
-	sleep 0.5 ; \
-	./build/session/out -c 		./build/session/config.yml & \
-	sleep 0.5 ; \
-	./build/user/out -c 		./build/user/config.yml & \
-	sleep 0.5 ; \
-	./build/favorites/out -c 	./build/favorites/config.yml & \
-	sleep 0.5 ; \
-	./build/api_gateway/out -c 	./build/api_gateway/config.yml & \
-
 DATE := $(shell date +'%Y%m%d_%H%M%S')
-HASH_COMMIT := 
+
+HASH_COMMIT := $(shell git rev-parse --short=8 HEAD)
+# новое название актуальной директории
+
 BUILD_DIR := build_0_$(DATE)_$(HASH_COMMIT)
-BUILD_DIR_0 := $(shell find . -maxdepth 1 -type d -name 'build_0_*' -print -quit)
+# действующая актуальная директория
+
+BUILD_DIR_0 := $(shell find . -maxdepth 1 -type d -name 'build_0_*' -print -quit | xargs basename)
 
 # make -B build
+
 # 1. икремент версии директорий build_(version)_(date)_(hashcommit)
 # 2. сборка бинарников и сохранение в build_0_...
-# 3. изменение названия директории build в docker-compose.yml в volume
-# 4. если сборка завершилась в ошибкой, то версия декрементируется, в docker-compose.yml ничего не изменяется
+# 3. если сборка завершилась в ошибкой
+# 	- версия в директориях декрементируется
+# 	- в docker-compose.yml ничего не изменяется
+# 4. если сборка завершилась успешно
+# 	- происходит изменение названия директории build в docker-compose.yml в volume
 build:
 	make increment_versions
 	rm -rf ./build && \
@@ -59,6 +43,17 @@ build:
 
 	sed 's/build_dir/.\/${BUILD_DIR}/ig' docker-compose-template.yml > docker-compose.yml
 
+# 1. удаляется старая актуальная директория
+# 2. декремент версий в названиях директорий (build_1 -> build_0)
+# 3. обновляется директория в docker-compose.yml в volume с учетом отката
+rollback:
+	rm -rf ${BUILD_DIR_0}
+	make decrement_versions
+	make update_docker_compose_volumes
+
+BUILD_DIR_0_NEW := $(shell find . -maxdepth 1 -type d -name 'build_0_*' -print -quit | xargs basename)
+update_docker_compose_volumes:
+	sed "s/build_dir/.\/${BUILD_DIR_0_NEW}/ig" docker-compose-template.yml > docker-compose.yml
 
 increment_versions:
 	for dir in ./build_*_*; do \
@@ -84,8 +79,8 @@ decrement_versions:
 
 
 # измененные бинарники попадают в директорию с актуальными версиями бинарников build_0_...
-build_api:
-	rm -rf ${BUILD_DIR_0}/api_gateway
+build_api: 
+	rm -rf "${BUILD_DIR_0}/api_gateway"
 	go build -o ${BUILD_DIR_0}/api_gateway/out cmd/main.go
 	cp config.yml ${BUILD_DIR_0}/api_gateway
 
