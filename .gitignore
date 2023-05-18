@@ -7,6 +7,7 @@ tmp_persist
 
 # .env 
 build
+build*
 log
 media/avatars/2023
 

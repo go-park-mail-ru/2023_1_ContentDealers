@@ -7,72 +7,62 @@ mocks: $(FILES_TO_MOCK)
 	@rm -rf $(MOCKS)
 	@for file in $^; do mockgen -source=$$file -destination=$${file//contract.go/mock.go}; done
 
-# netstat -tulpn - проверка  
-# ctrl C останавливает все
-run:
-	go run content/cmd/main.go -c config.yml & \
-	sleep 0.5 ; \
-	go run session/cmd/main.go -c config.yml & \
-	sleep 0.5 ; \
-	go run user/cmd/main.go -c config.yml & \
-	sleep 0.5 ; \
-	go run favorites/cmd/main.go -c config.yml & \
-	sleep 0.5 ; \
-	go run cmd/main.go -c config.yml
 
-# ctrl C ничего не останавливает, далее kill -9
-run_bin:
-	./build/content/out -c 		./build/content/config.yml & \
-	sleep 0.5 ; \
-	./build/session/out -c 		./build/session/config.yml & \
-	sleep 0.5 ; \
-	./build/user/out -c 		./build/user/config.yml & \
-	sleep 0.5 ; \
-	./build/favorites/out -c 	./build/favorites/config.yml & \
-	sleep 0.5 ; \
-	./build/api_gateway/out -c 	./build/api_gateway/config.yml & \
+DATE := $(shell date +'%Y_%m_%d__%H_%M_%S')
 
-# make -B build
-.PHONY:
+HASH_COMMIT := $(shell git rev-parse --short=8 HEAD)
+# новое название актуальной директории
+
+NEW_BUILD_DIR := build_$(DATE)_$(HASH_COMMIT)
+# действующая актуальная директория
+
+# ACTUAL_BUILD_DIR = $(shell ls -la | grep build | sort -r | awk 'NR==1 {print $9}')
+ACTUAL_BUILD_DIR = $(shell find . -maxdepth 1 -type d -name 'build_*_*_*_*_*_*' | sort -r | head -n 1 | xargs basename)
+
 build:
 	rm -rf ./build && \
-	go build -o ./build/content/out content/cmd/main.go 		&& \
-	go build -o ./build/session/out session/cmd/main.go 		&& \
-	go build -o ./build/user/out user/cmd/main.go 				&& \
-	go build -o ./build/user_action/out user_action/cmd/main.go 	&& \
-	go build -o ./build/payment/out payment/cmd/main.go && \
-	cp config.yml ./build/content
-	cp config.yml ./build/session
-	cp config.yml ./build/user
-	cp config.yml ./build/user_action
-	cp config.yml ./build/payment
-	
-	go build -o ./build/api_gateway/out cmd/main.go
-	cp config.yml ./build/api_gateway	
+	go build -o ./${NEW_BUILD_DIR}/content/out 		content/cmd/main.go 		&& \
+	go build -o ./${NEW_BUILD_DIR}/session/out 		session/cmd/main.go 		&& \
+	go build -o ./${NEW_BUILD_DIR}/user/out 		user/cmd/main.go 			&& \
+	go build -o ./${NEW_BUILD_DIR}/user_action/out 	user_action/cmd/main.go 	&& \
+	go build -o ./${NEW_BUILD_DIR}/payment/out 		payment/cmd/main.go 	&& \
+	cp config.yml ./${NEW_BUILD_DIR}/content 		&& \
+	cp config.yml ./${NEW_BUILD_DIR}/session 		&& \
+	cp config.yml ./${NEW_BUILD_DIR}/user 			&& \
+	cp config.yml ./${NEW_BUILD_DIR}/user_action	&& \
+	cp config.yml ./${NEW_BUILD_DIR}/payment	&& \
+	go build -o ./${NEW_BUILD_DIR}/api_gateway/out cmd/main.go 	&& \
+	cp config.yml ./${NEW_BUILD_DIR}/api_gateway				|| \
+	(rm -rf ./${NEW_BUILD_DIR} && exit 1)
 
-build_api:
-	rm -rf ./build/api_gateway && \
-	go build -o ./build/api_gateway/out cmd/main.go
-	cp config.yml ./build/api_gateway
+	sed 's/build_dir/.\/${NEW_BUILD_DIR}/ig' docker-compose-template.yml > docker-compose.yml
+
+rollback:
+	rm -rf ${ACTUAL_BUILD_DIR}
+	make update_docker_compose_volumes
+
+PREV_BUILD_DIR = $(shell find . -maxdepth 1 -type d -name 'build_*_*_*_*_*_*' | sort -r | head -n 1 | xargs basename)
+update_docker_compose_volumes:
+	sed "s/build_dir/.\/${PREV_BUILD_DIR}/ig" docker-compose-template.yml > docker-compose.yml
+	
+# измененные бинарники попадают в директорию с актуальными версиями бинарников build_0_...
+build_api: 
+	rm -rf ${ACTUAL_BUILD_DIR}/api_gateway
+	go build -o ${ACTUAL_BUILD_DIR}/api_gateway/out cmd/main.go
+	cp config.yml ${ACTUAL_BUILD_DIR}/api_gateway
 
 build_fav:
-	rm -rf ./build/user_action && \
-	go build -o ./build/user_action/out user_action/cmd/main.go
-	cp config.yml ./build/user_action
+	rm -rf ${ACTUAL_BUILD_DIR}/user_action
+	go build -o ${ACTUAL_BUILD_DIR}/user_action/out user_action/cmd/main.go
+	cp config.yml ${ACTUAL_BUILD_DIR}/user_action
 
 build_user:
-	rm -rf ./build/user && \
-	go build -o ./build/user/out user/cmd/main.go
-	cp config.yml ./build/user
+	rm -rf ${ACTUAL_BUILD_DIR}/user
+	go build -o ${ACTUAL_BUILD_DIR}/user/out user/cmd/main.go
+	cp config.yml ${ACTUAL_BUILD_DIR}/user
 
 build_content:
-	rm -rf ./build/content && \
-	go build -o ./build/content/out content/cmd/main.go
-	cp config.yml ./build/content
+	rm -rf ${ACTUAL_BUILD_DIR}/content
+	go build -o ${ACTUAL_BUILD_DIR}/content/out content/cmd/main.go
+	cp config.yml ${ACTUAL_BUILD_DIR}/content
 
-move_config:
-	cp config.yml ./build/content
-	cp config.yml ./build/session
-	cp config.yml ./build/user
-	cp config.yml ./build/favorites
-	cp config.yml ./build/api_gateway	

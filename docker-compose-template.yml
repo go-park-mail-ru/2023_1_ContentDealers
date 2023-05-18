@@ -1,6 +1,5 @@
 version: '3'
 
-# sudo docker-compose -f docker-compose-metrics.yml up
 
 services:
 
@@ -15,7 +14,7 @@ services:
     environment: 
       - PGDATA=/var/lib/postgresql/data/pgdata
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}  # from .env
     logging:
       options:
         max-size: 10m
@@ -54,7 +53,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build/content:/build/
+    - build_dir/content:/build/
     - ./log:/log
     networks:
       net:
@@ -75,7 +74,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build/user:/build/
+    - build_dir/user:/build/
     - ./media:/media/
     - ./log:/log
     networks:
@@ -96,7 +95,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build/favorites:/build/
+    - build_dir/user_action:/build/
     - ./log:/log
     networks:
       net:
@@ -114,7 +113,7 @@ services:
     depends_on:
       - redis
     volumes:
-    - ./build/session:/build/
+    - build_dir/session:/build/
     - ./log:/log
     networks:
       net:
@@ -133,7 +132,7 @@ services:
       - PAYMENT_SECRET=${PAYMENT_SECRET}
       - PAYMENT_SECRET2=${PAYMENT_SECRET2}
     volumes:
-    - ./build/session:/build/
+    - build_dir/payment:/build/
     - ./log:/log
     networks:
       net:
@@ -165,69 +164,18 @@ services:
     environment: 
       - CSRF_TOKEN=${CSRF_TOKEN}
     volumes:
-    - ./build/api_gateway:/build/
+    - build_dir/api_gateway:/build/
     - ./log:/log
     networks:
       net:
         ipv4_address: 192.168.243.10
 
-# -------------------------------------
-# ==========[ METRICS ]================
-# -------------------------------------
-  grafana:
-    image: grafana/grafana
-    links:
-    -  prometheus:prometheus
-    ports:
-    - 3000:3000
-    user: "104"
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - grafana-configs:/etc/grafana
-    networks:
-      net:
-        ipv4_address: 192.168.243.30
-        
-  prometheus:
-    image: prom/prometheus
-    links:
-    -  api_gateway:api_gateway
-    -  node-exporter:node-exporter
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./metrics:/etc/prometheus
-      - prom-data:/prometheus
-    networks:
-      net:
-        ipv4_address: 192.168.243.31
-
-  node-exporter:
-    image: prom/node-exporter:v1.3.1
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude'
-      - '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
-    networks:
-      net:
-        ipv4_address: 192.168.243.32
 
 # -------------------------------------
 # ===========[ VOLUMES ]===============
 # -------------------------------------
 
 volumes:
-  grafana-data:
-  grafana-configs:
-  prom-data:
-  prom-configs:
   redis-data:
   postgres-data:
 
