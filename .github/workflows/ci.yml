@@ -18,7 +18,7 @@ jobs:
         go-version: 1.19
 
     - name: Build
-      run: make -B build 
+      run: make -B build
       # make -B build HASH_COMMIT=${GITHUB_SHA::8}
 
     - name: Upload build result
@@ -35,7 +35,8 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: build_dir
-
+      - name: Remove tmp directory
+        run: mv build_dir/* . && rm -rf build_dir
       - name: Transfer build dir to server
         uses: appleboy/scp-action@master
         with:
@@ -43,16 +44,16 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           # source: "build_dir/build_*/"
-          source: "build_dir"
+          source: "build*"
           target: "/home/ubuntu/filmium-new/back"
 
-      - name: Run new version app
-        uses: appleboy/ssh-action@master
-        with:
-          envs: GITHUB_SHA
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: cd filmium-new && make update_docker_compose_volumes && sudo docker compose restart
+      # - name: Run new version app
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     envs: GITHUB_SHA
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     script: cd filmium-new && make update_docker_compose_volumes && sudo docker compose restart
 
 

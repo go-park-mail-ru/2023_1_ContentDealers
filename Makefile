@@ -8,7 +8,7 @@ mocks: $(FILES_TO_MOCK)
 	@for file in $^; do mockgen -source=$$file -destination=$${file//contract.go/mock.go}; done
 
 
-DATE := $(shell date +'%Y_%m_%d__%H_%M_%S')
+DATE := $(shell TZ=Europe/Moscow date +'%Y_%m_%d__%H_%M_%S')
 
 HASH_COMMIT := $(shell git rev-parse --short=8 HEAD)
 # новое название актуальной директории
