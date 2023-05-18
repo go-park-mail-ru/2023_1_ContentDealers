@@ -155,7 +155,7 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 				"email":          user.Email,
 				"avatar_url":     user.AvatarURL,
 				"has_sub":        has_sub,
-				"sub_expiration": user.SubscriptionExpiryDate.Format(time.DateOnly),
+				"sub_expiration": user.SubscriptionExpiryDate.Format(time.DateTime),
 			},
 		},
 	})
