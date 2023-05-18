@@ -22,7 +22,7 @@ jobs:
       # make -B build HASH_COMMIT=${GITHUB_SHA::8}
 
     - name: Upload build result
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v3
       with:
         name: build_dir
         path: ./build_*
