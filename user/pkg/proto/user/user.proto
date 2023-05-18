@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
 option go_package = "./;user";
 
 package user;
@@ -17,6 +18,8 @@ message User {
     string Email = 2;
     string PasswordHash = 3;
     string AvatarURL = 4;
+    google.protobuf.Timestamp SubscriptionExpiryDate = 5;
+    
 }
 
 message Nothing {

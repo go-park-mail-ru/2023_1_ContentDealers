@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"io"
-	"log"
 
 	"github.com/dlclark/regexp2"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
@@ -25,14 +24,11 @@ func NewUser(repo Repository, logger logging.Logger) *User {
 }
 
 func (uc *User) Register(ctx context.Context, user domain.User) (domain.User, error) {
-	log.Println("register")
 	err := validateCredentials(user)
 	if err != nil {
-		log.Println("1")
 		uc.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
-	log.Println("3")
 	passwordHash, err := uc.hashPassword(ctx, user.PasswordHash)
 	if err != nil {
 		return domain.User{}, err
@@ -44,7 +40,6 @@ func (uc *User) Register(ctx context.Context, user domain.User) (domain.User, er
 func (uc *User) Auth(ctx context.Context, user domain.User) (domain.User, error) {
 	realUser, err := uc.repo.GetByEmail(ctx, user.Email)
 	if err != nil {
-		// может быть domain.ErrUserNotFound
 		return domain.User{}, err
 	}
 	isVaild, err := uc.verifyPassword(ctx, user.PasswordHash, realUser.PasswordHash)

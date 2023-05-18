@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"time"
 )
 
 var (
@@ -13,8 +14,9 @@ var (
 )
 
 type User struct {
-	ID           uint64
-	Email        string
-	PasswordHash string
-	AvatarURL    string
+	ID                     uint64
+	Email                  string
+	PasswordHash           string
+	AvatarURL              string
+	SubscriptionExpiryDate time.Time
 }

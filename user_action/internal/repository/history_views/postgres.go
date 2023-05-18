@@ -84,15 +84,6 @@ func (repo *Repository) HasView(ctx context.Context, view domain.View) (domain.H
 }
 
 func (repo *Repository) GetViewsByUser(ctx context.Context, options domain.ViewsOptions) (domain.Views, error) {
-
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
-	fmt.Println(options.ViewProgress)
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
-
 	var sortDate string
 	if options.SortDate == "old" {
 		sortDate = "asc"

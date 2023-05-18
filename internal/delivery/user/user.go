@@ -7,6 +7,7 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
@@ -149,8 +150,9 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
 			"user": map[string]string{
-				"email":      user.Email,
-				"avatar_url": user.AvatarURL,
+				"email":          user.Email,
+				"avatar_url":     user.AvatarURL,
+				"sub_expiration": user.SubscriptionExpiryDate.Format(time.DateOnly),
 			},
 		},
 	})

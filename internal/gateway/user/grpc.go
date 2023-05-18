@@ -76,6 +76,7 @@ func (gate *Gateway) Register(ctx context.Context, user domain.User) (domain.Use
 		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
+	user.SubscriptionExpiryDate = userResponse.SubscriptionExpiryDate.AsTime()
 	return user, nil
 }
 
@@ -101,6 +102,7 @@ func (gate *Gateway) Auth(ctx context.Context, user domain.User) (domain.User, e
 		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
+	user.SubscriptionExpiryDate = userResponse.SubscriptionExpiryDate.AsTime()
 	return user, nil
 }
 
@@ -131,6 +133,8 @@ func (gate *Gateway) GetByID(ctx context.Context, id uint64) (domain.User, error
 		gate.logger.WithRequestID(ctx).Trace(err)
 		return domain.User{}, err
 	}
+
+	user.SubscriptionExpiryDate = userResponse.SubscriptionExpiryDate.AsTime()
 	return user, nil
 }
 

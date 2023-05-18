@@ -30,7 +30,6 @@ func NewRepository(db *sql.DB, logger logging.Logger) Repository {
 }
 
 func (repo *Repository) Add(ctx context.Context, user domain.User) (domain.User, error) {
-	repo.logger.WithRequestID(ctx).Tracef("input params Add(): %#v", user)
 	var lastInsertedID uint64
 
 	err := repo.DB.QueryRowContext(ctx,
@@ -53,12 +52,11 @@ func (repo *Repository) Add(ctx context.Context, user domain.User) (domain.User,
 }
 
 func (repo *Repository) GetByEmail(ctx context.Context, email string) (domain.User, error) {
-	repo.logger.WithRequestID(ctx).Tracef("input params GetByEmail(): %#v", email)
 	user := domain.User{}
 	err := repo.DB.
 		QueryRowContext(ctx,
-			`select id, email, password_hash, avatar_url FROM users WHERE email = $1`, email).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.AvatarURL)
+			`select id, email, password_hash, avatar_url, sub_expiration FROM users WHERE email = $1`, email).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.AvatarURL, &user.SubscriptionExpiryDate)
 	if err != nil {
 		repo.logger.WithRequestID(ctx).Trace(err)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -70,13 +68,11 @@ func (repo *Repository) GetByEmail(ctx context.Context, email string) (domain.Us
 }
 
 func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.User, error) {
-	// TODO: копипаст метода GetByEmail (нужен общий метод для запроса)
-	repo.logger.WithRequestID(ctx).Tracef("input params GetByID(): %#v", id)
 	user := domain.User{}
 	err := repo.DB.
 		QueryRowContext(ctx,
-			`select id, email, password_hash, avatar_url FROM users WHERE id = $1`, id).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.AvatarURL)
+			`select id, email, password_hash, avatar_url, sub_expiration FROM users WHERE id = $1`, id).
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.AvatarURL, &user.SubscriptionExpiryDate)
 	if err != nil {
 		repo.logger.WithRequestID(ctx).Trace(err)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -97,8 +93,6 @@ func getDirByDate(date time.Time) string {
 }
 
 func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) error {
-	repo.logger.WithRequestID(ctx).Tracef("input params DeleteAvatar(): %#v", user)
-	// 1. удаление из локальной директории
 	if user.AvatarURL == "" || user.AvatarURL == "media/avatars/default_avatar.jpg" {
 		repo.logger.WithRequestID(ctx).Trace("delete avatar, but it is empty")
 		return nil
@@ -126,7 +120,6 @@ func (repo *Repository) DeleteAvatar(ctx context.Context, user domain.User) erro
 }
 
 func (repo *Repository) UpdateAvatar(ctx context.Context, user domain.User, file io.Reader) (domain.User, error) {
-	repo.logger.WithRequestID(ctx).Tracef("input params UpdateAvatar(): %#v", user)
 	err := repo.DeleteAvatar(ctx, user)
 
 	if err != nil {
@@ -176,8 +169,6 @@ func (repo *Repository) UpdateAvatar(ctx context.Context, user domain.User, file
 }
 
 func (repo *Repository) Update(ctx context.Context, user domain.User) error {
-	repo.logger.WithRequestID(ctx).Tracef("input params Update(): %#v", user)
-	// TODO: может поменять почту на уже существующую у др пользователя в системе, тогда возвращаем ошибку
 	_, err := repo.DB.ExecContext(ctx,
 		`update users 
 		set email = $1,
@@ -198,7 +189,6 @@ func (repo *Repository) Update(ctx context.Context, user domain.User) error {
 }
 
 func (repo *Repository) Subscribe(ctx context.Context, user domain.User) error {
-	repo.logger.WithRequestID(ctx).Tracef("input params Update(): %#v", user)
 	_, err := repo.DB.ExecContext(ctx,
 		`update users set sub_expiration = current_date + interval '1 month'
 				where id = $1`, user.ID)

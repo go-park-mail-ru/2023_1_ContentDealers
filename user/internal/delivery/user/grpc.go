@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Grpc struct {
@@ -42,6 +43,7 @@ func (service *Grpc) Register(ctx context.Context, userRequest *userProto.User) 
 		service.logger.WithRequestID(ctx).Trace(err)
 		return nil, err
 	}
+	userResponse.SubscriptionExpiryDate = timestamppb.New(newUser.SubscriptionExpiryDate)
 	return &userResponse, nil
 }
 
@@ -62,6 +64,7 @@ func (service *Grpc) Auth(ctx context.Context, userRequest *userProto.User) (*us
 		service.logger.WithRequestID(ctx).Trace(err)
 		return nil, err
 	}
+	userResponse.SubscriptionExpiryDate = timestamppb.New(newUser.SubscriptionExpiryDate)
 	return &userResponse, nil
 }
 
@@ -76,6 +79,7 @@ func (service *Grpc) GetByID(ctx context.Context, IDRequest *userProto.ID) (*use
 		service.logger.WithRequestID(ctx).Trace(err)
 		return nil, err
 	}
+	userResponse.SubscriptionExpiryDate = timestamppb.New(newUser.SubscriptionExpiryDate)
 	return &userResponse, nil
 }
 
