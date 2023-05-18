@@ -147,11 +147,14 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 
 	user.Email = html.EscapeString(user.Email)
 
+	has_sub := user.SubscriptionExpiryDate.After(time.Now())
+
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"user": map[string]string{
+			"user": map[string]interface{}{
 				"email":          user.Email,
 				"avatar_url":     user.AvatarURL,
+				"has_sub":        has_sub,
 				"sub_expiration": user.SubscriptionExpiryDate.Format(time.DateOnly),
 			},
 		},
