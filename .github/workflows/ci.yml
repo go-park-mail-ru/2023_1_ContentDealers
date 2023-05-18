@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           # source: "build_dir/build_*/"
-          source: "build_dir/build*"
+          source: "build_2023*"
           target: "/home/ubuntu/filmium-new/back"
 
       - name: Run new version app
