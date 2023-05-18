@@ -227,3 +227,19 @@ func (gateway *Grpc) DeleteRating(ctx context.Context, ContentID uint64, rating 
 	}
 	return nil
 }
+
+func (gateway *Grpc) GetEpisodesBySeasonNum(ctx context.Context,
+	ContentID uint64, seasonNum uint32) ([]domain.Episode, error) {
+	request := content.ContentIDSeasonNum{
+		ContentID: ContentID,
+		SeasonNum: seasonNum,
+	}
+	episodes, err := gateway.contentService.GetEpisodesBySeasonNum(ctx, &request)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []domain.Episode
+	err = dto.Map(&result, episodes.Episodes)
+	return result, err
+}

@@ -238,6 +238,33 @@ func (repo *Repository) GetSeriesByContentID(ctx context.Context, ContentID uint
 	return s, err
 }
 
+func (repo *Repository) GetEpisodesBySeasonNum(ctx context.Context,
+	ContentID uint64, seasonNum uint32) ([]domain.Episode, error) {
+	rows, err := repo.DB.QueryContext(ctx,
+		`select e.id, e.season_num, e.episode_num, e.content_url, e.preview_url, e.release_date, e.title
+				from episodes e join series s on e.series_id = s.id
+				where s.content_id = $1 and e.season_num = $2`, ContentID, seasonNum)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []domain.Episode{}, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []domain.Episode
+	for rows.Next() {
+		e := domain.Episode{}
+		err = rows.Scan(&e.ID, &e.SeasonNum, &e.EpisodeNum, &e.ContentURL, &e.PreviewURL,
+			&e.ReleaseDate, &e.Title)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, e)
+	}
+	return result, err
+}
+
 func (repo *Repository) AddRating(ctx context.Context, ContentID uint64, rating float32) error {
 	_, err := repo.DB.ExecContext(ctx,
 		`UPDATE content 

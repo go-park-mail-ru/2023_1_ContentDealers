@@ -26,3 +26,8 @@ func (uc *UseCase) GetFilmByContentID(ctx context.Context, ContentID uint64) (do
 func (uc *UseCase) GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error) {
 	return uc.contentGateway.GetSeriesByContentID(ctx, ContentID)
 }
+
+func (uc *UseCase) GetEpisodesBySeasonNum(ctx context.Context,
+	ContentID uint64, seasonNum uint32) ([]domain.Episode, error) {
+	return uc.contentGateway.GetEpisodesBySeasonNum(ctx, ContentID, seasonNum)
+}

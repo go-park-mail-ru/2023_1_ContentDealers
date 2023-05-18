@@ -95,6 +95,15 @@ message Rating {
   float Rating = 2;
 }
 
+message ContentIDSeasonNum {
+  uint64 ContentID = 1;
+  uint32 SeasonNum = 2;
+}
+
+message Episodes {
+  repeated Episode Episodes = 1;
+}
+
 message Nothing {}
 
 service ContentService {
@@ -103,4 +112,5 @@ service ContentService {
   rpc GetFilmByContentID (ContentID) returns (Film) {}
   rpc GetSeriesByContentID (ContentID) returns (Series) {}
   rpc GetContentByContentIDs (ContentIDs) returns (ContentSeq) {}
+  rpc GetEpisodesBySeasonNum (ContentIDSeasonNum) returns (Episodes) {}
 }
