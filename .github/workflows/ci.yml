@@ -5,8 +5,8 @@ name: Go
 on:
   push:
     branches: [ "dev-rk4_FILM" ]
-  pull_request:
-    branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
 
 jobs:
   build:
