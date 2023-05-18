@@ -9,4 +9,5 @@ import (
 type UseCase interface {
 	GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error)
 	GetSeriesByContentID(ctx context.Context, ContentID uint64) (domain.Series, error)
+	GetEpisodesBySeasonNum(ctx context.Context, ContentID uint64, seasonNum uint32) ([]domain.Episode, error)
 }

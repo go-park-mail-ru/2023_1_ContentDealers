@@ -84,7 +84,7 @@ func (h *Handler) GetSeriesByContentID(w http.ResponseWriter, r *http.Request) {
 
 	_, err := fmt.Sscanf(idRaw, "%d", &id)
 	if err != nil {
-		h.logger.Trace(err)
+		h.logger.WithRequestID(r.Context()).Trace(err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"series id is not numeric"}`)
 		return
@@ -114,6 +114,61 @@ func (h *Handler) GetSeriesByContentID(w http.ResponseWriter, r *http.Request) {
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
 			"series": seriesResponse,
+		},
+	})
+
+	if err != nil {
+		h.logger.Trace(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+}
+
+func (h *Handler) GetEpisodesBySeasonNum(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	contentIDRaw := mux.Vars(r)["content_id"]
+	var contentID uint64
+
+	_, err := fmt.Sscanf(contentIDRaw, "%d", &contentID)
+	if err != nil {
+		h.logger.WithRequestID(r.Context()).Trace(err)
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, `{"message":"series id is not numeric"}`)
+		return
+	}
+
+	seasonNumRaw := mux.Vars(r)["season_num"]
+	var seasonNum uint32
+
+	_, err = fmt.Sscanf(seasonNumRaw, "%d", &seasonNum)
+	if err != nil {
+		h.logger.WithRequestID(r.Context()).Trace(err)
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, `{"message":"season num is not numeric"}`)
+		return
+	}
+
+	episodes, err := h.useCase.GetEpisodesBySeasonNum(r.Context(), contentID, seasonNum)
+	if err != nil {
+		h.logger.WithRequestID(r.Context()).Trace(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var episodesResponse []episodeDTO
+	err = dto.Map(&episodesResponse, episodes)
+	if err != nil {
+		h.logger.Trace(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	response, err := json.Marshal(map[string]interface{}{
+		"body": map[string]interface{}{
+			"episodes": episodesResponse,
 		},
 	})
 

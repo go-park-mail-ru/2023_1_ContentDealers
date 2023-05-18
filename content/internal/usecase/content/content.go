@@ -87,3 +87,8 @@ func (uc *UseCase) AddRating(ctx context.Context, ContentID uint64, rating float
 func (uc *UseCase) DeleteRating(ctx context.Context, ContentID uint64, rating float32) error {
 	return uc.repo.DeleteRating(ctx, ContentID, rating)
 }
+
+func (uc *UseCase) GetEpisodesBySeasonNum(ctx context.Context,
+	ContentID uint64, seasonNum uint32) ([]domain.Episode, error) {
+	return uc.repo.GetEpisodesBySeasonNum(ctx, ContentID, seasonNum)
+}

@@ -27,6 +27,7 @@ type ContentServiceClient interface {
 	GetFilmByContentID(ctx context.Context, in *ContentID, opts ...grpc.CallOption) (*Film, error)
 	GetSeriesByContentID(ctx context.Context, in *ContentID, opts ...grpc.CallOption) (*Series, error)
 	GetContentByContentIDs(ctx context.Context, in *ContentIDs, opts ...grpc.CallOption) (*ContentSeq, error)
+	GetEpisodesBySeasonNum(ctx context.Context, in *ContentIDSeasonNum, opts ...grpc.CallOption) (*Episodes, error)
 }
 
 type contentServiceClient struct {
@@ -82,6 +83,15 @@ func (c *contentServiceClient) GetContentByContentIDs(ctx context.Context, in *C
 	return out, nil
 }
 
+func (c *contentServiceClient) GetEpisodesBySeasonNum(ctx context.Context, in *ContentIDSeasonNum, opts ...grpc.CallOption) (*Episodes, error) {
+	out := new(Episodes)
+	err := c.cc.Invoke(ctx, "/content.ContentService/GetEpisodesBySeasonNum", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ContentServiceServer is the server API for ContentService service.
 // All implementations must embed UnimplementedContentServiceServer
 // for forward compatibility
@@ -91,6 +101,7 @@ type ContentServiceServer interface {
 	GetFilmByContentID(context.Context, *ContentID) (*Film, error)
 	GetSeriesByContentID(context.Context, *ContentID) (*Series, error)
 	GetContentByContentIDs(context.Context, *ContentIDs) (*ContentSeq, error)
+	GetEpisodesBySeasonNum(context.Context, *ContentIDSeasonNum) (*Episodes, error)
 	mustEmbedUnimplementedContentServiceServer()
 }
 
@@ -112,6 +123,9 @@ func (UnimplementedContentServiceServer) GetSeriesByContentID(context.Context, *
 }
 func (UnimplementedContentServiceServer) GetContentByContentIDs(context.Context, *ContentIDs) (*ContentSeq, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContentByContentIDs not implemented")
+}
+func (UnimplementedContentServiceServer) GetEpisodesBySeasonNum(context.Context, *ContentIDSeasonNum) (*Episodes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetEpisodesBySeasonNum not implemented")
 }
 func (UnimplementedContentServiceServer) mustEmbedUnimplementedContentServiceServer() {}
 
@@ -216,6 +230,24 @@ func _ContentService_GetContentByContentIDs_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ContentService_GetEpisodesBySeasonNum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ContentIDSeasonNum)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentServiceServer).GetEpisodesBySeasonNum(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/content.ContentService/GetEpisodesBySeasonNum",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentServiceServer).GetEpisodesBySeasonNum(ctx, req.(*ContentIDSeasonNum))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ContentService_ServiceDesc is the grpc.ServiceDesc for ContentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -242,6 +274,10 @@ var ContentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetContentByContentIDs",
 			Handler:    _ContentService_GetContentByContentIDs_Handler,
+		},
+		{
+			MethodName: "GetEpisodesBySeasonNum",
+			Handler:    _ContentService_GetEpisodesBySeasonNum_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

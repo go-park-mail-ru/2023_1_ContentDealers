@@ -12,4 +12,5 @@ type UseCase interface {
 	GetContentByContentIDs(ctx context.Context, ContentIDs []uint64) ([]domain.Content, error)
 	AddRating(ctx context.Context, ContentID uint64, rating float32) error
 	DeleteRating(ctx context.Context, ContentID uint64, rating float32) error
+	GetEpisodesBySeasonNum(ctx context.Context, ContentID uint64, seasonNum uint32) ([]domain.Episode, error)
 }

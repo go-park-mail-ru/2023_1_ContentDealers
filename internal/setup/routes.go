@@ -95,6 +95,8 @@ func Routes(s *SettingsRouter) *mux.Router {
 	corsRouter.HandleFunc("/persons/{id:[0-9]+}", s.PersonHandler.GetByID)
 	corsRouter.HandleFunc("/films/{content_id:[0-9]+}", s.ContentHandler.GetFilmByContentID)
 	corsRouter.HandleFunc("/series/{content_id:[0-9]+}", s.ContentHandler.GetSeriesByContentID)
+	corsRouter.HandleFunc("/series/{content_id:[0-9]+}/seasons/{season_num:[0-9]+}",
+		s.ContentHandler.GetEpisodesBySeasonNum)
 	corsRouter.HandleFunc("/search", s.SearchHandler.Search)
 	corsRouter.HandleFunc("/genres", s.GenreHandler.GetAll)
 	corsRouter.HandleFunc("/genres/{id:[0-9]+}", s.GenreHandler.GetContentByID)

@@ -99,3 +99,15 @@ func (service *Grpc) DeleteRating(ctx context.Context,
 	}
 	return &content.Nothing{}, nil
 }
+
+func (service *Grpc) GetEpisodesBySeasonNum(ctx context.Context,
+	num *content.ContentIDSeasonNum) (*content.Episodes, error) {
+	episodes, err := service.useCase.GetEpisodesBySeasonNum(ctx, num.ContentID, num.SeasonNum)
+	if err != nil {
+		return nil, err
+	}
+
+	var response content.Episodes
+	err = dto.Map(&response.Episodes, episodes)
+	return &response, err
+}
