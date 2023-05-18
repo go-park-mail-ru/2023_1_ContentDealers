@@ -2,7 +2,7 @@ name: Go
 
 on:
   push:
-    branches: [ "deploy_FILM-20" ]
+    branches: [ "dev-rk4_FILM" ]
   pull_request:
     branches: [ "main" ]
 
@@ -43,17 +43,16 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # source: "build_dir/build_*/"
           source: "build*"
           target: "/home/ubuntu/filmium-new/back"
 
-      # - name: Run new version app
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     envs: GITHUB_SHA
-      #     host: ${{ secrets.SSH_HOST }}
-      #     username: ${{ secrets.SSH_USERNAME }}
-      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     script: cd filmium-new && make update_docker_compose_volumes && sudo docker compose restart
+      - name: Run new version app
+        uses: appleboy/ssh-action@master
+        with:
+          envs: GITHUB_SHA
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: cd filmium-new && make update_docker_compose_volumes && sudo docker compose restart
 
 
