@@ -30,13 +30,26 @@ message Person {
   int32 Age = 7;
 }
 
-message SearchResponse {
-  repeated Content Content = 1;
+message SearchContent {
+  uint32 Total = 1;
+  repeated Content Content = 2;
+}
+
+message SearchPerson {
+  uint32 Total = 1;
   repeated Person Persons = 2;
+}
+
+message SearchResponse {
+  SearchContent SearchContent = 1;
+  SearchPerson SearchPerson = 2;
 }
 
 message SearchParams {
   string Query = 1;
+  string TargetSlug = 2;
+  uint32 Limit = 3;
+  uint32 Offset = 4;
 }
 
 service SearchService {

@@ -51,12 +51,10 @@ func (repo *Repository) GetByID(ctx context.Context, id uint64) (domain.Person, 
 	fullQuery := strings.Join([]string{fetchQueryTemplate, filterByIDQueryPart, orderByID}, " ")
 	persons, err := repo.fetch(ctx, fullQuery, id)
 	if err != nil {
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return domain.Person{}, sharederrors.ErrRepoNotFound
-			}
-			return domain.Person{}, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.Person{}, sharederrors.ErrRepoNotFound
 		}
+		return domain.Person{}, err
 	}
 	return persons[0], nil
 }
@@ -69,8 +67,8 @@ func (repo *Repository) GetByContentID(ctx context.Context, ContentID uint64) ([
 	return repo.fetch(ctx, query, ContentID)
 }
 
-func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Person, error) {
-	likeQuery := "%" + query + "%"
+func (repo *Repository) Search(ctx context.Context, query domain.SearchQuery) (domain.SearchPerson, error) {
+	likeQuery := "%" + query.Query + "%"
 	fullQuery := `select s.id, s.name, s.gender, s.growth, s.birthplace, s.avatar_url, s.age from (
 				(select id, 1 sim, name, gender, growth, birthplace, avatar_url, age from persons
 				 where lower(name) like $1)
@@ -81,7 +79,29 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Pers
 				) s
 				group by s.id, s.name, s.gender, s.growth, s.birthplace, s.avatar_url, s.age
 				order by max(s.sim) desc
-				limit $4;`
+				limit $4 offset $5;`
 
-	return repo.fetch(ctx, fullQuery, likeQuery, query, repo.simThreshold, searchLimit)
+	rows, err := repo.DB.QueryContext(ctx, fullQuery, likeQuery, query.Query,
+		repo.simThreshold, query.Limit, query.Offset)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.SearchPerson{}, nil
+		}
+		return domain.SearchPerson{}, err
+	}
+	defer rows.Close()
+
+	var result domain.SearchPerson
+	for rows.Next() {
+		p := domain.Person{}
+		err = rows.Scan(&p.ID, &p.Name, &p.Gender, &p.Growth, &p.Birthplace, &p.AvatarURL, &p.Age)
+		if err != nil {
+			return domain.SearchPerson{}, err
+		}
+		result.Persons = append(result.Persons, p)
+	}
+
+	row := repo.DB.QueryRowContext(ctx, `select count(*) from persons`)
+	err = row.Scan(&result.Total)
+	return result, err
 }

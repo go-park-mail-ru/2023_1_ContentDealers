@@ -19,6 +19,6 @@ func NewUseCase(contentGateway ContentGateway, logger logging.Logger) *UseCase {
 	}
 }
 
-func (uc *UseCase) Search(ctx context.Context, query string) (domain.Search, error) {
+func (uc *UseCase) Search(ctx context.Context, query domain.SearchQuery) (domain.SearchResult, error) {
 	return uc.contentGateway.Search(ctx, query)
 }

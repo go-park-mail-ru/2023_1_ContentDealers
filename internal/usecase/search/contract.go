@@ -7,5 +7,5 @@ import (
 )
 
 type ContentGateway interface {
-	Search(ctx context.Context, query string) (domain.Search, error)
+	Search(ctx context.Context, query domain.SearchQuery) (domain.SearchResult, error)
 }

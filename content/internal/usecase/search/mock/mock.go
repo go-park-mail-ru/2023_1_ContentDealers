@@ -36,10 +36,10 @@ func (m *MockExtender) EXPECT() *MockExtenderMockRecorder {
 }
 
 // Extend mocks base method.
-func (m *MockExtender) Extend(ctx context.Context, query string) (func(*domain.Search), error) {
+func (m *MockExtender) Extend(ctx context.Context, query string) (func(*domain.SearchResult), error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Extend", ctx, query)
-	ret0, _ := ret[0].(func(*domain.Search))
+	ret0, _ := ret[0].(func(*domain.SearchResult))
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

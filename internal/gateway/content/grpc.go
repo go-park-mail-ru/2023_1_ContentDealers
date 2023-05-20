@@ -141,16 +141,21 @@ func (gateway *Grpc) GetPersonByID(ctx context.Context, id uint64) (domain.Perso
 	return result, nil
 }
 
-func (gateway *Grpc) Search(ctx context.Context, query string) (domain.Search, error) {
-	searchDTO, err := gateway.searchService.Search(ctx, &search.SearchParams{Query: query})
+func (gateway *Grpc) Search(ctx context.Context, query domain.SearchQuery) (domain.SearchResult, error) {
+	searchDTO, err := gateway.searchService.Search(ctx, &search.SearchParams{
+		Query:      query.Query,
+		TargetSlug: query.TargetSlug,
+		Limit:      query.Limit,
+		Offset:     query.Offset,
+	})
 	if err != nil {
-		return domain.Search{}, mapError(err)
+		return domain.SearchResult{}, mapError(err)
 	}
 
-	var result domain.Search
+	var result domain.SearchResult
 	err = dto.Map(&result, searchDTO)
 	if err != nil {
-		return domain.Search{}, mapError(err)
+		return domain.SearchResult{}, mapError(err)
 	}
 	return result, nil
 }

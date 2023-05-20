@@ -12,8 +12,6 @@ import (
 	"github.com/lib/pq"
 )
 
-const searchLimit = 6
-
 type Repository struct {
 	DB           *sql.DB
 	simThreshold float32
@@ -150,8 +148,8 @@ func (repo *Repository) GetByGenreOptions(ctx context.Context, options domain.Co
 	return result, nil
 }
 
-func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Content, error) {
-	likeQuery := "%" + query + "%"
+func (repo *Repository) Search(ctx context.Context, query domain.SearchQuery) (domain.SearchContent, error) {
+	likeQuery := "%" + query.Query + "%"
 	rows, err := repo.DB.QueryContext(ctx,
 		`select s.id, s.title, s.description, s.rating, s.sum_ratings, s.count_ratings,
        			s.year, s.is_free, s.age_limit,
@@ -172,27 +170,30 @@ func (repo *Repository) Search(ctx context.Context, query string) ([]domain.Cont
 				group by s.id, s.title, s.description, s.rating, s.sum_ratings, s.count_ratings, s.year, s.is_free, s.age_limit,
 				s.trailer_url, s.preview_url, s.type
 				order by max(s.sim) desc, s.rating desc
-				limit $4;`, likeQuery, query, repo.simThreshold, searchLimit)
+				limit $4 offset $5;`, likeQuery, query, repo.simThreshold, query.Limit, query.Offset)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return []domain.Content{}, nil
+			return domain.SearchContent{}, nil
 		}
-		return nil, err
+		return domain.SearchContent{}, err
 	}
 	defer rows.Close()
 
-	var result []domain.Content
+	var result domain.SearchContent
 	for rows.Next() {
 		c := domain.Content{}
 		err = rows.Scan(&c.ID, &c.Title, &c.Description, &c.Rating, &c.SumRatings, &c.CountRatings, &c.Year, &c.IsFree,
 			&c.AgeLimit, &c.TrailerURL, &c.PreviewURL, &c.Type)
 		if err != nil {
-			return nil, err
+			return domain.SearchContent{}, err
 		}
-		result = append(result, c)
+		result.Content = append(result.Content, c)
 	}
 
-	return result, nil
+	row := repo.DB.QueryRowContext(ctx, `select count(*) from content`)
+	err = row.Scan(&result.Total)
+
+	return result, err
 }
 
 func (repo *Repository) GetFilmByContentID(ctx context.Context, ContentID uint64) (domain.Film, error) {
@@ -200,11 +201,8 @@ func (repo *Repository) GetFilmByContentID(ctx context.Context, ContentID uint64
 	row := repo.DB.QueryRowContext(ctx, query, ContentID)
 	film := domain.Film{}
 	err := row.Scan(&film.ID, &film.ContentURL)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return domain.Film{}, sharederrors.ErrRepoNotFound
-		}
-		return domain.Film{}, err
+	if errors.Is(err, sql.ErrNoRows) {
+		return domain.Film{}, sharederrors.ErrRepoNotFound
 	}
 	return film, err
 }

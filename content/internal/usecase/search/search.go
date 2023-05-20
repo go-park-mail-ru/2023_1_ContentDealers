@@ -15,24 +15,26 @@ func NewUseCase(extenders []Extender) *UseCase {
 	return &UseCase{extenders: extenders}
 }
 
-func (uc *UseCase) Search(ctx context.Context, query string) (domain.Search, error) {
-	var result domain.Search
+func (uc *UseCase) Search(ctx context.Context, query domain.SearchQuery) (domain.SearchResult, error) {
+	var result domain.SearchResult
 	var mu sync.Mutex
 	wg := sync.WaitGroup{}
 
 	for _, extender := range uc.extenders {
-		wg.Add(1)
-		go func(extender Extender) {
-			defer wg.Done()
-			applier, err := extender.Extend(ctx, query)
-			if err != nil {
-				return
-			}
+		if query.TargetSlug == "" || query.TargetSlug == extender.GetSlug() {
+			wg.Add(1)
+			go func(extender Extender) {
+				defer wg.Done()
+				applier, err := extender.Extend(ctx, query)
+				if err != nil {
+					return
+				}
 
-			mu.Lock()
-			defer mu.Unlock()
-			applier(&result)
-		}(extender)
+				mu.Lock()
+				defer mu.Unlock()
+				applier(&result)
+			}(extender)
+		}
 
 	}
 

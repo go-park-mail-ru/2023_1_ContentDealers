@@ -7,9 +7,9 @@ import (
 )
 
 type ContentRepository interface {
-	Search(ctx context.Context, query string) ([]domain.Content, error)
+	Search(ctx context.Context, query domain.SearchQuery) (domain.SearchContent, error)
 }
 
 type PersonRepository interface {
-	Search(ctx context.Context, query string) ([]domain.Person, error)
+	Search(ctx context.Context, query domain.SearchQuery) (domain.SearchPerson, error)
 }
