@@ -21,7 +21,7 @@ func (extender *ContentExtender) Extend(ctx context.Context,
 		return nil, err
 	}
 	return func(search *domain.SearchResult) {
-		search.SearchContent = content
+		search.Content = content
 	}, nil
 }
 

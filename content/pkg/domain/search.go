@@ -11,8 +11,8 @@ type SearchPerson struct {
 }
 
 type SearchResult struct {
-	SearchContent SearchContent
-	SearchPerson  SearchPerson
+	Content SearchContent
+	Persons SearchPerson
 }
 
 type SearchQuery struct {

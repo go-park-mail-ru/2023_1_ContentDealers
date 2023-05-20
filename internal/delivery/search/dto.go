@@ -26,8 +26,8 @@ type contentDTO struct {
 }
 
 type searchContentDTO struct {
-	Total   uint32     `json:"total"`
-	Content contentDTO `json:"content"`
+	Total   uint32       `json:"total"`
+	Content []contentDTO `json:"content"`
 }
 
 type searchPersonDTO struct {

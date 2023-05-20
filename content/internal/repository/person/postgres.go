@@ -10,8 +10,6 @@ import (
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/sharederrors"
 )
 
-const searchLimit = 6
-
 type Repository struct {
 	DB           *sql.DB
 	simThreshold float32
@@ -81,7 +79,7 @@ func (repo *Repository) Search(ctx context.Context, query domain.SearchQuery) (d
 				order by max(s.sim) desc
 				limit $4 offset $5;`
 
-	rows, err := repo.DB.QueryContext(ctx, fullQuery, likeQuery, repo.simThreshold, query.Limit, query.Offset)
+	rows, err := repo.DB.QueryContext(ctx, fullQuery, likeQuery, query.Query, repo.simThreshold, query.Limit, query.Offset)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.SearchPerson{}, nil
@@ -99,7 +97,6 @@ func (repo *Repository) Search(ctx context.Context, query domain.SearchQuery) (d
 		}
 		result.Persons = append(result.Persons, p)
 	}
-
 	row := repo.DB.QueryRowContext(ctx, `select count(*) from persons`)
 	err = row.Scan(&result.Total)
 	return result, err

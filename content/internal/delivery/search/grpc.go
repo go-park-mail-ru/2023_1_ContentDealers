@@ -38,6 +38,5 @@ func (service *Grpc) Search(ctx context.Context, params *search.SearchParams) (*
 		service.logger.WithRequestID(ctx).Error(err)
 		return nil, err
 	}
-
 	return &response, nil
 }

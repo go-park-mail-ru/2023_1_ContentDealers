@@ -21,7 +21,7 @@ func (extender *PersonExtender) Extend(ctx context.Context,
 		return nil, err
 	}
 	return func(search *domain.SearchResult) {
-		search.SearchPerson = persons
+		search.Persons = persons
 	}, nil
 }
 
