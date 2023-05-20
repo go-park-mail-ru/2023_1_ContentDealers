@@ -22,9 +22,10 @@ func NewGrpc(useCase UseCase, logger logging.Logger) *Grpc {
 
 func (service *Grpc) Search(ctx context.Context, params *search.SearchParams) (*search.SearchResponse, error) {
 	searchResult, err := service.useCase.Search(ctx, domain.SearchQuery{
-		Query:  params.Query,
-		Limit:  params.Limit,
-		Offset: params.Offset,
+		Query:      params.Query,
+		TargetSlug: params.TargetSlug,
+		Limit:      params.Limit,
+		Offset:     params.Offset,
 	})
 	if err != nil {
 		service.logger.WithRequestID(ctx).Error(err)

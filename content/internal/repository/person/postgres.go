@@ -81,8 +81,7 @@ func (repo *Repository) Search(ctx context.Context, query domain.SearchQuery) (d
 				order by max(s.sim) desc
 				limit $4 offset $5;`
 
-	rows, err := repo.DB.QueryContext(ctx, fullQuery, likeQuery, query.Query,
-		repo.simThreshold, query.Limit, query.Offset)
+	rows, err := repo.DB.QueryContext(ctx, fullQuery, likeQuery, repo.simThreshold, query.Limit, query.Offset)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.SearchPerson{}, nil

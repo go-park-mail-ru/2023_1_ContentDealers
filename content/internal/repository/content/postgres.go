@@ -170,7 +170,7 @@ func (repo *Repository) Search(ctx context.Context, query domain.SearchQuery) (d
 				group by s.id, s.title, s.description, s.rating, s.sum_ratings, s.count_ratings, s.year, s.is_free, s.age_limit,
 				s.trailer_url, s.preview_url, s.type
 				order by max(s.sim) desc, s.rating desc
-				limit $4 offset $5;`, likeQuery, query, repo.simThreshold, query.Limit, query.Offset)
+				limit $4 offset $5;`, likeQuery, query.Query, repo.simThreshold, query.Limit, query.Offset)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.SearchContent{}, nil
