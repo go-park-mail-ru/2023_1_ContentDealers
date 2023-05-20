@@ -41,8 +41,8 @@ message SearchPerson {
 }
 
 message SearchResponse {
-  SearchContent SearchContent = 1;
-  SearchPerson SearchPerson = 2;
+  SearchContent Content = 1;
+  SearchPerson Person = 2;
 }
 
 message SearchParams {
