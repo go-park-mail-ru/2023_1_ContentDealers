@@ -97,7 +97,16 @@ func (repo *Repository) Search(ctx context.Context, query domain.SearchQuery) (d
 		}
 		result.Persons = append(result.Persons, p)
 	}
-	row := repo.DB.QueryRowContext(ctx, `select count(*) from persons`)
+	row := repo.DB.QueryRowContext(ctx, `select count(*) from (select s.id, s.name, s.gender, s.growth, s.birthplace, s.avatar_url, s.age from (
+		(select id, 1 sim, name, gender, growth, birthplace, avatar_url, age from persons
+		 where lower(name) like $1)
+		union all
+		(select id, SIMILARITY($2, name) sim, name, gender, growth, birthplace, avatar_url, age 
+			from persons
+			where SIMILARITY($2, name) > $3)
+		) s
+		group by s.id, s.name, s.gender, s.growth, s.birthplace, s.avatar_url, s.age
+		order by max(s.sim) desc) as q`, likeQuery, query.Query, repo.simThreshold)
 	err = row.Scan(&result.Total)
 	return result, err
 }

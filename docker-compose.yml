@@ -53,7 +53,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build_2023_05_21__00_05_38_f99d182a/content:/build/
+    - ./build_2023_05_21__00_27_09_6518882b/content:/build/
     - ./log:/log
     networks:
       net:
@@ -74,7 +74,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build_2023_05_21__00_05_38_f99d182a/user:/build/
+    - ./build_2023_05_21__00_27_09_6518882b/user:/build/
     - ./media:/media/
     - ./log:/log
     networks:
@@ -95,7 +95,7 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-    - ./build_2023_05_21__00_05_38_f99d182a/user_action:/build/
+    - ./build_2023_05_21__00_27_09_6518882b/user_action:/build/
     - ./log:/log
     networks:
       net:
@@ -113,7 +113,7 @@ services:
     depends_on:
       - redis
     volumes:
-    - ./build_2023_05_21__00_05_38_f99d182a/session:/build/
+    - ./build_2023_05_21__00_27_09_6518882b/session:/build/
     - ./log:/log
     networks:
       net:
@@ -132,7 +132,7 @@ services:
       - PAYMENT_SECRET=${PAYMENT_SECRET}
       - PAYMENT_SECRET2=${PAYMENT_SECRET2}
     volumes:
-    - ./build_2023_05_21__00_05_38_f99d182a/payment:/build/
+    - ./build_2023_05_21__00_27_09_6518882b/payment:/build/
     - ./log:/log
     networks:
       net:
@@ -164,7 +164,7 @@ services:
     environment: 
       - CSRF_TOKEN=${CSRF_TOKEN}
     volumes:
-    - ./build_2023_05_21__00_05_38_f99d182a/api_gateway:/build/
+    - ./build_2023_05_21__00_27_09_6518882b/api_gateway:/build/
     - ./log:/log
     networks:
       net:
