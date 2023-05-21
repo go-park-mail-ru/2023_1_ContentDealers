@@ -190,7 +190,7 @@ func (repo *Repository) Update(ctx context.Context, user domain.User) error {
 
 func (repo *Repository) Subscribe(ctx context.Context, user domain.User) error {
 	_, err := repo.DB.ExecContext(ctx,
-		`update users set sub_expiration = current_date + interval '1 month'
+		`update users set sub_expiration = greatest(current_date, sub_expiration) + interval '1 month'
 				where id = $1`, user.ID)
 	if err != nil {
 		repo.logger.WithRequestID(ctx).Trace(err)
