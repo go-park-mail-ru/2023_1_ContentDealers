@@ -15,6 +15,7 @@ require (
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.7
+	github.com/mailru/easyjson v0.7.7
 	github.com/prometheus/client_golang v1.15.0
 	github.com/rs/cors v1.8.3
 	github.com/sirupsen/logrus v1.9.0
@@ -32,6 +33,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
