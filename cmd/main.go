@@ -35,6 +35,7 @@ import (
 	rateUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/rating"
 	searchUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/search"
 	selectionUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/selection"
+	userUseCase "github.com/go-park-mail-ru/2023_1_ContentDealers/internal/usecase/user"
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	"github.com/joho/godotenv"
 
@@ -109,6 +110,8 @@ func Run() error {
 	ratingUseCase := rateUseCase.NewUseCase(userActionGateway, sessionGateway, contentGateway, logger)
 	viewsUseCase := viewsUseCase.NewUseCase(userActionGateway, sessionGateway, contentGateway, logger)
 
+	userUseCase := userUseCase.NewUseCase(contentGateway, userGateway, sessionGateway, logger)
+
 	err = godotenv.Load()
 	if err != nil {
 		logger.Error(err)
@@ -120,7 +123,7 @@ func Run() error {
 		return err
 	}
 
-	userHandler := user.NewHandler(userGateway, sessionGateway, logger, cfg.Avatar)
+	userHandler := user.NewHandler(userGateway, userUseCase, sessionGateway, logger, cfg.Avatar)
 	favHandler := favorites.NewHandler(favUseCase, logger)
 	viewsHandler := history_views.NewHandler(viewsUseCase, logger)
 	rateHandler := rating.NewHandler(ratingUseCase, logger)

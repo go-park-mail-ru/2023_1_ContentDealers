@@ -3,7 +3,6 @@ package user
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -137,6 +136,23 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) HasAccessContent(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	fmt.Println(r.Header.Get("X-Original-URI"))
+	ctx := r.Context()
+	originalURI := r.Header.Get("X-Original-URI")
+	if originalURI == "" {
+		h.logger.WithRequestID(ctx).Trace("not found 'X-Original-URI' for determine access to content")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var cookieString string
+	cookie, err := r.Cookie("session_id")
+	if err == nil {
+		cookieString = cookie.Value
+	}
+	err = h.userUsecase.HasAccessContent(ctx, originalURI, cookieString)
+	if err != nil {
+		h.logger.WithRequestID(ctx).Trace(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }

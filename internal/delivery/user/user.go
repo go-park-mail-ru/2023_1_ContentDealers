@@ -19,14 +19,16 @@ const buffSize = 512
 
 type Handler struct {
 	userGateway    UserGateway
+	userUsecase    UserUsecase
 	sessionGateway SessionGateway
 	logger         logging.Logger
 	avatarCfg      AvatarConfig
 }
 
-func NewHandler(user UserGateway, session SessionGateway, logger logging.Logger, avatarCfg AvatarConfig) *Handler {
+func NewHandler(user UserGateway, userUsecase UserUsecase, session SessionGateway, logger logging.Logger, avatarCfg AvatarConfig) *Handler {
 	return &Handler{
 		userGateway:    user,
+		userUsecase:    userUsecase,
 		sessionGateway: session,
 		logger:         logger,
 		avatarCfg:      avatarCfg,

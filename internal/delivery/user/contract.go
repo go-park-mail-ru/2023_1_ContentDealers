@@ -22,3 +22,7 @@ type SessionGateway interface {
 	Get(ctx context.Context, sessionID string) (domainSession.Session, error)
 	Delete(ctx context.Context, sessionID string) error
 }
+
+type UserUsecase interface {
+	HasAccessContent(ctx context.Context, originalURI string, cookie string) error
+}
