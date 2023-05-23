@@ -12,6 +12,7 @@ message ID {
 message Content {
   uint64 ID = 1;
   string Title = 2;
+  string Type = 3;
 }
 
 message Role {
