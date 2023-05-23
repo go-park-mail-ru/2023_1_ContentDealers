@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -131,5 +132,11 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &sessionCookie)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) HasAccessContent(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	fmt.Println(r.Header.Get("X-Original-URI"))
 	w.WriteHeader(http.StatusOK)
 }

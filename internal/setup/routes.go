@@ -128,6 +128,8 @@ func Routes(s *SettingsRouter) *mux.Router {
 	authRouter.HandleFunc("/user/avatar/update", s.UserHandler.UpdateAvatar).Methods("POST")
 	authRouter.HandleFunc("/user/avatar/delete", s.UserHandler.DeleteAvatar).Methods("POST")
 
+	corsRouter.HandleFunc("/user/content/has_access", s.UserHandler.HasAccessContent).Methods("GET")
+
 	router.HandleFunc("/payment/accept", s.PaymentHandler.Accept).Methods("POST")
 	authRouter.HandleFunc("/payment/link", s.PaymentHandler.GetPaymentLink).Methods("GET")
 

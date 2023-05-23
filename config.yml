@@ -115,7 +115,7 @@ payment:
       - all
   merchant_id: 34051
   currency: RUB
-  subscription_price: 1
+  subscription_price: 200
 # levels
   # - all
   # - panic

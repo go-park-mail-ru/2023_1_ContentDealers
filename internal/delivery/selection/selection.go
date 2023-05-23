@@ -33,7 +33,6 @@ const (
 func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	defer r.Body.Close()
-
 	var limit int32 = defaultLimit
 	var offset int32 = defaultOffset
 
