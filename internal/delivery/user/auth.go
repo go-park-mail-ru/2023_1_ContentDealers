@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -137,6 +138,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HasAccessContent(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	ctx := r.Context()
+	fmt.Println("header = ", r.Header.Get("X-Original-URI"))
 	originalURI := r.Header.Get("X-Original-URI")
 	if originalURI == "" {
 		h.logger.WithRequestID(ctx).Trace("not found 'X-Original-URI' for determine access to content")
