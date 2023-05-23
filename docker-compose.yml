@@ -53,7 +53,11 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
+<<<<<<< HEAD
     - ./build_2023_05_23__20_02_03_3513bdea/content:/build/
+=======
+    - ./build_2023_05_22__04_26_45_a09baf4d/content:/build/
+>>>>>>> 8489854e397065c7ac221b34e6a584ef2b280e9e
     - ./log:/log
     networks:
       net:
@@ -74,7 +78,11 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
+<<<<<<< HEAD
     - ./build_2023_05_23__20_02_03_3513bdea/user:/build/
+=======
+    - ./build_2023_05_22__04_26_45_a09baf4d/user:/build/
+>>>>>>> 8489854e397065c7ac221b34e6a584ef2b280e9e
     - ./media:/media/
     - ./log:/log
     networks:
@@ -95,7 +103,11 @@ services:
     environment: 
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
+<<<<<<< HEAD
     - ./build_2023_05_23__20_02_03_3513bdea/user_action:/build/
+=======
+    - ./build_2023_05_22__04_26_45_a09baf4d/user_action:/build/
+>>>>>>> 8489854e397065c7ac221b34e6a584ef2b280e9e
     - ./log:/log
     networks:
       net:
@@ -113,7 +125,11 @@ services:
     depends_on:
       - redis
     volumes:
+<<<<<<< HEAD
     - ./build_2023_05_23__20_02_03_3513bdea/session:/build/
+=======
+    - ./build_2023_05_22__04_26_45_a09baf4d/session:/build/
+>>>>>>> 8489854e397065c7ac221b34e6a584ef2b280e9e
     - ./log:/log
     networks:
       net:
@@ -132,7 +148,11 @@ services:
       - PAYMENT_SECRET=${PAYMENT_SECRET}
       - PAYMENT_SECRET2=${PAYMENT_SECRET2}
     volumes:
+<<<<<<< HEAD
     - ./build_2023_05_23__20_02_03_3513bdea/payment:/build/
+=======
+    - ./build_2023_05_22__04_26_45_a09baf4d/payment:/build/
+>>>>>>> 8489854e397065c7ac221b34e6a584ef2b280e9e
     - ./log:/log
     networks:
       net:
@@ -164,7 +184,11 @@ services:
     environment: 
       - CSRF_TOKEN=${CSRF_TOKEN}
     volumes:
+<<<<<<< HEAD
     - ./build_2023_05_23__20_02_03_3513bdea/api_gateway:/build/
+=======
+    - ./build_2023_05_22__04_26_45_a09baf4d/api_gateway:/build/
+>>>>>>> 8489854e397065c7ac221b34e6a584ef2b280e9e
     - ./log:/log
     networks:
       net:

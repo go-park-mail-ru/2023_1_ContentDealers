@@ -148,7 +148,12 @@ func (gate *Gateway) Update(ctx context.Context, user domain.User) error {
 	_, err := gate.userManager.Update(ctx, &userRequest)
 	if err != nil {
 		gate.logger.WithRequestID(ctx).Trace(err)
-		return err
+		switch {
+		case strings.Contains(err.Error(), domain.ErrUserAlreadyExists.Error()):
+			return domain.ErrUserAlreadyExists
+		default:
+			return err
+		}
 	}
 	return nil
 }

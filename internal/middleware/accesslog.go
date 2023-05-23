@@ -45,7 +45,7 @@ func (mv *GeneralMiddleware) AccessLog(next http.Handler) http.Handler {
 		mv.logger.WithFields(logrus.Fields{
 			"method":      r.Method,
 			"origin":      r.Header.Get("Origin"),
-			"remote_addr": r.RemoteAddr,
+			"remote_addr": r.Header.Get("X-Real-IP"),
 			"url":         r.URL.Path,
 			"user_agent":  r.UserAgent(),
 			"request_id":  requestID,
