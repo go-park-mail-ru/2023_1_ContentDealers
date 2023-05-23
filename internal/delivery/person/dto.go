@@ -3,6 +3,7 @@ package person
 type contentDTO struct {
 	ID    uint64 `json:"id"`
 	Title string `json:"title"`
+	Type  string `json:"type"`
 }
 
 type roleDTO struct {
