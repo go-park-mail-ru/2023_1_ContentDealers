@@ -67,7 +67,7 @@ func (uc *UseCase) GetViewsByUser(ctx context.Context, options domainView.ViewsO
 		return []domain.Content{}, false, err
 	}
 
-	var contentIDs []uint64
+	contentIDs := make([]uint64, 0, len(views.Views))
 	for _, view := range views.Views {
 		contentIDs = append(contentIDs, view.ContentID)
 	}

@@ -19,6 +19,7 @@ import (
 const (
 	dirAvatars             = "media/avatars"
 	allPerms   os.FileMode = 0777
+	bufSize                = 1024
 )
 
 type Gateway struct {
@@ -177,13 +178,14 @@ func (gate *Gateway) UpdateAvatar(ctx context.Context, user domain.User, reader 
 		User: &userRequest,
 	})
 	if err != nil {
-		gate.logger.WithRequestID(ctx).Tracef("Error sending user object: %w", err)
+		gate.logger.WithRequestID(ctx).Tracef("Error sending user object: %v", err)
 		return domain.User{}, err
 	}
 
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, bufSize)
 
 	for {
+		// nolint:govet
 		bytesRead, err := reader.Read(buffer)
 		if err == io.EOF {
 			break
@@ -197,14 +199,14 @@ func (gate *Gateway) UpdateAvatar(ctx context.Context, user domain.User, reader 
 			Chunk: buffer[:bytesRead],
 		})
 		if err != nil {
-			gate.logger.WithRequestID(ctx).Tracef("Error sending chunk to server: %w", err)
+			gate.logger.WithRequestID(ctx).Tracef("Error sending chunk to server: %v", err)
 			return domain.User{}, err
 		}
 	}
 
 	userResponse, err := stream.CloseAndRecv()
 	if err != nil {
-		gate.logger.WithRequestID(ctx).Tracef("Error receiving response from server: %w", err)
+		gate.logger.WithRequestID(ctx).Tracef("Error receiving response from server: %v", err)
 		return domain.User{}, err
 	}
 

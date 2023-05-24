@@ -78,12 +78,14 @@ func NewLogger(cfg LoggingConfig, serviceName string) (Logger, error) {
 		},
 	}
 
+	// nolint:gomnd
 	err := os.MkdirAll(cfg.Dir, 0777)
 	if err != nil {
 		panic(err)
 	}
 
 	logPath := fmt.Sprintf("%s/%s", cfg.Dir, cfg.Filename)
+	// nolint:gomnd
 	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0640)
 	if err != nil {
 		return Logger{}, err

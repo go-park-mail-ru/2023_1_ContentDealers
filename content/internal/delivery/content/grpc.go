@@ -59,7 +59,7 @@ func (service *Grpc) GetSeriesByContentID(ctx context.Context, contentID *conten
 
 func (service *Grpc) GetContentByContentIDs(ctx context.Context,
 	contentIDs *content.ContentIDs) (*content.ContentSeq, error) {
-	var ids []uint64
+	ids := make([]uint64, 0, len(contentIDs.GetContentIDs()))
 	for _, id := range contentIDs.GetContentIDs() {
 		ids = append(ids, id.GetID())
 	}

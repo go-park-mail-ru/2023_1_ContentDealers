@@ -73,7 +73,7 @@ func (repo *Repository) Add(ctx context.Context, session domain.Session) error {
 	result, err := redis.String(conn.DoContext(ctx, "SET", session.ID,
 		dataSerialized, "EX", uint(timeToLive.Seconds())))
 	if err != nil {
-		repo.logger.WithRequestID(ctx).Tracef("cant set data in redis: %w", err)
+		repo.logger.WithRequestID(ctx).Tracef("cant set data in redis: %v", err)
 		return err
 	}
 	if result != "OK" {

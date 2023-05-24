@@ -51,7 +51,7 @@ func (mc *CSRF) RequireCSRF(handler http.Handler) http.Handler {
 		}
 		isValid, err := mc.csrfUseCase.Check(r.Context(), session, CSRFToken)
 		if err != nil || !isValid {
-			mc.logger.WithRequestID(ctx).Tracef("csrf token is invalid: %w, isValid: %d", err, isValid)
+			mc.logger.WithRequestID(ctx).Tracef("csrf token is invalid: %v, isValid: %v", err, isValid)
 			w.WriteHeader(http.StatusBadRequest)
 			io.WriteString(w, `{"status": 11, "message": "csrf token is invalid"}`)
 			return

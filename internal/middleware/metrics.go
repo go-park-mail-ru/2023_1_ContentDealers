@@ -41,7 +41,7 @@ func (mv *GeneralMiddleware) Metrics(next http.Handler) http.Handler {
 		method := r.Method
 		status := strconv.Itoa(rw.statusCode)
 
-		metrics.HttpRequestsTotal.WithLabelValues("api_gateway", path, method, status).Inc()
-		metrics.HttpRequestsDurationHistorgram.WithLabelValues("api_gateway", path, method).Observe(elapsedSeocnds)
+		metrics.HTTPRequestsTotal.WithLabelValues("api_gateway", path, method, status).Inc()
+		metrics.HTTPRequestsDurationHistorgram.WithLabelValues("api_gateway", path, method).Observe(elapsedSeocnds)
 	})
 }

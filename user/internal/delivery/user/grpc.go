@@ -118,7 +118,7 @@ func (service *Grpc) UpdateAvatar(stream userProto.UserService_UpdateAvatarServe
 			break
 		}
 		if err != nil {
-			err := fmt.Errorf("Error reading the client stream: %w", err)
+			err = fmt.Errorf("Error reading the client stream: %w", err)
 			service.logger.WithRequestID(ctx).Trace(err)
 			return status.Error(codes.Unknown, err.Error())
 		}
@@ -141,6 +141,10 @@ func (service *Grpc) UpdateAvatar(stream userProto.UserService_UpdateAvatarServe
 	}
 
 	user, err = service.userUseCase.UpdateAvatar(ctx, user, reader)
+	if err != nil {
+		service.logger.WithRequestID(ctx).Trace(err)
+		return err
+	}
 	userResponse := &userProto.User{}
 	err = dto.Map(userResponse, user)
 	if err != nil {

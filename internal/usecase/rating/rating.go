@@ -91,7 +91,7 @@ func (uc *UseCase) GetByUser(ctx context.Context, options domainRate.RatingsOpti
 		return []domainContent.Content{}, []domainRate.Rating{}, false, err
 	}
 
-	var contentIDs []uint64
+	contentIDs := make([]uint64, 0, len(ratings.Ratings))
 	for _, rate := range ratings.Ratings {
 		contentIDs = append(contentIDs, rate.ContentID)
 	}

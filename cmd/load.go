@@ -30,13 +30,14 @@ var (
 	}
 )
 
-func main() {
+func load() {
 	rand.Seed(time.Now().UnixNano())
 	for {
 		pathsSlice := make([]string, 0, len(paths))
 		for k := range paths {
 			pathsSlice = append(pathsSlice, k)
 		}
+		// nolint:gosec
 		path := pathsSlice[rand.Intn(len(pathsSlice))]
 		method := paths[path]
 

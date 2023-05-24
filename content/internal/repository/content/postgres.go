@@ -135,6 +135,8 @@ func (repo *Repository) GetByGenreOptions(ctx context.Context, options domain.Co
 		}
 		return nil, err
 	}
+	defer rows.Close()
+
 	var result []domain.Content
 	for rows.Next() {
 		c := domain.Content{}

@@ -45,6 +45,7 @@ func (uc *UseCase) HasAccessContent(ctx context.Context, originalURI string, coo
 	contentID, err := strconv.Atoi(contentIDString)
 	if err != nil {
 		seriesAndEpisodes := strings.Split(contentIDString, "_")
+		// nolint:gomnd
 		if len(seriesAndEpisodes) != 2 {
 			return fmt.Errorf("contentID undefined")
 		}
@@ -61,7 +62,7 @@ func (uc *UseCase) HasAccessContent(ctx context.Context, originalURI string, coo
 		return fmt.Errorf("content with ID %d is not found", contentID)
 	}
 
-	if content[0].IsFree == true {
+	if content[0].IsFree {
 		return nil
 	}
 

@@ -50,7 +50,7 @@ func (c *UseCase) Create(ctx context.Context, s domain.Session, tokenExpTime int
 	}
 
 	nonce := make([]byte, aesgcm.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
 		c.logger.WithRequestID(ctx).Trace(err)
 		return "", err
 	}
@@ -93,7 +93,7 @@ func (c *UseCase) Check(ctx context.Context, s domain.Session, inputToken string
 	// длина aes nonce равна 12 байтам
 	nonceSize := aesgcm.NonceSize()
 	if len(ciphertext) < nonceSize {
-		err := fmt.Errorf("ciphertext too short")
+		err = fmt.Errorf("ciphertext too short")
 		c.logger.WithRequestID(ctx).Trace(err)
 		return false, err
 	}

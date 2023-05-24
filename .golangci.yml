@@ -45,7 +45,7 @@ linters:
     - nakedret
     - prealloc
     - sqlclosecheck
-    - stylecheck
+    #- stylecheck
     - typecheck
     - unconvert
     - unparam

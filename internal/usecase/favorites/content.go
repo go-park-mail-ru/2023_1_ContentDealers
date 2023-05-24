@@ -71,7 +71,7 @@ func (uc *UseCase) Get(ctx context.Context, options domainFav.FavoritesOptions) 
 		return []domain.Content{}, false, err
 	}
 
-	var contentIDs []uint64
+	contentIDs := make([]uint64, 0, len(favs.Favorites))
 	for _, fav := range favs.Favorites {
 		contentIDs = append(contentIDs, fav.ContentID)
 	}

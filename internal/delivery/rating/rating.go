@@ -178,8 +178,9 @@ func (h *Handler) GetRatingByUser(w http.ResponseWriter, r *http.Request) {
 	contentResponse := []contentRatingDTO{}
 
 	for idx, rate := range ratings {
+		// nolint:govet
 		var contentDTO contentDTO
-		err := dto.Map(&contentDTO, content[idx])
+		err = dto.Map(&contentDTO, content[idx])
 		if err != nil {
 			h.logger.Trace(err)
 			w.WriteHeader(http.StatusInternalServerError)

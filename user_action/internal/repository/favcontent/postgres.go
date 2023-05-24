@@ -91,6 +91,9 @@ func (repo *Repository) Get(ctx context.Context, options domain.FavoritesOptions
 		}
 		return domain.FavoritesContent{}, err
 	}
+
+	defer rows.Close()
+
 	result := domain.FavoritesContent{}
 	for rows.Next() {
 		fav := domain.FavoriteContent{}

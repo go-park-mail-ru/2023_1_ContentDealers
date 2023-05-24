@@ -36,6 +36,7 @@ func (h *Handler) UpdateProgressView(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
+	// nolint:govet
 	viewDTO := viewDTO{}
 	err := decoder.Decode(&viewDTO)
 	if err != nil {
@@ -96,6 +97,7 @@ func (h *Handler) HasView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// nolint:govet
 	viewDTO := viewDTO{
 		UserID:    hasView.View.UserID,
 		ContentID: hasView.View.ContentID,

@@ -81,19 +81,20 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// nolint:gomnd
 	maxSizeBody := int64(h.avatarCfg.MaxSizeBody) << 20
 	r.Body = http.MaxBytesReader(w, r.Body, maxSizeBody)
 	file, _, err := r.FormFile(h.avatarCfg.NameFormFile)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
-			h.logger.WithRequestID(ctx).Tracef("the size exceeded the maximum size equal to %d mb: %w", maxSizeBody, err)
+			h.logger.WithRequestID(ctx).Tracef("the size exceeded the maximum size equal to %d mb: %v", maxSizeBody, err)
 
 			io.WriteString(w, fmt.Sprintf(`{"status": 5, "message":"the size exceeded the maximum size equal to %d mb"}`, maxSizeBody))
 			// для совместимости с nginx
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
 			return
 		} else {
-			h.logger.WithRequestID(ctx).Tracef("failed to parse avatar file from the body: %w", err)
+			h.logger.WithRequestID(ctx).Tracef("failed to parse avatar file from the body: %v", err)
 			io.WriteString(w, `{"message":"failed to parse avatar file from the body"}`)
 		}
 		w.WriteHeader(http.StatusBadRequest)
@@ -104,7 +105,7 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	buff := make([]byte, buffSize)
 	_, err = file.Read(buff)
 	if err != nil {
-		h.logger.WithRequestID(ctx).Tracef("avatar file can't be read: %w", err)
+		h.logger.WithRequestID(ctx).Tracef("avatar file can't be read: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"avatar file can't be read"}`)
 	}
@@ -149,14 +150,14 @@ func (h *Handler) Info(w http.ResponseWriter, r *http.Request) {
 
 	user.Email = html.EscapeString(user.Email)
 
-	has_sub := user.SubscriptionExpiryDate.After(time.Now())
+	hasSub := user.SubscriptionExpiryDate.After(time.Now())
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
 			"user": map[string]interface{}{
 				"email":          user.Email,
 				"avatar_url":     user.AvatarURL,
-				"has_sub":        has_sub,
+				"hasSub":         hasSub,
 				"sub_expiration": user.SubscriptionExpiryDate.Format("2006-01-02"),
 			},
 		},
@@ -195,7 +196,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	userUpdate := userDTO{}
 	err = decoder.Decode(&userUpdate)
 	if err != nil {
-		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %w", err)
+		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return

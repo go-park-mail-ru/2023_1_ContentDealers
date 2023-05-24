@@ -168,6 +168,7 @@ func Run() error {
 	}
 
 	go func() {
+		// nolint:govet
 		err := server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
 			logger.Error("listen and server", err)

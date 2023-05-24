@@ -2,6 +2,7 @@ package payment
 
 import (
 	"context"
+	// nolint:gosec
 	"crypto/md5"
 	"errors"
 	"fmt"
@@ -34,6 +35,7 @@ func (uc *UseCase) Accept(ctx context.Context, payment domain.Payment) error {
 		return ErrIncorrectPaymentAmount
 	}
 
+	// nolint:gosec
 	sign := md5.Sum([]byte(fmt.Sprintf("%s:%d:%s:%s", uc.cfg.MerchantID, payment.Amount, uc.cfg.Secret2,
 		payment.OrderID)))
 	if fmt.Sprintf("%x", sign) != payment.Sign {
@@ -49,6 +51,7 @@ func (uc *UseCase) Accept(ctx context.Context, payment domain.Payment) error {
 }
 
 func (uc *UseCase) GetPaymentLink(ctx context.Context, userID uint64) string {
+	// nolint:gosec
 	sign := md5.Sum([]byte(fmt.Sprintf("%s:%d:%s:%s:%d", uc.cfg.MerchantID, uc.cfg.SubscriptionPrice,
 		uc.cfg.Secret, uc.cfg.Currency, userID)))
 	return fmt.Sprintf("https://pay.freekassa.ru/?m=%s&oa=%d&currency=%s&o=%d&s=%x", uc.cfg.MerchantID,

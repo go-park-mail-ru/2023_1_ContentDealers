@@ -103,6 +103,8 @@ func (repo *Repository) GetByUser(ctx context.Context, options domain.RatingsOpt
 		}
 		return domain.Ratings{}, err
 	}
+	defer rows.Close()
+
 	result := domain.Ratings{}
 	for rows.Next() {
 		rate := domain.Rating{}
@@ -137,6 +139,9 @@ func (repo *Repository) GetByContent(ctx context.Context, options domain.Ratings
 		}
 		return domain.Ratings{}, err
 	}
+
+	defer rows.Close()
+
 	result := domain.Ratings{}
 	for rows.Next() {
 		rate := domain.Rating{}

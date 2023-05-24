@@ -20,7 +20,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
 	userCreate := userDTO{}
 	err := decoder.Decode(&userCreate)
 	if err != nil {
-		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %w", err)
+		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
@@ -65,7 +65,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 	credentials := userDTO{}
 	err := decoder.Decode(&credentials)
 	if err != nil {
-		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %w", err)
+		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
