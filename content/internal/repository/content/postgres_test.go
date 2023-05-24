@@ -21,7 +21,7 @@ func TestRepository_GetByID(t *testing.T) {
 
 	var contentID uint64 = 0
 	rows := sqlmock.
-		NewRows([]string{"id", "title", "description", "rating", "year", "is_free", "age_limit", "trailer_url",
+		NewRows([]string{"id", "title", "description", "rating", "sum_ratings", "count_ratings", "year", "is_free", "age_limit", "trailer_url",
 			"preview_url", "type"})
 	expect := []domain.Content{
 		{
@@ -39,20 +39,21 @@ func TestRepository_GetByID(t *testing.T) {
 			Genres:       nil,
 			Selections:   nil,
 			Countries:    nil,
+			SumRatings:   10,
+			CountRatings: 1,
 		},
 	}
 	for _, content := range expect {
-		rows = rows.AddRow(content.ID, content.Title, content.Description, content.Rating, content.Year, content.IsFree,
+		rows = rows.AddRow(content.ID, content.Title, content.Description, content.Rating, content.SumRatings, content.CountRatings, content.Year, content.IsFree,
 			content.AgeLimit, content.TrailerURL, content.PreviewURL, content.Type)
 	}
 
 	mock.
-		ExpectQuery(`select c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
-       							c.trailer_url, c.preview_url, c.type from content c where`).
+		ExpectQuery(`select`).
 		WithArgs(pq.Array([]uint64{contentID})).
 		WillReturnRows(rows)
 
-	repo := NewRepository(db)
+	repo := NewRepository(db, 0)
 
 	content, err := repo.GetByID(context.Background(), contentID)
 	if err != nil {
@@ -66,8 +67,7 @@ func TestRepository_GetByID(t *testing.T) {
 	require.Equal(t, content, expect[0])
 
 	mock.
-		ExpectQuery(`select c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
-       							c.trailer_url, c.preview_url, c.type from content c where`).
+		ExpectQuery(`select`).
 		WithArgs(pq.Array([]uint64{contentID})).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -88,7 +88,7 @@ func TestRepository_GetByPersonID(t *testing.T) {
 
 	var personID uint64 = 0
 	rows := sqlmock.
-		NewRows([]string{"id", "title", "description", "rating", "year", "is_free", "age_limit", "trailer_url",
+		NewRows([]string{"id", "title", "description", "rating", "sum_ratings", "count_ratings", "year", "is_free", "age_limit", "trailer_url",
 			"preview_url", "type"})
 	expect := []domain.Content{
 		{
@@ -125,18 +125,16 @@ func TestRepository_GetByPersonID(t *testing.T) {
 		},
 	}
 	for _, content := range expect {
-		rows = rows.AddRow(content.ID, content.Title, content.Description, content.Rating, content.Year, content.IsFree,
+		rows = rows.AddRow(content.ID, content.Title, content.Description, content.Rating, content.SumRatings, content.CountRatings, content.Year, content.IsFree,
 			content.AgeLimit, content.TrailerURL, content.PreviewURL, content.Type)
 	}
 
 	mock.
-		ExpectQuery(`select c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
-       							c.trailer_url, c.preview_url, c.type from content c
-       							join content_roles_persons crp on c.id = crp.content_id`).
+		ExpectQuery(`select`).
 		WithArgs(personID).
 		WillReturnRows(rows)
 
-	repo := NewRepository(db)
+	repo := NewRepository(db, 0)
 	content, err := repo.GetByPersonID(context.Background(), personID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -149,9 +147,7 @@ func TestRepository_GetByPersonID(t *testing.T) {
 	require.Equal(t, content, expect)
 
 	mock.
-		ExpectQuery(`select c.id, c.title, c.description, c.rating, c.year, c.is_free, c.age_limit,
-       							c.trailer_url, c.preview_url, c.type from content c
-       							join content_roles_persons crp on c.id = crp.content_id`).
+		ExpectQuery(`select`).
 		WithArgs(personID).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -172,7 +168,7 @@ func TestRepository_GetBySelectionIDs(t *testing.T) {
 
 	selectionsIDs := []uint64{0, 1, 2}
 	rows := sqlmock.
-		NewRows([]string{"content_id", "id", "title", "description", "rating", "year", "is_free", "age_limit",
+		NewRows([]string{"content_id", "id", "title", "description", "rating", "sum_ratings", "count_ratings", "year", "is_free", "age_limit",
 			"trailer_url", "preview_url", "type"})
 	expect := map[uint64][]domain.Content{
 		0: {{
@@ -247,20 +243,17 @@ func TestRepository_GetBySelectionIDs(t *testing.T) {
 	for selectionID, contentSlice := range expect {
 		for _, content := range contentSlice {
 			rows = rows.AddRow(selectionID,
-				content.ID, content.Title, content.Description, content.Rating, content.Year, content.IsFree,
+				content.ID, content.Title, content.Description, content.Rating, content.SumRatings, content.CountRatings, content.Year, content.IsFree,
 				content.AgeLimit, content.TrailerURL, content.PreviewURL, content.Type)
 		}
 	}
 
 	mock.
-		ExpectQuery(`select cs.selection_id, c.id, c.title, c.description, c.rating, c.year,
-       							c.is_free, c.age_limit, c.trailer_url, c.preview_url, c.type from content c 
-       		   					join content_selections cs on c.id = cs.content_id
-       		   					where cs.selection_id`).
+		ExpectQuery(`select`).
 		WithArgs(pq.Array(selectionsIDs)).
 		WillReturnRows(rows)
 
-	repo := NewRepository(db)
+	repo := NewRepository(db, 0)
 	content, err := repo.GetBySelectionIDs(context.Background(), selectionsIDs)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -273,10 +266,7 @@ func TestRepository_GetBySelectionIDs(t *testing.T) {
 	require.Equal(t, content, expect)
 
 	mock.
-		ExpectQuery(`select cs.selection_id, c.id, c.title, c.description, c.rating, c.year,
-       							c.is_free, c.age_limit, c.trailer_url, c.preview_url, c.type from content c 
-       		   					join content_selections cs on c.id = cs.content_id
-       		   					where cs.selection_id`).
+		ExpectQuery(`select`).
 		WithArgs(pq.Array(selectionsIDs)).
 		WillReturnError(fmt.Errorf("db_error"))
 
@@ -306,7 +296,7 @@ func TestRepository_GetFilmByContentID(t *testing.T) {
 		WithArgs(contentID).
 		WillReturnRows(rows)
 
-	repo := NewRepository(db)
+	repo := NewRepository(db, 0)
 	content, err := repo.GetFilmByContentID(context.Background(), contentID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)

@@ -36,7 +36,7 @@ func TestRepository_GetByID(t *testing.T) {
 		WithArgs(personID).
 		WillReturnRows(rows)
 
-	repo := NewRepository(db)
+	repo := NewRepository(db, 0)
 	content, err := repo.GetByID(context.Background(), personID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
@@ -104,7 +104,7 @@ func TestRepository_GetByContentID(t *testing.T) {
 		WithArgs(contentID).
 		WillReturnRows(rows)
 
-	repo := NewRepository(db)
+	repo := NewRepository(db, 0)
 	content, err := repo.GetByContentID(context.Background(), contentID)
 	if err != nil {
 		t.Errorf("unexpected err: %s", err)
