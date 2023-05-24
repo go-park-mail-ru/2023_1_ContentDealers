@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+// protoc --go_out=. --go-grpc_out=. --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative *.proto
+option go_package = "./;content";
+
+import "google/protobuf/timestamp.proto";
+
+package content;
+
+message ContentID {
+  uint64 ID = 1;
+}
+
+message ContentIDs {
+  repeated ContentID ContentIDs = 1;
+}
+
+message Person {
+  uint64 ID = 1;
+  string Name = 2;
+}
+
+message Role {
+  uint64 ID = 1;
+  string Title = 2;
+}
+
+message PersonRole {
+  Person Person = 1;
+  Role Role = 2;
+}
+
+message Genre {
+  uint64 ID = 1;
+  string Name = 2;
+}
+
+message Selection {
+  uint64 ID = 1;
+  string Title = 2;
+}
+
+message Country {
+  uint64 ID = 1;
+  string Name = 2;
+}
+
+message Content {
+  uint64 ID = 1;
+  string Title = 2;
+  string Description = 3;
+  double Rating = 4;
+  double SumRatings = 5;
+  uint64 CountRatings = 6;
+  int32 Year = 7;
+  bool IsFree = 8;
+  int32 AgeLimit = 9;
+  string TrailerURL = 10;
+  string PreviewURL = 11;
+  string Type = 12;
+  repeated PersonRole PersonsRoles = 13;
+  repeated Genre Genres = 14;
+  repeated Selection Selections = 15;
+  repeated Country Countries = 16;
+}
+
+message ContentSeq {
+  repeated Content Content = 1;
+}
+
+message Film {
+  uint64 ID = 1;
+  string ContentURL = 2;
+  Content Content = 3;
+}
+
+message Episode {
+  uint64 ID = 1;
+  uint32 SeasonNum = 2;
+  uint32 EpisodeNum = 3;
+  string PreviewURL = 4;
+  string ContentURL = 5;
+  string Title = 6;
+  google.protobuf.Timestamp ReleaseDate = 7;
+}
+
+message Series {
+  uint64 ID = 1;
+  Content Content = 2;
+  repeated Episode Episodes = 3;
+}
+
+message Rating {
+  uint64 ContentID = 1;
+  float Rating = 2;
+}
+
+message ContentIDSeasonNum {
+  uint64 ContentID = 1;
+  uint32 SeasonNum = 2;
+}
+
+message Episodes {
+  repeated Episode Episodes = 1;
+}
+
+message Nothing {}
+
+service ContentService {
+  rpc AddRating (Rating) returns (Nothing) {}
+  rpc DeleteRating (Rating) returns (Nothing) {}
+  rpc GetFilmByContentID (ContentID) returns (Film) {}
+  rpc GetSeriesByContentID (ContentID) returns (Series) {}
+  rpc GetContentByContentIDs (ContentIDs) returns (ContentSeq) {}
+  rpc GetEpisodesBySeasonNum (ContentIDSeasonNum) returns (Episodes) {}
+}

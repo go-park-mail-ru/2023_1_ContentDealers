@@ -1,9 +1,9 @@
 name: Go
 
+# h
+
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
     branches: [ "main" ]
 
 jobs:
@@ -43,3 +43,53 @@ jobs:
       with:
         name: coverage.html
         path: coverage.html
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, tests]
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: Build
+      run: make -B build
+      # make -B build HASH_COMMIT=${GITHUB_SHA::8}
+
+    - name: Upload build result
+      uses: actions/upload-artifact@v3
+      with:
+        name: build_dir
+        path: ./build_versions
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download build dir
+        uses: actions/download-artifact@v1
+        with:
+          name: build_dir
+      - name: Remove tmp directory
+        run: mv build_dir/* . && rm -rf build_dir
+      - name: Transfer build dir to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "build*"
+          target: "/home/ubuntu/filmium-new/back/build_versions"
+
+      - name: Run new version app
+        uses: appleboy/ssh-action@master
+        with:
+          envs: GITHUB_SHA
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: cd filmium-new && chmod -R 777 back/build_versions/ && make update_build_dir && sudo docker compose restart &
+
+

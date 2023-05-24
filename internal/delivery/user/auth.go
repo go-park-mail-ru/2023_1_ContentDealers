@@ -3,76 +3,97 @@ package user
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
-	"github.com/go-park-mail-ru/2023_1_ContentDealers/internal/domain"
+	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
+	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
 )
 
 func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
-	credentials := domain.UserCredentials{}
-	err := decoder.Decode(&credentials)
+	userCreate := userDTO{}
+	err := decoder.Decode(&userCreate)
 	if err != nil {
-		log.Printf("error while unmarshalling JSON: %s", err)
+		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"status":400}`)
+		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
 	}
-	newUser, err := h.userUseCase.Register(credentials)
+
+	if userCreate.AvatarURL == "" {
+		userCreate.AvatarURL = "media/avatars/default_avatar.jpg"
+	}
+	user := domainUser.User{
+		Email:        userCreate.Email,
+		PasswordHash: userCreate.Password,
+		AvatarURL:    userCreate.AvatarURL,
+	}
+
+	_, err = h.userGateway.Register(r.Context(), user)
 	if err != nil {
 		switch {
-		case errors.Is(err, domain.ErrUserAlreadyExists):
-			w.WriteHeader(http.StatusConflict)
-			io.WriteString(w, `{"status":409}`)
-		default:
-			// TODO: данные не прошли валидацию, нужен кастомный тип ошибки
-			log.Println(err)
+		case errors.Is(err, domainUser.ErrUserAlreadyExists):
 			w.WriteHeader(http.StatusBadRequest)
-			io.WriteString(w, `{"status":400}`)
+			io.WriteString(w, `{"status": 1, "message":"user already exists"}`)
+		case errors.Is(err, domainUser.ErrNotValidEmail):
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, `{"status": 2, "message":"email not validated"}`)
+		case errors.Is(err, domainUser.ErrNotValidPassword):
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, `{"status": 3, "message":"password not validated"}`)
+
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
 
-	log.Printf("New User - %v", newUser)
-	w.WriteHeader(http.StatusCreated)
-	io.WriteString(w, `{"status":201}`)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	decoder := json.NewDecoder(r.Body)
-	credentials := domain.UserCredentials{}
+	credentials := userDTO{}
 	err := decoder.Decode(&credentials)
 	if err != nil {
-		log.Printf("error while unmarshalling JSON: %s", err)
+		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
-		io.WriteString(w, `{"status":400}`)
+		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
 		return
 	}
 
-	user, err := h.userUseCase.Auth(credentials)
+	user := domainUser.User{
+		Email:        credentials.Email,
+		PasswordHash: credentials.Password, // no hash
+	}
+
+	// TODO: user, session, err := h.userUseCase.Auth(r.Context(), user)
+
+	user, err = h.userGateway.Auth(r.Context(), user)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		io.WriteString(w, `{"status":404}`)
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, `{"status": 4, "message":"auth wrong credentials"}`)
 		return
 	}
 
-	session, err := h.sessionUseCase.Create(user)
+	session, err := h.sessionGateway.Create(r.Context(), user)
 	if err != nil {
-		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status":500}`)
+		return
 	}
 
 	sessionCookie := http.Cookie{
 		Name:     "session_id",
-		Value:    session.ID.String(),
+		Value:    session.ID,
 		Expires:  session.ExpiresAt,
 		HttpOnly: true,
 		Path:     "/",
@@ -81,7 +102,6 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &sessionCookie)
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, `{"status":200}`)
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -89,17 +109,16 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	sessionRaw := ctx.Value("session")
-	session, ok := sessionRaw.(domain.Session)
+	session, ok := sessionRaw.(domainSession.Session)
 	if !ok {
+		h.logger.WithRequestID(ctx).Trace(domainSession.ErrSessionInvalid)
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status":500}`)
 		return
 	}
 
-	err := h.sessionUseCase.Delete(session.ID)
+	err := h.sessionGateway.Delete(r.Context(), session.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, `{"status":500}`)
 		return
 	}
 
@@ -114,5 +133,28 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &sessionCookie)
 	w.WriteHeader(http.StatusOK)
-	io.WriteString(w, `{"status":200}`)
+}
+
+func (h *Handler) HasAccessContent(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	ctx := r.Context()
+	fmt.Println("header = ", r.Header.Get("X-Original-URI"))
+	originalURI := r.Header.Get("X-Original-URI")
+	if originalURI == "" {
+		h.logger.WithRequestID(ctx).Trace("not found 'X-Original-URI' for determine access to content")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var cookieString string
+	cookie, err := r.Cookie("session_id")
+	if err == nil {
+		cookieString = cookie.Value
+	}
+	err = h.userUsecase.HasAccessContent(ctx, originalURI, cookieString)
+	if err != nil {
+		h.logger.WithRequestID(ctx).Trace(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

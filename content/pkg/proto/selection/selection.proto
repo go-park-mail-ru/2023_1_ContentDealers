@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+// protoc --go_out=. --go-grpc_out=. --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative *.proto
+option go_package = "./;selection";
+
+package selection;
+
+message ID {
+  uint64 ID = 1;
+}
+
+message Content {
+  uint64 ID = 1;
+  string Title = 2;
+  string Description = 3;
+  double Rating = 4;
+  double SumRatings = 5;
+  uint64 CountRatings = 6;
+  int32 Year = 7;
+  bool IsFree = 8;
+  int32 AgeLimit = 9;
+  string TrailerURL = 10;
+  string PreviewURL = 11;
+  string Type = 12;
+}
+
+message Selection {
+  uint64 ID = 1;
+  string Title = 2;
+  repeated Content Content = 3;
+}
+
+message Selections {
+  repeated Selection Selections = 1;
+}
+
+message GetAllCfg {
+  uint32 limit = 1;
+  uint32 offset = 2;
+}
+
+service SelectionService {
+  rpc GetAll (GetAllCfg) returns (Selections) {}
+  rpc GetByID (ID) returns (Selection) {}
+}

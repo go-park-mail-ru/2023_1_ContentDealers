@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+// protoc --go_out=. --go-grpc_out=. --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative *.proto
+option go_package = "./;search";
+
+package search;
+
+message Content {
+  uint64 ID = 1;
+  string Title = 2;
+  string Description = 3;
+  double Rating = 4;
+  double SumRatings = 5;
+  uint64 CountRatings = 6;
+  int32 Year = 7;
+  bool IsFree = 8;
+  int32 AgeLimit = 9;
+  string TrailerURL = 10;
+  string PreviewURL = 11;
+  string Type = 12;
+}
+
+message Person {
+  uint64 ID = 1;
+  string Name = 2;
+  string Gender = 3;
+  optional int32 Growth = 4;
+  optional string Birthplace = 5;
+  string AvatarURL = 6;
+  int32 Age = 7;
+}
+
+message SearchContent {
+  uint32 Total = 1;
+  repeated Content Content = 2;
+}
+
+message SearchPerson {
+  uint32 Total = 1;
+  repeated Person Persons = 2;
+}
+
+message SearchResponse {
+  SearchContent Content = 1;
+  SearchPerson Persons = 2;
+}
+
+message SearchParams {
+  string Query = 1;
+  string TargetSlug = 2;
+  uint32 Limit = 3;
+  uint32 Offset = 4;
+}
+
+service SearchService {
+  rpc Search (SearchParams) returns (SearchResponse) {}
+}

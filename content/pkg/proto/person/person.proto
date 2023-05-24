@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+// protoc --go_out=. --go-grpc_out=. --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative *.proto
+option go_package = "./;person";
+
+package person;
+
+message ID {
+  uint64 ID = 1;
+}
+
+message Content {
+  uint64 ID = 1;
+  string Title = 2;
+  string Type = 3;
+}
+
+message Role {
+  uint64 ID = 1;
+  string Title = 2;
+}
+
+message Genre {
+  uint64 ID = 1;
+  string Name = 2;
+}
+
+message Person {
+  uint64 ID = 1;
+  string Name = 2;
+  string Gender = 3;
+  optional int32 Growth = 4;
+  optional string Birthplace = 5;
+  string AvatarURL = 6;
+  int32 Age = 7;
+  repeated Content ParticipatedIn = 8;
+  repeated Role Roles = 9;
+  repeated Genre Genres = 10;
+}
+
+service PersonService {
+  rpc GetByID (ID) returns (Person) {}
+}
