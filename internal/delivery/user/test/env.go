@@ -52,7 +52,7 @@ type TestRouter struct {
 	Router *mux.Router
 }
 
-func NewTestRouter(userGate UserGateway, sessionGate SessionGateway) (*TestRouter, error) {
+func NewTestRouter(userGate UserGateway, sessionGate SessionGateway, userUsecase UserUsecase) (*TestRouter, error) {
 	cfgGeneral, err := config.GetCfg("config_test.yml")
 	if err != nil {
 		return nil, fmt.Errorf("Fail to parse config yml file: %w", err)
@@ -69,7 +69,7 @@ func NewTestRouter(userGate UserGateway, sessionGate SessionGateway) (*TestRoute
 		return nil, err
 	}
 
-	userHandler := user.NewHandler(userGate, sessionGate, logger, cfg.Avatar)
+	userHandler := user.NewHandler(userGate, userUsecase, sessionGate, logger, cfg.Avatar)
 	csrfHandler := csrf.NewHandler(CSRFUseCase, logger, cfg.CSRF)
 
 	authMiddleware := middlewareUser.NewAuth(sessionGate, logger)
