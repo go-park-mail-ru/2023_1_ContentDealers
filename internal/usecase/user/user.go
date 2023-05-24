@@ -44,7 +44,14 @@ func (uc *UseCase) HasAccessContent(ctx context.Context, originalURI string, coo
 	contentIDString := strings.TrimSuffix(path[len(path)-1], ".mp4")
 	contentID, err := strconv.Atoi(contentIDString)
 	if err != nil {
-		return fmt.Errorf("contentID is not numeric")
+		seriesAndEpisodes := strings.Split(contentIDString, "_")
+		if len(seriesAndEpisodes) != 2 {
+			return fmt.Errorf("contentID undefined")
+		}
+		contentID, err = strconv.Atoi(seriesAndEpisodes[0])
+		if err != nil {
+			return fmt.Errorf("contentID is not numeric")
+		}
 	}
 	content, err := uc.contentGateway.GetContentByContentIDs(ctx, []uint64{uint64(contentID)})
 	if err != nil {

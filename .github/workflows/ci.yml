@@ -5,8 +5,6 @@ name: Go
 on:
   push:
     branches: [ "main" ]
-  # pull_request:
-  #   branches: [ "main" ]
 
 jobs:
   build:
@@ -27,7 +25,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: build_dir
-        path: ./build_*
+        path: ./build_versions
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,7 +44,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "build*"
-          target: "/home/ubuntu/filmium-new/back"
+          target: "/home/ubuntu/filmium-new/back/build_versions"
 
       - name: Run new version app
         uses: appleboy/ssh-action@master
@@ -55,6 +53,6 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: cd filmium-new && sudo docker compose down && make update_docker_compose_volumes && sudo docker compose up
+          script: cd filmium-new && chmod -R 777 back/build_versions/ && make update_build_dir && sudo docker compose restart
 
 
