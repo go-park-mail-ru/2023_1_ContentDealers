@@ -269,8 +269,9 @@ func TestUserAccountHandlers(t *testing.T) {
 	defer ctrl.Finish()
 	userGatewayMock := NewMockUserGateway(ctrl)
 	sessionGatewayMock := NewMockSessionGateway(ctrl)
+	userUsecase := NewMockUserUsecase(ctrl)
 
-	testRouter, err := NewTestRouter(userGatewayMock, sessionGatewayMock)
+	testRouter, err := NewTestRouter(userGatewayMock, sessionGatewayMock, userUsecase)
 	if err != nil {
 		t.Errorf("fail to init router: %v", err)
 	}
