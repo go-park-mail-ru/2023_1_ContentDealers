@@ -90,6 +90,6 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: cd filmium-new && chmod -R 777 back/build_versions/ && make update_build_dir && sudo docker compose restart
+          script: cd filmium-new && chmod -R 777 back/build_versions/ && make update_build_dir && sudo docker compose restart &
 
 
