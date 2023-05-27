@@ -1,17 +1,22 @@
 package user
 
 import (
+	"bytes"
+	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"html"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-park-mail-ru/2023_1_ContentDealers/pkg/logging"
 	domainSession "github.com/go-park-mail-ru/2023_1_ContentDealers/session/pkg/domain"
 	domainUser "github.com/go-park-mail-ru/2023_1_ContentDealers/user/pkg/domain"
+	"golang.org/x/crypto/argon2"
 )
 
 // TODO: может, имеет смысл для констант ввести префикс ("kNameFormFile", "cNameFormFile")
@@ -89,14 +94,13 @@ func (h *Handler) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		if errors.As(err, new(*http.MaxBytesError)) {
 			h.logger.WithRequestID(ctx).Tracef("the size exceeded the maximum size equal to %d mb: %v", maxSizeBody, err)
 
-			io.WriteString(w, fmt.Sprintf(`{"status": 5, "message":"the size exceeded the maximum size equal to %d mb"}`, maxSizeBody))
-			// для совместимости с nginx
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
+			io.WriteString(w, `{"status": 5, "message":"the size exceeded the maximum size equal to %d mb"}`)
+			// для совместимости с nginx
 			return
-		} else {
-			h.logger.WithRequestID(ctx).Tracef("failed to parse avatar file from the body: %v", err)
-			io.WriteString(w, `{"message":"failed to parse avatar file from the body"}`)
 		}
+		h.logger.WithRequestID(ctx).Tracef("failed to parse avatar file from the body: %v", err)
+		io.WriteString(w, `{"message":"failed to parse avatar file from the body"}`)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -215,4 +219,80 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) PasswordValidate(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	ctx := r.Context()
+
+	sessionRaw := ctx.Value("session")
+	session, ok := sessionRaw.(domainSession.Session)
+	if !ok {
+		h.logger.WithRequestID(ctx).Trace(domainSession.ErrSessionInvalid)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	user, err := h.userGateway.GetByID(ctx, session.UserID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	userPass := userPasswordDTO{}
+	err = decoder.Decode(&userPass)
+	if err != nil {
+		h.logger.WithRequestID(ctx).Tracef("failed to parse json string from the body: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, `{"message":"failed to parse json string from the body"}`)
+		return
+	}
+
+	isValid, err := verifyPassword(ctx, userPass.Password, user.PasswordHash)
+	if err != nil {
+		h.logger.WithRequestID(ctx).Trace(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if !isValid {
+		h.logger.WithRequestID(ctx).Trace(err)
+		w.WriteHeader(http.StatusBadRequest)
+		io.WriteString(w, `{"message":"password mismatch"}`)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// TODO: Для ускорения написания ручки
+
+const (
+	saltSize    = 16
+	hashSize    = 32
+	iterations  = 1
+	memory      = 64 * 1024
+	parallelism = 4
+)
+
+func verifyPassword(ctx context.Context, password, encodedPassword string) (bool, error) {
+	if len(encodedPassword) <= saltSize {
+		err := fmt.Errorf("Invalid encoded password format")
+		return false, err
+	}
+	tmp := strings.Split(encodedPassword, ".")
+	saltString, hashString := tmp[0], tmp[1]
+	salt, err := base64.StdEncoding.DecodeString(saltString)
+	if err != nil {
+		return false, err
+	}
+	hash, err := base64.StdEncoding.DecodeString(hashString)
+	if err != nil {
+		return false, err
+	}
+
+	expectedHash := argon2.IDKey([]byte(password), salt, iterations, memory, parallelism, hashSize)
+	return bytes.Equal(hash, expectedHash), nil
 }

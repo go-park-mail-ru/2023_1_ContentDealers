@@ -130,6 +130,8 @@ func Routes(s *SettingsRouter) *mux.Router {
 
 	corsRouter.HandleFunc("/user/content/has_access", s.UserHandler.HasAccessContent).Methods("GET")
 
+	authRouter.HandleFunc("/user/password/validate", s.UserHandler.PasswordValidate).Methods("POST")
+
 	router.HandleFunc("/payment/accept", s.PaymentHandler.Accept).Methods("POST")
 	authRouter.HandleFunc("/payment/link", s.PaymentHandler.GetPaymentLink).Methods("GET")
 

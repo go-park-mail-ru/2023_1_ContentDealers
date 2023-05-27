@@ -5,3 +5,7 @@ type userDTO struct {
 	Password  string `json:"password"`
 	AvatarURL string `json:"avatar_url"`
 }
+
+type userPasswordDTO struct {
+	Password string `json:"password"`
+}

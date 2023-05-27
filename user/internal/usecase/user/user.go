@@ -65,11 +65,11 @@ func (uc *User) DeleteAvatar(ctx context.Context, user domain.User) error {
 }
 
 func (uc *User) Update(ctx context.Context, user domain.User) error {
+	userTmp, err := uc.repo.GetByID(ctx, user.ID)
+	if err != nil {
+		return err
+	}
 	if user.PasswordHash == "" {
-		userTmp, err := uc.repo.GetByID(ctx, user.ID)
-		if err != nil {
-			return err
-		}
 		// оставляем тот же пароль
 		user.PasswordHash = userTmp.PasswordHash
 	} else {
@@ -79,6 +79,10 @@ func (uc *User) Update(ctx context.Context, user domain.User) error {
 		}
 		user.PasswordHash = passwordHashTmp
 	}
+	if user.Email == "" {
+		user.Email = userTmp.Email
+	}
+
 	return uc.repo.Update(ctx, user)
 }
 
