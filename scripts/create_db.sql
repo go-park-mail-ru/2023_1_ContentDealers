@@ -107,7 +107,7 @@ create table content (
     id bigserial primary key,
     title text not null,
     description text not null,
-    rating numeric(4, 2),
+    rating numeric(3, 1),
     year integer,
     is_free boolean not null default true,
     age_limit integer not null default 0,

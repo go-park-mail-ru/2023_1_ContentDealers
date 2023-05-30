@@ -73,10 +73,14 @@ func (gate *Gateway) GetViewsByUser(ctx context.Context, options domain.ViewsOpt
 		return domain.Views{}, err
 	}
 	views := domain.Views{}
-	err = dto.Map(&views, viewsResponse)
-	if err != nil {
-		gate.logger.WithRequestID(ctx).Trace(err)
-		// return domain.Views{}, err
+	for _, viewResponse := range viewsResponse.Views {
+		views.Views = append(views.Views, domain.View{
+			UserID:    viewResponse.UserID,
+			ContentID: viewResponse.ContentID,
+			StopView:  viewResponse.StopView.AsDuration(),
+			Duration:  viewResponse.Duration.AsDuration(),
+		})
 	}
+
 	return views, nil
 }

@@ -9,7 +9,7 @@ import (
 
 type RatingUseCase interface {
 	Delete(ctx context.Context, rating domain.Rating) error
-	Add(ctx context.Context, rating domain.Rating) error
+	Add(ctx context.Context, rating domain.Rating) (float64, uint64, error)
 	Has(ctx context.Context, rating domain.Rating) (domain.HasRating, error)
 	GetByUser(ctx context.Context, options domain.RatingsOptions) ([]domainContent.Content, []domain.Rating, bool, error)
 	GetByContent(ctx context.Context, options domain.RatingsOptions) (domain.Ratings, error)

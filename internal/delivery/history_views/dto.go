@@ -7,6 +7,11 @@ type viewDTO struct {
 	Duration  string `json:"duration"`
 }
 
+type contentViewDTO struct {
+	Content contentDTO `json:"content"`
+	View    viewDTO    `json:"view"`
+}
+
 type contentDTO struct {
 	ID          uint64  `json:"id"`
 	Title       string  `json:"title"`

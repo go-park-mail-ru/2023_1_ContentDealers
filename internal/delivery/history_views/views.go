@@ -162,25 +162,41 @@ func (h *Handler) GetViewsByUser(w http.ResponseWriter, r *http.Request) {
 		TypeView: typeReq,
 	}
 
-	content, isLast, err := h.useCase.GetViewsByUser(ctx, options)
+	content, views, isLast, err := h.useCase.GetViewsByUser(ctx, options)
+
 	if err != nil {
 		h.logger.WithRequestID(ctx).Trace(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	contentResponse := []contentDTO{}
-	err = dto.Map(&contentResponse, content)
-	if err != nil {
-		h.logger.WithRequestID(ctx).Trace(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	contentResponse := []contentViewDTO{}
+
+	for idx, view := range views {
+		contentDTO := contentDTO{}
+		viewDTO := viewDTO{}
+		err = dto.Map(&viewDTO, view)
+		err = dto.Map(&contentDTO, content[idx])
+		if err != nil {
+			h.logger.WithRequestID(ctx).Trace(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		viewDTO.StopView = view.StopView.String()
+		viewDTO.Duration = view.Duration.String()
+
+		contentResponse = append(contentResponse, contentViewDTO{
+			View:    viewDTO,
+			Content: contentDTO,
+		})
+
 	}
 
 	response, err := json.Marshal(map[string]interface{}{
 		"body": map[string]interface{}{
-			"content": contentResponse,
-			"is_last": isLast,
+			"content_with_views": contentResponse,
+			"is_last":            isLast,
 		},
 	})
 	if err != nil {

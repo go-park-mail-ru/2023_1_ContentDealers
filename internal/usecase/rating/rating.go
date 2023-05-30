@@ -49,24 +49,29 @@ func (uc *UseCase) Delete(ctx context.Context, rating domainRate.Rating) error {
 	return nil
 }
 
-func (uc *UseCase) Add(ctx context.Context, rating domainRate.Rating) error {
+func (uc *UseCase) Add(ctx context.Context, rating domainRate.Rating) (float64, uint64, error) {
 	userID, err := uc.getUserIDByContext(ctx)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
-		return err
+		return 0, 0, err
 	}
 	rating.UserID = userID
 	err = uc.gate.AddRating(ctx, rating)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
-		return err
+		return 0, 0, err
 	}
 	err = uc.content.AddRating(ctx, rating.ContentID, rating.Rating)
 	if err != nil {
 		uc.logger.WithRequestID(ctx).Trace(err)
-		return err
+		return 0, 0, err
 	}
-	return nil
+
+	content, err := uc.content.GetContentByContentIDs(ctx, []uint64{rating.ContentID})
+	if err != nil {
+		return 0, 0, err
+	}
+	return content[0].Rating, content[0].CountRatings, nil
 }
 
 func (uc *UseCase) Has(ctx context.Context, rating domainRate.Rating) (domainRate.HasRating, error) {

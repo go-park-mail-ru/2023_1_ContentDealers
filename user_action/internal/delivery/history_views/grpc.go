@@ -73,6 +73,8 @@ func (service *Grpc) GetViewsByUser(ctx context.Context, viewsOptionsRequest *vi
 		viewsResponse.Views = append(viewsResponse.Views, &viewsProto.View{
 			UserID:    view.UserID,
 			ContentID: view.ContentID,
+			StopView:  ptypes.DurationProto(view.StopView),
+			Duration:  ptypes.DurationProto(view.Duration),
 		})
 	}
 	viewsResponse.IsLast = views.IsLast

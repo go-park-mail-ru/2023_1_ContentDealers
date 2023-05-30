@@ -82,12 +82,26 @@ func (h *Handler) AddRating(w http.ResponseWriter, r *http.Request) {
 		Rating:    ratingDTO.Rating,
 	}
 
-	err = h.useCase.Add(ctx, rating)
+	newRating, countRatings, err := h.useCase.Add(ctx, rating)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	response, err := json.Marshal(map[string]interface{}{
+		"body": map[string]interface{}{
+			"new_rating":    newRating,
+			"count_ratings": countRatings,
+		},
+	})
+	if err != nil {
+		h.logger.Trace(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 }
 
 func (h *Handler) HasRating(w http.ResponseWriter, r *http.Request) {
