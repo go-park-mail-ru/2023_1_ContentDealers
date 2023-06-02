@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	passwordRegexp = regexp2.MustCompile(`^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]{8,}$`, 0)
+	passwordRegexp = regexp2.MustCompile(`^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9~!@#$%^&*()+''";:<>\/\|]{8,}$`, 0)
 	emailRegexp    = regexp2.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, 0)
 )
 
