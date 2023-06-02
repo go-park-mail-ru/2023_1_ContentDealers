@@ -24,16 +24,11 @@ func (uc *UseCase) GetByContentID(ctx context.Context, ContentID uint64) ([]doma
 	if err != nil {
 		return nil, err
 	}
-	personIDToIdx := make(map[uint64]int, len(persons))
-	for idx, person := range persons {
-		personIDToIdx[person.ID] = idx
-	}
 	result := make([]domain.PersonRoles, 0, len(persons))
-	for personID, role := range roles {
-		idx := personIDToIdx[personID]
+	for _, person := range persons {
 		result = append(result, domain.PersonRoles{
-			Person: persons[idx],
-			Role:   role,
+			Person: person,
+			Role:   roles[person.ID],
 		})
 	}
 	return result, nil
