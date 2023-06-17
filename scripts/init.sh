@@ -16,7 +16,7 @@ echo  "host filmium user_schema_user 192.168.243.12/24 md5" >> /var/lib/postgres
 echo  "host filmium user_schema_action 192.168.243.13/24 md5" >> /var/lib/postgresql/data/pg_hba.conf
 
 # TYPE 		DATABASE 	USER 					ADDRESS 			METHOD
-# local 	all 		postgres 									md5
+# local	 	all 		postgres 									md5
 # host 		filmium 	user_schema_content 	192.168.243.11/24 	md5
 # host 		filmium 	user_schema_user 		192.168.243.12/24 	md5
 # host 		filmium 	user_schema_action 		192.168.243.13/24 	md5

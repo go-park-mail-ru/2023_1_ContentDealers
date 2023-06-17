@@ -28,7 +28,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./config/postgres:/etc/postgresql
-      - ./log/postgres:/var/lib/postgresql/data/log
+      - ./log/postgres:/var/lib/postgresql/log
     networks:
       net:
         ipv4_address: 192.168.243.20
