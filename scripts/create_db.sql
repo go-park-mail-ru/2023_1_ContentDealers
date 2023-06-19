@@ -87,7 +87,7 @@ create table content_schema.persons (
     age integer
 );
 
--- 3 нормальная форма
+-- 2 нормальная форма (присутствуют функциональная зависимость sum_ratings / count_ratings = rating)
 create table content_schema.content (
     id bigserial primary key,
     title text not null,
