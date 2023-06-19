@@ -188,9 +188,14 @@ create index if not exists episodes__series_id on content_schema.episodes(series
 create index if not exists films__content_id on content_schema.films(content_id);
 create index if not exists series__content_id on content_schema.series(content_id);
 
--- search indexes
+
+-- search indexes for 
+    -- 1. title % 'film name'
+    -- 2. title ilike '%film name%'
 create index if not exists content__title on content_schema.content using gin (title public.gin_trgm_ops);
 create index if not exists persons__name on content_schema.persons using gin (name public.gin_trgm_ops);
+
+create index if not exists episodes__season_num on content_schema.episodes(season_num);
 
 -- triggers and functions
 
