@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 
@@ -151,6 +152,7 @@ func (repo *Repository) GetByGenreOptions(ctx context.Context, options domain.Co
 }
 
 func (repo *Repository) Search(ctx context.Context, query domain.SearchQuery) (domain.SearchContent, error) {
+	fmt.Println("query === ", query.Query)
 	likeQuery := "%" + query.Query + "%"
 	rows, err := repo.DB.QueryContext(ctx,
 		`select s.id, s.title, s.description, s.rating, s.sum_ratings, s.count_ratings,
@@ -159,14 +161,14 @@ func (repo *Repository) Search(ctx context.Context, query domain.SearchQuery) (d
 				(select id, 1 sim, title, description, rating, sum_ratings, count_ratings, year, is_free, age_limit,
 					trailer_url, preview_url, type 
 					from content
-				 	where lower(title) like $1)
+				 	where title ilike $1)
 					
 				union all
 				
-				(select id, SIMILARITY($2, title) sim, title, description, rating, sum_ratings, count_ratings,
+				(select id, public.SIMILARITY($2, title) sim, title, description, rating, sum_ratings, count_ratings,
 					year, is_free, age_limit, trailer_url, preview_url, type 
 					from content
-					where SIMILARITY($2, title) > $3)
+					where public.SIMILARITY($2, title) > $3 and title % $2)
 				) s
 
 				group by s.id, s.title, s.description, s.rating, s.sum_ratings, s.count_ratings, s.year, s.is_free, s.age_limit,
@@ -199,14 +201,14 @@ func (repo *Repository) Search(ctx context.Context, query domain.SearchQuery) (d
 		(select id, 1 sim, title, description, rating, sum_ratings, count_ratings, year, is_free, age_limit,
 		trailer_url, preview_url, type 
 		from content
-		where lower(title) like $1)
+		where title ilike $1)
 								
 		union all
 							
-		(select id, SIMILARITY($2, title) sim, title, description, rating, sum_ratings, count_ratings,
+		(select id, public.SIMILARITY($2, title) sim, title, description, rating, sum_ratings, count_ratings,
 		year, is_free, age_limit, trailer_url, preview_url, type 
 		from content
-		where SIMILARITY($2, title) > $3)
+		where public.SIMILARITY($2, title) > $3 and title % $2)
 		) s
 
 		group by s.id, s.title, s.description, s.rating, s.sum_ratings, s.count_ratings, s.year, s.is_free, s.age_limit,

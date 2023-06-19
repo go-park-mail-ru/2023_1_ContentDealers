@@ -1,18 +1,18 @@
 FROM postgres
 
-RUN echo "hello fff"
-RUN echo "world"
-RUN echo "worlddd"
-
-
+RUN echo "hello"
 
 COPY scripts/* /tmp
-# скачивание скрипта заполнения бд
-RUN apt-get update && apt-get install wget -y
 
+RUN apt-get update && apt-get install wget vim iproute2 net-tools -y
+
+
+RUN chmod +x /tmp/init.sh
 
 RUN wget "https://drive.google.com/u/0/uc?id=1gG5fi8OEA7z9ZwzKho4jrKfmPecUdi9P&export=download" -O /tmp/fill_db.sql 
 
-# объединение скриптов создания и заполнения бд
-# скрипт в директории docker-entrypoint-initdb.d выполнится при запуске контейнера автоматически 
-RUN cat /tmp/create_db.sql /tmp/fill_db.sql > /docker-entrypoint-initdb.d/init.sql
+RUN cat /tmp/create_db.sql /tmp/user.sql /tmp/fill_db.sql > /tmp/all.sql
+
+RUN cat /tmp/init.sh > /docker-entrypoint-initdb.d/init.sh
+
+

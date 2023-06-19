@@ -12,7 +12,8 @@ import (
 const (
 	attemptsPing = 5
 	delayPing    = 3 * time.Second
-	maxOpenConns = 10
+	maxOpenConns = 100
+	maxIdleConns = 10
 )
 
 func pingDB(db *sql.DB, delay time.Duration, attempts int) error {
@@ -48,5 +49,6 @@ func NewClientPostgres(cfg StorageConfig) (*sql.DB, error) {
 		return nil, err
 	}
 	db.SetMaxOpenConns(maxOpenConns)
+	db.SetMaxIdleConns(maxIdleConns)
 	return db, nil
 }

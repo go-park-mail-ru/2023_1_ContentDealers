@@ -1,55 +1,33 @@
-drop table if exists user_schema.users cascade;
+drop schema if exists user_schema cascade;
+drop schema if exists content_schema cascade;
+drop schema if exists user_action_schema cascade;
 
-drop table if exists filmium.roles cascade;
-drop table if exists filmium.persons cascade;
-drop table if exists filmium.content_roles_persons cascade;
-drop table if exists filmium.content cascade;
-drop table if exists filmium.films cascade;
-drop table if exists filmium.countries cascade;
-drop table if exists filmium.genres cascade;
-drop table if exists filmium.content_countries cascade;
-drop table if exists filmium.content_genres cascade;
-drop table if exists filmium.series cascade;
-drop table if exists filmium.episodes cascade;
-drop table if exists filmium.selections cascade;
-drop table if exists filmium.content_selections cascade;
+-- namespace, gender
 
-drop table if exists user_action_shema.users_content_favorites cascade;
-drop table if exists user_action_shema.users_persons_favorites cascade;
-drop table if exists user_action_shema.ratings cascade;
-
--- namespace, gender, function set_timestamp
-
-create schema if not exists filmium;
+create schema if not exists content_schema;
 create schema if not exists user_schema;
-create schema if not exists user_action_shema;
-set search_path=filmium;
+create schema if not exists user_action_schema;
 
 create extension if not exists pg_trgm;
+
+set search_path = 'content_schema';
 
 drop domain if exists gender cascade;
 create domain gender char(1)
     check (value IN ('F', 'M'));
 
-drop type if exists filmium.content_type cascade;
+drop type if exists content_schema.content_type cascade;
 create type content_type as enum (
     'film',
     'series'
 );
 
-create or replace function set_timestamp()
-returns trigger as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$ language plpgsql;
-
 -- tables
 
+-- 3 нормальная форма
 create table user_schema.users (
     id bigserial primary key,
-    email text not null unique,
+    email text not null unique, -- пользователя идентифицируем по email
     password_hash text not null,
     avatar_url text not null default 'media/avatars/default_avatar.jpg',
     sub_expiration date not null default date('1970-01-01'),
@@ -57,21 +35,24 @@ create table user_schema.users (
     updated_at timestamp not null default now()
 );
 
-create table user_action_shema.users_content_favorites (
+-- 3 нормальная форма
+create table user_action_schema.users_content_favorites (
     user_id bigint not null,
     content_id bigint not null,
     created_at timestamp not null default now(),
     primary key (user_id, content_id)
 );
 
-create table user_action_shema.users_persons_favorites (
+-- 3 нормальная форма
+create table user_action_schema.users_persons_favorites (
     user_id bigint not null,
     person_id bigint not null,
     created_at timestamp not null default now(),
     primary key (user_id, person_id)
 );
 
-create table user_action_shema.ratings (
+-- 3 нормальная форма
+create table user_action_schema.ratings (
     user_id bigint not null,
     content_id bigint not null,
     rating numeric(4, 2),
@@ -79,7 +60,8 @@ create table user_action_shema.ratings (
     primary key (user_id, content_id)
 );
 
-create table user_action_shema.history_views (
+-- 3 нормальная форма
+create table user_action_schema.history_views (
     user_id bigint not null,
     content_id bigint not null,
     stop_view bigint not null,
@@ -88,22 +70,25 @@ create table user_action_shema.history_views (
     primary key (user_id, content_id)
 );
 
-create table roles (
+-- 3 нормальная форма
+create table content_schema.roles (
     id bigserial primary key,
-    title text unique not null
+    title text unique not null -- Одна запись - одна роль
 );
 
-create table persons (
+-- 3 нормальная форма
+create table content_schema.persons (
     id bigserial primary key,
     name text not null,
-    gender filmium.gender not null,
+    gender content_schema.gender not null,
     growth integer,
     birthplace text,
     avatar_url text not null default 'media/avatars/default_avatar.jpg',
     age integer
 );
 
-create table content (
+-- 2 нормальная форма (присутствуют функциональная зависимость sum_ratings / count_ratings = rating)
+create table content_schema.content (
     id bigserial primary key,
     title text not null,
     description text not null,
@@ -119,58 +104,68 @@ create table content (
     count_ratings bigint not null default 0
 );
 
-create table films (
+-- 3 нормальная форма
+create table content_schema.films (
     id bigserial primary key,
     content_id bigint not null references content(id) on delete cascade,
     content_url text not null
 );
 
-create table selections (
+-- 3 нормальная форма
+create table content_schema.selections (
     id bigserial primary key,
     title text not null
 );
 
-create table content_selections (
+-- 3 нормальная форма
+create table content_schema.content_selections (
     content_id bigint references content(id) on delete cascade,
     selection_id bigint references selections(id) on delete cascade,
     primary key (content_id, selection_id)
 );
 
-create table content_roles_persons (
+-- 3 нормальная форма
+create table content_schema.content_roles_persons (
     role_id bigint references roles(id) on delete cascade,
     person_id bigint references persons(id) on delete cascade,
     content_id bigint references content(id) on delete cascade,
     primary key (role_id, person_id, content_id)
 );
 
-create table countries (
+-- 3 нормальная форма
+create table content_schema.countries (
     id bigserial primary key,
     name text not null
 );
 
-create table genres (
+-- 3 нормальная форма
+create table content_schema.genres (
     id bigserial primary key,
     name text not null
 );
 
-create table content_countries (
+-- 3 нормальная форма
+create table content_schema.content_countries (
     content_id bigint references content(id) on delete cascade,
     country_id bigint references countries(id) on delete cascade,
     primary key (content_id, country_id)
 );
 
-create table content_genres (
+-- 3 нормальная форма
+create table content_schema.content_genres (
     content_id bigint references content(id) on delete cascade,
     genre_id bigint references genres(id) on delete cascade,
     primary key (content_id, genre_id)
 );
 
-create table series (
+-- 3 нормальная форма
+create table content_schema.series (
     id bigserial primary key,
     content_id bigint not null references content(id) on delete cascade
 );
 
-create table episodes (
+-- 3 нормальная форма
+create table content_schema.episodes (
     id bigserial primary key,
     series_id bigint not null references series(id) on delete cascade,
     preview_url text default 'previews_episodes/default_preview.jpg',
@@ -181,13 +176,45 @@ create table episodes (
     title text 
 );
 
--- trigger
+-- indexes
+
+-- foreign key indexes
+create index if not exists content_countries__country_id on content_schema.content_countries(country_id);
+create index if not exists content_genres__genre_id on content_schema.content_genres(genre_id);
+create index if not exists content_roles_persons__content_id on content_schema.content_roles_persons(content_id);
+create index if not exists content_roles_persons__person_id on content_schema.content_roles_persons(person_id);
+create index if not exists content_selections__selection_id on content_schema.content_selections(selection_id);
+create index if not exists episodes__series_id on content_schema.episodes(series_id);
+create index if not exists films__content_id on content_schema.films(content_id);
+create index if not exists series__content_id on content_schema.series(content_id);
+
+
+-- search indexes for 
+    -- 1. title % 'film name'
+    -- 2. title ilike '%film name%'
+create index if not exists content__title on content_schema.content using gin (title public.gin_trgm_ops);
+create index if not exists persons__name on content_schema.persons using gin (name public.gin_trgm_ops);
+
+create index if not exists episodes__season_num on content_schema.episodes(season_num);
+
+-- triggers and functions
+
+create or replace function user_schema.set_timestamp()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
 create trigger set_timestamp_users
 before update on user_schema.users
 for each row
-execute procedure set_timestamp();
+execute procedure user_schema.set_timestamp();
 
-create or replace function update_rating()
+
+
+create or replace function content_schema.update_rating()
 returns trigger as $$
 begin
     new.rating = new.sum_ratings / new.count_ratings;
@@ -196,8 +223,6 @@ end;
 $$ language plpgsql;
 
 create trigger update_rating_trigger
-before update of sum_ratings, count_ratings on filmium.content
+before update of sum_ratings, count_ratings on content_schema.content
 for each row
-execute function update_rating();
-
-
+execute function content_schema.update_rating();

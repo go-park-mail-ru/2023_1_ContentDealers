@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	// addr  = "http://172.27.195.147:8080"
-	addr  = "http://89.208.199.170:8100/api"
-	ms    = 300
+	addr = "http://172.27.195.147:8080"
+	// addr  = "http://89.208.199.170:8100/api"
+	ms    = 10
 	paths = map[string]string{
 		"/selections":            "GET",
 		"/selections/1":          "GET",
@@ -30,7 +30,7 @@ var (
 	}
 )
 
-func load() {
+func main() {
 	rand.Seed(time.Now().UnixNano())
 	for {
 		pathsSlice := make([]string, 0, len(paths))

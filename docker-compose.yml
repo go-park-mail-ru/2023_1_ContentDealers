@@ -12,16 +12,23 @@ services:
       dockerfile: postgres-dockerfile
     restart: always
     environment: 
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      - PGDATA=/var/lib/postgresql/data
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}  # from .env
     logging:
       options:
         max-size: 10m
         max-file: "3"
-    # command: ["postgres", "-c", "log_statement=all"]
+    command:
+      - "postgres"
+      - "-c"
+      - "log_statement=all"
+      - "-c"
+      - 'config_file=/etc/postgresql/postgresql.conf'
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./config/postgres:/etc/postgresql
+      - ./log/postgres:/var/lib/postgresql/log
     networks:
       net:
         ipv4_address: 192.168.243.20
@@ -51,7 +58,7 @@ services:
     depends_on:
       - postgres
     environment: 
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_CONTENT}
     volumes:
     - ./build/content:/build/
     - ./log:/log
@@ -72,7 +79,7 @@ services:
     depends_on:
       - postgres
     environment: 
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_USER}
     volumes:
     - ./build/user:/build/
     - ./media:/media/
@@ -93,7 +100,7 @@ services:
     depends_on:
       - postgres
     environment: 
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_ACTION}
     volumes:
     - ./build/user_action:/build/
     - ./log:/log

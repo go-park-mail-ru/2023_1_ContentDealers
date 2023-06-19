@@ -38,12 +38,12 @@ content:
     threshold_similarity: 0.2
   postgres:
     # password from env
-    user: postgres
-    dbname: postgres
+    user: user_schema_content
+    dbname: filmium
     host: postgres
     port: 5432
     sslmode: disable
-    search_path: filmium
+    search_path: content_schema
   logging:
     dir: log
     filename: all.log.json
@@ -55,12 +55,12 @@ favorites:
     port: 80
   postgres:
     # password from env
-    user: postgres
-    dbname: postgres
+    user: user_schema_action
+    dbname: filmium
     host: postgres
     port: 5432
     sslmode: disable
-    search_path: user_action_shema
+    search_path: user_action_schema
   logging:
     dir: log
     filename: all.log.json
@@ -91,8 +91,8 @@ user:
     port: 80
   postgres:
     # password from env
-    user: postgres
-    dbname: postgres
+    user: user_schema_user
+    dbname: filmium
     host: postgres
     port: 5432
     sslmode: disable

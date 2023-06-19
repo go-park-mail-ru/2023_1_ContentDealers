@@ -69,3 +69,11 @@ build_content:
 	go build -o build/content/out content/cmd/main.go
 	cp config.yml build/content
 
+install_pgbadger:
+	git clone https://github.com/darold/pgbadger	
+	cd pgbadger && perl Makefile.PL && make && sudo make install && cd .. && sudo rm -rf pgbadger
+
+gen_pgbadger:
+	pgbadger log/postgres/*.json -O log/pgbadger/ -o `date +'%Y_%m_%d__%H_%M_%S'`.html
+
+
